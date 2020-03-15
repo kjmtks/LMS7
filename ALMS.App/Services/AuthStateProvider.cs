@@ -9,6 +9,7 @@ using System.Security.Claims;
 using ALMS.App.Models;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Services
 {
@@ -96,20 +97,22 @@ namespace ALMS.App.Services
     public class DatabaseAuthService : IAuthService
     {
         private readonly DatabaseService DB;
+        private readonly IConfiguration Config;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
 
 
-        public DatabaseAuthService(AuthenticationStateProvider authenticationStateProvider, DatabaseService db)
+        public DatabaseAuthService(AuthenticationStateProvider authenticationStateProvider, DatabaseService db, IConfiguration config)
         {
             _authenticationStateProvider = authenticationStateProvider;
             DB = db;
+            Config = config;
         }
 
         public async Task<LoginResult> LoginAsync(LoginModel loginModel)
         {
             var user = DB.Context.Users.Where(u => u.Account == loginModel.Account).FirstOrDefault();
 
-            if(user != null && user.Authenticate(loginModel.Password))
+            if(user != null && user.Authenticate(loginModel.Password, Config))
             {
                 var token = Guid.NewGuid().ToString("N").Substring(0, 16);
                 var res = new LoginResult()

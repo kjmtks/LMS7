@@ -9,6 +9,7 @@ using ALMS.App.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Controllers
 {
@@ -16,9 +17,11 @@ namespace ALMS.App.Controllers
     public abstract class BasicAuthenticatableController : ControllerBase
     {
         protected DatabaseService DB { get; set; }
-        public BasicAuthenticatableController(DatabaseService db)
+        protected IConfiguration Config { get; set; }
+        public BasicAuthenticatableController(DatabaseService db, IConfiguration config)
         {
             this.DB = db;
+            this.Config = config;
         }
 
         protected IActionResult BasicAuthFiltered(Func<User, bool> auth, Func<User, IActionResult> callback)
@@ -52,7 +55,7 @@ namespace ALMS.App.Controllers
         {
             var user = DB.Context.Users.Where(x => x.Account == account).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
             if (user == null) return (false, null);
-            return (user.Authenticate(password), user);
+            return (user.Authenticate(password, Config), user);
         }
     }
 }

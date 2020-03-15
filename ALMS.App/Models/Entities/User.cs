@@ -66,7 +66,7 @@ namespace ALMS.App.Models.Entities
         {
             CreateDirectory(context, config);
 
-            EncryptedPassword = Encrypt(Password);
+            EncryptedPassword = Encrypt(Password, config);
 
             context.Add(this);
         }
@@ -81,7 +81,7 @@ namespace ALMS.App.Models.Entities
             }
             else
             {
-                EncryptedPassword = Encrypt(Password);
+                EncryptedPassword = Encrypt(Password, config);
             }
 
             var me = GetEntityForEditOrRemove(context, config);
@@ -151,9 +151,9 @@ namespace ALMS.App.Models.Entities
 
 
 
-        public bool Authenticate(string password)
+        public bool Authenticate(string password, IConfiguration config)
         {
-            return this.EncryptedPassword == Encrypt(password);
+            return this.EncryptedPassword == Encrypt(password, config);
         }
 
         public bool IsTeacher(Lecture lecture)
@@ -165,7 +165,7 @@ namespace ALMS.App.Models.Entities
             return lecture.GetStudents().Select(x => x.Id).Contains(Id);
         }
 
-        public static string Encrypt(string rawPassword)
+        public static string Encrypt(string rawPassword, IConfiguration config)
         {
             using (RijndaelManaged rijndael = new RijndaelManaged())
             {
@@ -174,9 +174,10 @@ namespace ALMS.App.Models.Entities
                 rijndael.Mode = CipherMode.CBC;
                 rijndael.Padding = PaddingMode.PKCS7;
 
-                rijndael.IV = Encoding.UTF8.GetBytes(@"sfdvawh(Yhwoeirg");
-                rijndael.Key = Encoding.UTF8.GetBytes(@"jkdvH09BHvqedahj");
+                var key = config.GetValue<string>("ApplicationKey");
 
+                rijndael.IV = Encoding.UTF8.GetBytes(key.Substring(0, 16));
+                rijndael.Key = Encoding.UTF8.GetBytes(key.Substring(16, 16));
                 ICryptoTransform encryptor = rijndael.CreateEncryptor(rijndael.Key, rijndael.IV);
 
                 byte[] encrypted;

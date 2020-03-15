@@ -9,6 +9,7 @@ using ALMS.App.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Controllers
 {
@@ -16,7 +17,7 @@ namespace ALMS.App.Controllers
     [ApiController]
     public class GitController : BasicAuthenticatableController
     {
-        public GitController(DatabaseService db) : base(db)
+        public GitController(DatabaseService db, IConfiguration config) : base(db, config)
         { }
 
         [HttpGet("/api/git/lecture/{user_account}/{lecture_name}.contents.git/info/refs")]
