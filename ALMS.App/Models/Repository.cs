@@ -88,7 +88,7 @@ namespace ALMS.App.Models
     }
 
 
-    public abstract class ClonedRepositoryBase<ME, SHARED, PAIR, ENTITY> : 
+    public abstract class ClonedRepositoryBase<ME, SHARED, PAIR, ENTITY> :
         RepositoryBase<ENTITY, PAIR, SHARED, ME>, IEntityClonedRepository<ME, SHARED, PAIR, ENTITY>
         where ENTITY : IRepositoriesMountedEntity<ENTITY, PAIR, SHARED, ME>
         where PAIR : IEntityRepositoryPair<PAIR, SHARED, ME, ENTITY>
@@ -144,13 +144,22 @@ namespace ALMS.App.Models
         {
             return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute("branch --format=\"%(refname:short)\"")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
         }
+        public IEnumerable<string> ReadFileList(string path, string branch = "master")
+        {
+            if (!string.IsNullOrWhiteSpace(path)) path = $"-- \"{path}\"";
+            return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"ls-tree --full-tree -r --name-only \"{branch}\" {path}")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
+        }
 
         public CommitInfo ReadCommitInfo(string path, string branch = "master")
         {
-            var message = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%s\" \"{branch}\" -- \"{path}\"")).Trim();
-            var authorName = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%an\" \"{branch}\" -- \"{path}\"")).Trim();
-            var authorEmail = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%ae\" \"{branch}\" -- \"{path}\"")).Trim();
-            var datestring = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%ad\" \"{branch}\" -- \"{path}\"")).Trim();
+            if (!string.IsNullOrWhiteSpace(path)) path = $"-- \"{path}\"";
+            var (data, code) = SharedRepository.ExecuteWithExitCode($"log -1 --pretty=\"%s\" \"{branch}\" {path}");
+            if (code != 0) return null;
+            var message = System.Text.Encoding.UTF8.GetString(data).Trim();
+            var hashes = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%H %h\" \"{branch}\" -- {path}")).Trim().Split(" ");
+            var authorName = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%an\" \"{branch}\" -- {path}")).Trim();
+            var authorEmail = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%ae\" \"{branch}\" -- {path}")).Trim();
+            var datestring = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%ad\" \"{branch}\" -- {path}")).Trim();
             DateTime date;
             DateTime.TryParseExact(datestring,
                 "ddd MMM d HH:mm:ss yyyy K",
@@ -159,6 +168,8 @@ namespace ALMS.App.Models
             return new CommitInfo()
             {
                 Message = message,
+                Hash = hashes[0],
+                ShortHash = hashes[1],
                 AuthorName = authorName,
                 AuthorEmail = authorEmail,
                 Date = date
@@ -169,7 +180,8 @@ namespace ALMS.App.Models
         {
             var (data, code) = SharedRepository.ExecuteWithExitCode($"show \"{branch}\":\"{path}\"");
             if (code != 0) throw new FileNotFoundException($"File not found `{branch}:{path}'");
-            var log = SharedRepository.Execute($"log -1 --pretty=\"\" \"{branch}\" --numstat \"{path}\"");
+            if (!string.IsNullOrWhiteSpace(path)) path = $"-- \"{path}\"";
+            var log = SharedRepository.Execute($"log -1 --pretty=\"\" \"{branch}\" --numstat {path}");
             using (var r = new StreamReader(new MemoryStream(log)))
             {
                 if (r.ReadLine()[0] == '-')

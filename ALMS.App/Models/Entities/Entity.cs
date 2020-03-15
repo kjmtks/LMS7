@@ -121,6 +121,7 @@ namespace ALMS.App.Models.Entities
 
 
         public (MemoryStream, FileType) ReadFile(string path, string branch = "master");
+        public IEnumerable<string> ReadFileList(string path, string branch = "master");
         public MemoryStream ReadFileWithoutTypeCheck(string path, string branch = "master");
         public CommitInfo ReadCommitInfo(string path = ".", string branch = "master");
         public IEnumerable<string> GetBranches();

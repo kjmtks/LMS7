@@ -27,7 +27,7 @@ namespace ALMS.App.Controllers
             if (lecture == null) return new NotFoundResult();
             return BasicAuthFiltered(user => true, user =>
             {
-                return info_refs(lecture.LectureContentsRepositoryPair.SharedRepository, service, user);
+                return info_refs(lecture.LectureContentsRepositoryPair, service, user);
             });
         }
         [HttpGet("/api/git/lecture/{user_account}/{lecture_name}.submissions.git/info/refs")]
@@ -37,7 +37,7 @@ namespace ALMS.App.Controllers
             if (lecture == null) return new NotFoundResult();
             return BasicAuthFiltered(user => true, user =>
             {
-                return info_refs(lecture.LectureSubmissionsRepositoryPair.SharedRepository, service, user);
+                return info_refs(lecture.LectureSubmissionsRepositoryPair, service, user);
             });
         }
 
@@ -49,7 +49,7 @@ namespace ALMS.App.Controllers
             if (lecture == null) return new NotFoundResult();
             return BasicAuthFiltered(user => true, async user =>
             {
-                return await git_upload_pack(lecture.LectureContentsRepositoryPair.SharedRepository, user);
+                return await git_upload_pack(lecture.LectureContentsRepositoryPair, user);
             });
         }
         [HttpPost("/api/git/lecture/{user_account}/{lecture_name}.submissions.git/git-upload-pack")]
@@ -60,7 +60,7 @@ namespace ALMS.App.Controllers
             if (lecture == null) return new NotFoundResult();
             return BasicAuthFiltered(user => true, async user =>
             {
-                return await git_upload_pack(lecture.LectureSubmissionsRepositoryPair.SharedRepository, user);
+                return await git_upload_pack(lecture.LectureSubmissionsRepositoryPair, user);
             });
         }
 
@@ -98,7 +98,7 @@ namespace ALMS.App.Controllers
             if (lectureUser == null) return new NotFoundResult();
             return BasicAuthFiltered(user => true, user =>
             {
-                return info_refs(lectureUser.RepositoryPair.SharedRepository, service, user);
+                return info_refs(lectureUser.RepositoryPair, service, user);
             });
         }
         [HttpPost("/api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/git-upload-pack")]
@@ -111,7 +111,7 @@ namespace ALMS.App.Controllers
             if (lectureUser == null) return new NotFoundResult();
             return BasicAuthFiltered(user => true, async user =>
             {
-                return await git_upload_pack(lectureUser.RepositoryPair.SharedRepository, user);
+                return await git_upload_pack(lectureUser.RepositoryPair, user);
             });
         }
         [HttpPost("/api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/git-receive-pack")]
@@ -135,54 +135,54 @@ namespace ALMS.App.Controllers
 
 
 
-        private IActionResult info_refs(ISharedRepository repository, string service, User user)
+        private IActionResult info_refs(IRepositoryPair pair, string service, User user)
         {
-            if (repository is IApiedRepository repos)
+            if (pair is IApiedRepository repos)
             {
                 if(service == "git-upload-pack")
                 {
                     if(repos.CanPull(user))
                     {
-                        return Content(repository.Pack(PackService.GitUploadPack), "application/x-git-upload-pack-advertisement");
+                        return Content(pair.SharedRepository.Pack(PackService.GitUploadPack), "application/x-git-upload-pack-advertisement");
                     }
                     else
                     {
-                        return new ForbidResult();
+                        return new UnauthorizedResult();
                     }
                 }
                 if (service == "git-receive-pack")
                 {
                     if (repos.CanPush(user))
                     {
-                        return Content(repository.Pack(PackService.GitReceivePack), "application/x-git-receive-pack-advertisement");
+                        return Content(pair.SharedRepository.Pack(PackService.GitReceivePack), "application/x-git-receive-pack-advertisement");
                     }
                     else
                     {
-                        return new ForbidResult();
+                        return new UnauthorizedResult();
                     }
                 }
             }
             throw new ArgumentException($"Invalid service was requested: `{service}'");
         }
 
-        private async Task<IActionResult> git_upload_pack(ISharedRepository repository, User user)
+        private async Task<IActionResult> git_upload_pack(IRepositoryPair pair, User user)
         {
-            if (repository is IApiedRepository repos && repos.CanPull(user))
+            if (pair is IApiedRepository repos && repos.CanPull(user))
             {
-                return File(await repository.Pack(PackService.GitUploadPack, Request.Body), "application/x-git-upload-pack-result");
+                return File(await pair.SharedRepository.Pack(PackService.GitUploadPack, Request.Body), "application/x-git-upload-pack-result");
             }
-            return new ForbidResult();
+            return new UnauthorizedResult();
         }
 
         private async Task<IActionResult> git_receive_pack(IRepositoryPair pair, User user)
         {
-            if (pair.SharedRepository is IApiedRepository repos && repos.CanPush(user))
+            if (pair is IApiedRepository repos && repos.CanPush(user))
             {
                 var result = await pair.SharedRepository.Pack(PackService.GitReceivePack, Request.Body);
                 pair.ClonedRepository.Synchronize();
                 return File(result, "application/x-git-receive-pack-result");
             }
-            return new ForbidResult();
+            return new UnauthorizedResult();
 
         }
     }
