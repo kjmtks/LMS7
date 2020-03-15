@@ -7,6 +7,7 @@ using ALMS.App.Models.Entities;
 using ALMS.App.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 
 namespace ALMS.App.Components.Admin
@@ -23,6 +24,7 @@ namespace ALMS.App.Components.Admin
         [Inject] protected IJSRuntime JS { get; set; }
         [Inject] protected DatabaseService DB { get; set; }
         [Inject] protected NotifierService Notifier { get; set; }
+        [Inject] protected IConfiguration Config { get; set; }
 
         [Parameter]
         public IEnumerable<T> Collection { get; set; }
@@ -67,7 +69,7 @@ namespace ALMS.App.Components.Admin
             }
             EdittingModel = new T();
             SetSomeParameterToModel(EdittingModel);
-            EdittingModel.PrepareModelForAddNew(DB.Context);
+            EdittingModel.PrepareModelForAddNew(DB.Context, Config);
             Mode = EditMode.CreateNew;
             ResetEdittingModel();
             await OpenEditDialog();
@@ -82,7 +84,7 @@ namespace ALMS.App.Components.Admin
                 return;
             }
             BeforeModel = beforeModel;
-            EdittingModel = beforeModel.GetEntityForEditOrRemove(DB.Context);
+            EdittingModel = beforeModel.GetEntityForEditOrRemove(DB.Context, Config);
             if (EdittingModel == null)
             {
                 ErrorSubject = "Error";
@@ -90,7 +92,7 @@ namespace ALMS.App.Components.Admin
                 return;
             }
             SetSomeParameterToModel(EdittingModel);
-            EdittingModel.PrepareModelForEdit(DB.Context, beforeModel);
+            EdittingModel.PrepareModelForEdit(DB.Context, Config, beforeModel);
             Mode = EditMode.Edit;
             ResetEdittingModel(EdittingModel);
             await OpenEditDialog();
@@ -105,7 +107,7 @@ namespace ALMS.App.Components.Admin
                 return;
             }
             if (model == null) { return; }
-            var m = model.GetEntityForEditOrRemove(DB.Context);
+            var m = model.GetEntityForEditOrRemove(DB.Context, Config);
             if (m == null)
             {
                 ErrorSubject = "Error";
@@ -114,7 +116,7 @@ namespace ALMS.App.Components.Admin
             }
             try
             {
-                m.Remove(DB.Context);
+                m.Remove(DB.Context, Config);
             }
             catch(Exception e)
             {
@@ -146,7 +148,7 @@ namespace ALMS.App.Components.Admin
                 {
                     try
                     {
-                        EdittingModel.CreateNew(DB.Context);
+                        EdittingModel.CreateNew(DB.Context, Config);
                     }
                     catch (Exception e)
                     {
@@ -159,10 +161,10 @@ namespace ALMS.App.Components.Admin
                 }
                 if (Mode == EditMode.Edit)
                 {
-                    var previous = EdittingModel.GetEntityAsNoTracking(DB.Context);
+                    var previous = EdittingModel.GetEntityAsNoTracking(DB.Context, Config);
                     try
                     {
-                        EdittingModel.Update(DB.Context, previous);
+                        EdittingModel.Update(DB.Context, Config, previous);
                     }
                     catch (Exception e)
                     {
@@ -196,8 +198,8 @@ namespace ALMS.App.Components.Admin
         {
             var v1 = EditContext.Validate();
             var v2 = Mode == EditMode.CreateNew
-                ? EdittingModel.ServerSideValidationOnCreate(DB.Context, AddValidationError)
-                : EdittingModel.ServerSideValidationOnUpdate(DB.Context, AddValidationError);
+                ? EdittingModel.ServerSideValidationOnCreate(DB.Context, Config, AddValidationError)
+                : EdittingModel.ServerSideValidationOnUpdate(DB.Context, Config, AddValidationError);
             if (v1 && v2)
             {
                 await OnValidAsync(EditContext);

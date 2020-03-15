@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -44,27 +45,27 @@ namespace ALMS.App.Models.Entities
 
         public IEntityRepositoryPair<LectureUserHomeRepositoryPair, LectureUserHomeSharedRepository, LectureUserHomeClonedRepository, LectureUser> RepositoryPair => LectureUserHomeRepositoryPair;
 
-        public void CreateDirectory(DatabaseContext context)
+        public void CreateDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             dir.Create();
         }
-        public void UpdateDirectory(DatabaseContext context, LectureUser previous)
+        public void UpdateDirectory(DatabaseContext context, IConfiguration config, LectureUser previous)
         {
             if (previous.User.Account != User.Account || previous.Lecture.Name != Lecture.Name)
             {
                 Directory.Move(previous.DirectoryPath, DirectoryPath);
             }
         }
-        public void RemoveDirectory(DatabaseContext context)
+        public void RemoveDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
 
-        public void CreateNew(DatabaseContext context)
+        public void CreateNew(DatabaseContext context, IConfiguration config)
         {
-            CreateDirectory(context);
+            CreateDirectory(context, config);
 
             // Create repositories
             LectureUserHomeRepositoryPair.Create();
@@ -77,9 +78,9 @@ namespace ALMS.App.Models.Entities
 
             context.Add(this);
         }
-        public void Update(DatabaseContext context, LectureUser previous)
+        public void Update(DatabaseContext context, IConfiguration config, LectureUser previous)
         {
-            UpdateDirectory(context, previous);
+            UpdateDirectory(context, config, previous);
 
             // reset repositories
             if (previous.User.Account != User.Account || previous.Lecture.Name != Lecture.Name)
@@ -89,13 +90,13 @@ namespace ALMS.App.Models.Entities
 
             context.Update(this);
         }
-        public void Remove(DatabaseContext context)
+        public void Remove(DatabaseContext context, IConfiguration config)
         {
-            RemoveDirectory(context);
+            RemoveDirectory(context, config);
             context.Remove(this);
         }
 
-        public void UpdateParent(DatabaseContext context, User successor, User previous)
+        public void UpdateParent(DatabaseContext context, IConfiguration config, User successor, User previous)
         {
             if (previous.Account != User.Account)
             {
@@ -103,7 +104,7 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public void UpdateParent(DatabaseContext context, Lecture successor, Lecture previous)
+        public void UpdateParent(DatabaseContext context, IConfiguration config, Lecture successor, Lecture previous)
         {
             if (previous.Name != Lecture.Name)
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,9 +12,9 @@ namespace ALMS.App.Models.Entities
     public interface IEntity<ME>
         where ME : IEntity<ME>
     {
-        public void CreateNew(DatabaseContext context);
-        public void Update(DatabaseContext context, ME previous);
-        public void Remove(DatabaseContext context);
+        public void CreateNew(DatabaseContext context, IConfiguration config);
+        public void Update(DatabaseContext context, IConfiguration config, ME previous);
+        public void Remove(DatabaseContext context, IConfiguration config);
     }
 
     public interface IChildEntity<ME, PARENT> : IEntity<ME>
@@ -21,28 +22,28 @@ namespace ALMS.App.Models.Entities
         where PARENT : IEntity<PARENT>
     {
         public PARENT Parent { get; set; }
-        public void UpdateParent(DatabaseContext context, PARENT successor, PARENT previous);
+        public void UpdateParent(DatabaseContext context, IConfiguration config, PARENT successor, PARENT previous);
     }
 
     public interface IEditableEntity<ME> : IEntity<ME>
         where ME : IEditableEntity<ME>
     {
-        public void PrepareModelForAddNew(DatabaseContext context);
-        public void PrepareModelForEdit(DatabaseContext context, ME original);
-        public ME GetEntityForEditOrRemove(DatabaseContext context);
-        public ME GetEntityAsNoTracking(DatabaseContext context);
+        public void PrepareModelForAddNew(DatabaseContext context, IConfiguration config);
+        public void PrepareModelForEdit(DatabaseContext context, IConfiguration config, ME original);
+        public ME GetEntityForEditOrRemove(DatabaseContext context, IConfiguration config);
+        public ME GetEntityAsNoTracking(DatabaseContext context, IConfiguration config);
         
-        public bool ServerSideValidationOnCreate(DatabaseContext context, Action<string, string> AddValidationError);
-        public bool ServerSideValidationOnUpdate(DatabaseContext context, Action<string, string> AddValidationError);
+        public bool ServerSideValidationOnCreate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError);
+        public bool ServerSideValidationOnUpdate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError);
     }
 
     public interface IDirectoryMountedEntity<ME> : IEntity<ME>
         where ME : IDirectoryMountedEntity<ME>
     {
         public string DirectoryPath { get; }
-        public void CreateDirectory(DatabaseContext context);
-        public void UpdateDirectory(DatabaseContext context, ME previous);
-        public void RemoveDirectory(DatabaseContext context);
+        public void CreateDirectory(DatabaseContext context, IConfiguration config);
+        public void UpdateDirectory(DatabaseContext context, IConfiguration config, ME previous);
+        public void RemoveDirectory(DatabaseContext context, IConfiguration config);
     }
 
 

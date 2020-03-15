@@ -9,7 +9,7 @@ using System.Text;
 using System.IO;
 using ALMS.App.Components.Admin;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models.Entities
 {
@@ -42,13 +42,13 @@ namespace ALMS.App.Models.Entities
 
         public string DirectoryPath => $"/data/users/{Account}";
 
-        public void CreateDirectory(DatabaseContext context)
+        public void CreateDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             dir.Create();
         }
 
-        public void UpdateDirectory(DatabaseContext context, User previous)
+        public void UpdateDirectory(DatabaseContext context, IConfiguration config, User previous)
         {
             if (previous.Account != Account)
             {
@@ -56,24 +56,24 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public void RemoveDirectory(DatabaseContext context)
+        public void RemoveDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
 
-        public void CreateNew(DatabaseContext context)
+        public void CreateNew(DatabaseContext context, IConfiguration config)
         {
-            CreateDirectory(context);
+            CreateDirectory(context, config);
 
             EncryptedPassword = Encrypt(Password);
 
             context.Add(this);
         }
 
-        public void Update(DatabaseContext context, User previous)
+        public void Update(DatabaseContext context, IConfiguration config, User previous)
         {
-            UpdateDirectory(context, previous);
+            UpdateDirectory(context, config, previous);
 
             if (string.IsNullOrEmpty(this.Password))
             {
@@ -84,43 +84,43 @@ namespace ALMS.App.Models.Entities
                 EncryptedPassword = Encrypt(Password);
             }
 
-            var me = GetEntityForEditOrRemove(context);
+            var me = GetEntityForEditOrRemove(context, config);
             foreach (var x in me.LectureUsers)
             {
-                x.UpdateParent(context, this, previous);
+                x.UpdateParent(context, config, this, previous);
             }
             foreach (var x in me.Lectures)
             {
-                x.UpdateParent(context, this, previous);
+                x.UpdateParent(context, config, this, previous);
             }
             foreach (var x in me.Sandboxes)
             {
-                x.UpdateParent(context, this, previous);
+                x.UpdateParent(context, config, this, previous);
             }
             context.Update(this);
         }
 
-        public void Remove(DatabaseContext context)
+        public void Remove(DatabaseContext context, IConfiguration config)
         {
 
-            var me = GetEntityForEditOrRemove(context);
+            var me = GetEntityForEditOrRemove(context, config);
             foreach (var x in me.LectureUsers)
             {
-                x.Remove(context);
+                x.Remove(context, config);
             }
             foreach (var x in me.Lectures)
             {
-                x.Remove(context);
+                x.Remove(context, config);
             }
             foreach (var x in me.Sandboxes)
             {
-                x.Remove(context);
+                x.Remove(context, config);
             }
-            RemoveDirectory(context);
+            RemoveDirectory(context, config);
             context.Remove(this);
         }
 
-        public bool ServerSideValidationOnCreate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnCreate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.Users.Where(u => u.Account == Account).FirstOrDefault();
@@ -136,7 +136,7 @@ namespace ALMS.App.Models.Entities
             }
             return result;
         }
-        public bool ServerSideValidationOnUpdate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnUpdate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.Users.Where(u => u.Account == Account).FirstOrDefault();
@@ -195,12 +195,12 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public void PrepareModelForAddNew(DatabaseContext context) { }
+        public void PrepareModelForAddNew(DatabaseContext context, IConfiguration config) { }
 
-        public void PrepareModelForEdit(DatabaseContext context, User original) { }
+        public void PrepareModelForEdit(DatabaseContext context, IConfiguration config, User original) { }
 
-        public User GetEntityForEditOrRemove(DatabaseContext context) => context.Users.Where(x => x.Id == Id).Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
-        public User GetEntityAsNoTracking(DatabaseContext context) => context.Users.Where(x => x.Id == Id).Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).AsNoTracking().FirstOrDefault();
+        public User GetEntityForEditOrRemove(DatabaseContext context, IConfiguration config) => context.Users.Where(x => x.Id == Id).Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+        public User GetEntityAsNoTracking(DatabaseContext context, IConfiguration config) => context.Users.Where(x => x.Id == Id).Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).AsNoTracking().FirstOrDefault();
 
     }
 

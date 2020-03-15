@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using ALMS.App.Models.Entities;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models
 {
@@ -23,11 +24,11 @@ namespace ALMS.App.Models
 
         public abstract string DirectoryPath { get; }
 
-        public abstract void CreateNew(DatabaseContext context);
+        public abstract void CreateNew(DatabaseContext context, IConfiguration config);
 
-        public abstract void Update(DatabaseContext context, SANDBOX previous);
+        public abstract void Update(DatabaseContext context, IConfiguration config, SANDBOX previous);
 
-        public abstract void Remove(DatabaseContext context);
+        public abstract void Remove(DatabaseContext context, IConfiguration config);
 
 
         public async Task BuildAsync(string buildCommands,
@@ -97,8 +98,8 @@ namespace ALMS.App.Models
             });
         }
 
-        public abstract void CreateDirectory(DatabaseContext context);
-        public abstract void UpdateDirectory(DatabaseContext context, SANDBOX previous);
-        public abstract void RemoveDirectory(DatabaseContext context);
+        public abstract void CreateDirectory(DatabaseContext context, IConfiguration config);
+        public abstract void UpdateDirectory(DatabaseContext context, IConfiguration config, SANDBOX previous);
+        public abstract void RemoveDirectory(DatabaseContext context, IConfiguration config);
     }
 }

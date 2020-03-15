@@ -9,6 +9,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models.Entities
 {
@@ -35,12 +36,12 @@ namespace ALMS.App.Models.Entities
         [NotMapped]
         public Lecture Parent { get { return Lecture; } set { Lecture = value; } }
 
-        public LectureSandbox GetEntityForEditOrRemove(DatabaseContext context) => context.LectureSandboxes.Where(x => x.Id == Id).Include(x=> x.Lecture).ThenInclude(x => x.Owner).FirstOrDefault();
-        public LectureSandbox GetEntityAsNoTracking(DatabaseContext context) => context.LectureSandboxes.Where(x => x.Id == Id).Include(x => x.Lecture).ThenInclude(x => x.Owner).AsNoTracking().FirstOrDefault();
+        public LectureSandbox GetEntityForEditOrRemove(DatabaseContext context, IConfiguration config) => context.LectureSandboxes.Where(x => x.Id == Id).Include(x=> x.Lecture).ThenInclude(x => x.Owner).FirstOrDefault();
+        public LectureSandbox GetEntityAsNoTracking(DatabaseContext context, IConfiguration config) => context.LectureSandboxes.Where(x => x.Id == Id).Include(x => x.Lecture).ThenInclude(x => x.Owner).AsNoTracking().FirstOrDefault();
         public override string DirectoryPath => $"{Lecture.DirectoryPath}/sandboxes/{Name}";
 
 
-        public override void CreateDirectory(DatabaseContext context)
+        public override void CreateDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
@@ -51,7 +52,7 @@ namespace ALMS.App.Models.Entities
 
 
         }
-        public override void UpdateDirectory(DatabaseContext context, LectureSandbox previous)
+        public override void UpdateDirectory(DatabaseContext context, IConfiguration config, LectureSandbox previous)
         {
             if (previous.Name != Name)
             {
@@ -59,15 +60,15 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public override void RemoveDirectory(DatabaseContext context)
+        public override void RemoveDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
 
-        public override void CreateNew(DatabaseContext context)
+        public override void CreateNew(DatabaseContext context, IConfiguration config)
         {
-            CreateDirectory(context);
+            CreateDirectory(context, config);
 
             context.Add(this);
 
@@ -89,12 +90,12 @@ namespace ALMS.App.Models.Entities
             SetUsers();
 
         }
-        public override void Update(DatabaseContext context, LectureSandbox previous)
+        public override void Update(DatabaseContext context, IConfiguration config, LectureSandbox previous)
         {
-            UpdateDirectory(context, previous);
+            UpdateDirectory(context, config, previous);
             context.Update(this);
         }
-        public override void Remove(DatabaseContext context)
+        public override void Remove(DatabaseContext context, IConfiguration config)
         {
             // unmounting
             Console.WriteLine("Unmounting user...");
@@ -120,10 +121,10 @@ namespace ALMS.App.Models.Entities
                 System.Diagnostics.Process.Start("rm", $"-rf {DirectoryPath}/lecture").WaitForExit();
             }
 
-            RemoveDirectory(context);
+            RemoveDirectory(context, config);
             context.Remove(this);
         }
-        public void UpdateParent(DatabaseContext context, Lecture successor, Lecture previous)
+        public void UpdateParent(DatabaseContext context, IConfiguration config, Lecture successor, Lecture previous)
         {
             var a = string.Join(',', Lecture.LectureUsers.Select(x => x.UserId));
             var b = string.Join(',', previous.LectureUsers.Select(x => x.UserId));
@@ -134,12 +135,12 @@ namespace ALMS.App.Models.Entities
         }
 
 
-        public void PrepareModelForAddNew(DatabaseContext context) { }
+        public void PrepareModelForAddNew(DatabaseContext context, IConfiguration config) { }
 
-        public void PrepareModelForEdit(DatabaseContext context, LectureSandbox original) { }
+        public void PrepareModelForEdit(DatabaseContext context, IConfiguration config, LectureSandbox original) { }
 
 
-        public bool ServerSideValidationOnCreate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnCreate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.LectureSandboxes.Where(u => u.Name == Name && u.LectureId == LectureId).FirstOrDefault();
@@ -150,7 +151,7 @@ namespace ALMS.App.Models.Entities
             }
             return result;
         }
-        public bool ServerSideValidationOnUpdate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnUpdate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.LectureSandboxes.Where(u => u.Name == Name && u.LectureId == LectureId).FirstOrDefault();

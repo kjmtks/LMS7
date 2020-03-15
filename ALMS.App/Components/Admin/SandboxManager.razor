@@ -140,7 +140,7 @@
     {
         CommandLiner.Runnable = false;
 
-        var newsandbox = await Sandbox.CloneSandboxDirectoryAsync(DB.Context, $"S{Guid.NewGuid().ToString("N").Substring(0, 8)}", sandbox, Parent);
+        var newsandbox = await Sandbox.CloneSandboxDirectoryAsync(DB.Context, Config, $"S{Guid.NewGuid().ToString("N").Substring(0, 8)}", sandbox, Parent);
         DB.Context.SaveChanges();
 
         await InvokeAsync(() => StateHasChanged());

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models.Entities
 {
@@ -34,30 +35,30 @@ namespace ALMS.App.Models.Entities
 
         public override string DirectoryPath => $"{Owner.DirectoryPath}/sandboxes/{Name}";
 
-        public Sandbox GetEntityForEditOrRemove(DatabaseContext context) => context.Sandboxes.Where(x => x.Id == Id).Include(x => x.Owner).FirstOrDefault();
-        public Sandbox GetEntityAsNoTracking(DatabaseContext context) => context.Sandboxes.Where(x => x.Id == Id).Include(x => x.Owner).AsNoTracking().FirstOrDefault();
+        public Sandbox GetEntityForEditOrRemove(DatabaseContext context, IConfiguration config) => context.Sandboxes.Where(x => x.Id == Id).Include(x => x.Owner).FirstOrDefault();
+        public Sandbox GetEntityAsNoTracking(DatabaseContext context, IConfiguration config) => context.Sandboxes.Where(x => x.Id == Id).Include(x => x.Owner).AsNoTracking().FirstOrDefault();
 
-        public void PrepareModelForAddNew(DatabaseContext context)
+        public void PrepareModelForAddNew(DatabaseContext context, IConfiguration config)
         {
             SetupCommands = "";
         }
 
-        public void PrepareModelForEdit(DatabaseContext context, Sandbox original)
+        public void PrepareModelForEdit(DatabaseContext context, IConfiguration config, Sandbox original)
         {
             SetupCommands = "";
         }
 
 
-        public void UpdateParent(DatabaseContext context, User successor, User previous) { }
+        public void UpdateParent(DatabaseContext context, IConfiguration config, User successor, User previous) { }
 
 
-        public override void CreateDirectory(DatabaseContext context)
+        public override void CreateDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             dir.Create();
         }
 
-        public override void UpdateDirectory(DatabaseContext context, Sandbox previous)
+        public override void UpdateDirectory(DatabaseContext context, IConfiguration config, Sandbox previous)
         {
             if (previous.Name != Name)
             {
@@ -65,32 +66,32 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public override void RemoveDirectory(DatabaseContext context)
+        public override void RemoveDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
 
-        public override void CreateNew(DatabaseContext context)
+        public override void CreateNew(DatabaseContext context, IConfiguration config)
         {
-            CreateDirectory(context);
+            CreateDirectory(context, config);
             context.Add(this);
         }
 
-        public override void Update(DatabaseContext context, Sandbox previous)
+        public override void Update(DatabaseContext context, IConfiguration config, Sandbox previous)
         {
-            UpdateDirectory(context, previous);
+            UpdateDirectory(context, config, previous);
             context.Update(this);
         }
 
-        public override void Remove(DatabaseContext context)
+        public override void Remove(DatabaseContext context, IConfiguration config)
         {
-            RemoveDirectory(context);
+            RemoveDirectory(context, config);
             context.Remove(this);
         }
 
 
-        public bool ServerSideValidationOnCreate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnCreate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.Sandboxes.Where(u => u.Name == Name && u.OwnerId == OwnerId).FirstOrDefault();
@@ -102,7 +103,7 @@ namespace ALMS.App.Models.Entities
             return result;
         }
 
-        public bool ServerSideValidationOnUpdate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnUpdate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.Sandboxes.Where(u => u.Name == Name && u.OwnerId == OwnerId).FirstOrDefault();
@@ -115,7 +116,7 @@ namespace ALMS.App.Models.Entities
         }
 
 
-        public static async Task<Sandbox> CloneSandboxDirectoryAsync(DatabaseContext context, string name, Sandbox from, User user)
+        public static async Task<Sandbox> CloneSandboxDirectoryAsync(DatabaseContext context, IConfiguration config, string name, Sandbox from, User user)
         {
             var to = new Sandbox()
             {

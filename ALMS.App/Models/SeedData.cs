@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using ALMS.App.Models.Entities;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models
 {
     public class SeedData
     {
-        public static void Initialize(DatabaseContext context)
+        public static void Initialize(DatabaseContext context, IConfiguration config)
         {
             var t = context.Users.AnyAsync();
             t.Wait();
@@ -58,7 +59,7 @@ make install"
                 IsAdmin = true,
                 IsSenior = true,
             };
-            user.CreateNew(context);
+            user.CreateNew(context, config);
 
             for (int i = 0; i < 10; i++)
             {
@@ -70,7 +71,7 @@ make install"
                     DisplayName = $"Test User {num}",
                     EmailAddress = $"test{num}@localhost"
                 };
-                test_user.CreateNew(context);
+                test_user.CreateNew(context, config);
             }
 
             context.SaveChanges();

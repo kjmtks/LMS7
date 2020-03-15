@@ -11,6 +11,7 @@ using System.IO;
 using ALMS.App.Components.Admin;
 using System.ComponentModel;
 using System.Globalization;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models.Entities
 {
@@ -28,28 +29,28 @@ namespace ALMS.App.Models.Entities
         public string SetupCommands { get; set; }
 
 
-        public SandboxTemplate GetEntityForEditOrRemove(DatabaseContext context) => context.SandboxTemplates.Where(x => x.Id == Id).FirstOrDefault();
-        public SandboxTemplate GetEntityAsNoTracking(DatabaseContext context) => context.SandboxTemplates.Where(x => x.Id == Id).AsNoTracking().FirstOrDefault();
+        public SandboxTemplate GetEntityForEditOrRemove(DatabaseContext context, IConfiguration config) => context.SandboxTemplates.Where(x => x.Id == Id).FirstOrDefault();
+        public SandboxTemplate GetEntityAsNoTracking(DatabaseContext context, IConfiguration config) => context.SandboxTemplates.Where(x => x.Id == Id).AsNoTracking().FirstOrDefault();
 
-        public void PrepareModelForAddNew(DatabaseContext context) { }
+        public void PrepareModelForAddNew(DatabaseContext context, IConfiguration config) { }
 
-        public void PrepareModelForEdit(DatabaseContext context, SandboxTemplate original) { }
-        public void CreateNew(DatabaseContext context)
+        public void PrepareModelForEdit(DatabaseContext context, IConfiguration config, SandboxTemplate original) { }
+        public void CreateNew(DatabaseContext context, IConfiguration config)
         {
             context.Add(this);
         }
 
-        public void Update(DatabaseContext context, SandboxTemplate previous)
+        public void Update(DatabaseContext context, IConfiguration config, SandboxTemplate previous)
         {
             context.Update(this);
         }
 
-        public void Remove(DatabaseContext context)
+        public void Remove(DatabaseContext context, IConfiguration config)
         {
             context.Remove(this);
         }
 
-        public bool ServerSideValidationOnCreate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnCreate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.SandboxTemplates.Where(u => u.Name == Name).FirstOrDefault();
@@ -60,7 +61,7 @@ namespace ALMS.App.Models.Entities
             }
             return result;
         }
-        public bool ServerSideValidationOnUpdate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnUpdate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.SandboxTemplates.Where(u => u.Name == Name).FirstOrDefault();

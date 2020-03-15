@@ -12,6 +12,7 @@ using ALMS.App.Components.Admin;
 using System.ComponentModel;
 using System.Globalization;
 using System.Xml.Serialization;
+using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Models.Entities
 {
@@ -75,13 +76,13 @@ namespace ALMS.App.Models.Entities
 
 
 
-        public void CreateDirectory(DatabaseContext context)
+        public void CreateDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             dir.Create();
         }
 
-        public void UpdateDirectory(DatabaseContext context, Lecture previous)
+        public void UpdateDirectory(DatabaseContext context, IConfiguration config, Lecture previous)
         {
             if (previous.Name != Name)
             {
@@ -89,15 +90,15 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public void RemoveDirectory(DatabaseContext context)
+        public void RemoveDirectory(DatabaseContext context, IConfiguration config)
         {
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
 
-        public void CreateNew(DatabaseContext context)
+        public void CreateNew(DatabaseContext context, IConfiguration config)
         {
-            CreateDirectory(context);
+            CreateDirectory(context, config);
 
             // parse teachers and students
             var flts = context.Users.Select(x => x.Account);
@@ -108,14 +109,14 @@ namespace ALMS.App.Models.Entities
                 var user = context.Users.Where(y => y.Account == x).FirstOrDefault();
                 var a = new LectureUser() { Lecture = this, User = user, Role = LectureUserRole.Teacher };
                 LectureUsers.Add(a);
-                a.CreateNew(context);
+                a.CreateNew(context, config);
             }
             foreach (var x in ss.Intersect(flts))
             {
                 var user = context.Users.Where(y => y.Account == x).FirstOrDefault();
                 var a = new LectureUser() { Lecture = this, User = user, Role = LectureUserRole.Student };
                 LectureUsers.Add(a);
-                a.CreateNew(context);
+                a.CreateNew(context, config);
             }
 
             // Create repositories
@@ -154,9 +155,9 @@ namespace ALMS.App.Models.Entities
             context.Add(this);
         }
 
-        public void Update(DatabaseContext context, Lecture previous)
+        public void Update(DatabaseContext context, IConfiguration config, Lecture previous)
         {
-            UpdateDirectory(context, previous);
+            UpdateDirectory(context, config, previous);
 
             // reset repositories
             if(previous.Name != Name)
@@ -177,61 +178,61 @@ namespace ALMS.App.Models.Entities
                 {
                     var a = new LectureUser() { Lecture = this, User = user, Role = LectureUserRole.Teacher };
                     LectureUsers.Add(a);
-                    a.CreateNew(context);
+                    a.CreateNew(context, config);
                 }
                 if (!newTeachers.Contains(user.Account) && teachers.Contains(user.Account))
                 {
                     var a = LectureUsers.Where(x => x.UserId == user.Id && x.LectureId == Id && x.Role == LectureUserRole.Teacher).FirstOrDefault();
                     LectureUsers.Remove(a);
-                    a.Remove(context);
+                    a.Remove(context, config);
                 }
 
                 if (newStudents.Contains(user.Account) && !students.Contains(user.Account))
                 {
                     var a = new LectureUser() { Lecture = this, User = user, Role = LectureUserRole.Student };
                     LectureUsers.Add(a);
-                    a.CreateNew(context);
+                    a.CreateNew(context, config);
                 }
                 if (!newStudents.Contains(user.Account) && students.Contains(user.Account))
                 {
                     var a = LectureUsers.Where(x => x.UserId == user.Id && x.LectureId == Id && x.Role == LectureUserRole.Student).FirstOrDefault();
                     LectureUsers.Remove(a);
-                    a.Remove(context);
+                    a.Remove(context, config);
                 }
             }
 
 
 
-            var me = GetEntityForEditOrRemove(context);
+            var me = GetEntityForEditOrRemove(context, config);
             foreach (var x in me.LectureUsers)
             {
-                x.UpdateParent(context, this, previous);
+                x.UpdateParent(context, config, this, previous);
             }
             foreach (var x in me.Sandboxes)
             {
-                x.UpdateParent(context, this, previous);
+                x.UpdateParent(context, config, this, previous);
             }
 
             context.Update(this);
         }
 
-        public void Remove(DatabaseContext context)
+        public void Remove(DatabaseContext context, IConfiguration config)
         {
-            var me = GetEntityForEditOrRemove(context);
+            var me = GetEntityForEditOrRemove(context, config);
             foreach (var x in me.LectureUsers)
             {
-                x.Remove(context);
+                x.Remove(context, config);
             }
             foreach (var x in me.Sandboxes)
             {
-                x.Remove(context);
+                x.Remove(context, config);
             }
 
-            RemoveDirectory(context);
+            RemoveDirectory(context, config);
             context.Remove(this);
         }
 
-        public void UpdateParent(DatabaseContext context, User successor, User previous)
+        public void UpdateParent(DatabaseContext context, IConfiguration config, User successor, User previous)
         {
             // reset repositories
             if (successor.Account != previous.Account)
@@ -241,13 +242,13 @@ namespace ALMS.App.Models.Entities
 
                 foreach (var x in LectureUsers)
                 {
-                    x.UpdateParent(context, successor, previous);
+                    x.UpdateParent(context, config, successor, previous);
                 }
             }
         }
 
 
-        public bool ServerSideValidationOnCreate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnCreate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.Lectures.Where(u => u.Name == Name && u.OwnerId == OwnerId).FirstOrDefault();
@@ -258,7 +259,7 @@ namespace ALMS.App.Models.Entities
             }
             return result;
         }
-        public bool ServerSideValidationOnUpdate(DatabaseContext context, Action<string, string> AddValidationError)
+        public bool ServerSideValidationOnUpdate(DatabaseContext context, IConfiguration config, Action<string, string> AddValidationError)
         {
             bool result = true;
             var instance = context.Lectures.Where(u => u.Name == Name && u.OwnerId == OwnerId).FirstOrDefault();
@@ -269,17 +270,17 @@ namespace ALMS.App.Models.Entities
             }
             return result;
         }
-        public void PrepareModelForAddNew(DatabaseContext context)
+        public void PrepareModelForAddNew(DatabaseContext context, IConfiguration config)
         {
             TeachersForEdit = Owner.Account;
         }
-        public void PrepareModelForEdit(DatabaseContext context, Lecture original)
+        public void PrepareModelForEdit(DatabaseContext context, IConfiguration config, Lecture original)
         {
             TeachersForEdit = string.Join(" ", original.GetTeachers().Select(x => x.Account));
             StudentsForEdit = string.Join(" ", original.GetStudents().Select(x => x.Account));
         }
-        public Lecture GetEntityForEditOrRemove(DatabaseContext context) => context.Lectures.Where(x => x.Id == Id).Include(x => x.Owner).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.User).FirstOrDefault();
-        public Lecture GetEntityAsNoTracking(DatabaseContext context) => context.Lectures.Where(x => x.Id == Id).Include(x => x.Owner).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.User).AsNoTracking().FirstOrDefault();
+        public Lecture GetEntityForEditOrRemove(DatabaseContext context, IConfiguration config) => context.Lectures.Where(x => x.Id == Id).Include(x => x.Owner).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.User).FirstOrDefault();
+        public Lecture GetEntityAsNoTracking(DatabaseContext context, IConfiguration config) => context.Lectures.Where(x => x.Id == Id).Include(x => x.Owner).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.User).AsNoTracking().FirstOrDefault();
 
  
         public string ReadPageFile(string page_path, string branch = "master")
