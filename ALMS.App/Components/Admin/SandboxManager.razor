@@ -2,105 +2,113 @@
 @using ALMS.App.Models.Entities;
 
 
+    <ALMS.App.Components.Utils.ErrorMessageComponent Subject="@ErrorSubject" ErrorMessage="@ErrorMessage" />
     <div class="@CssClass">
-
-        <ALMS.App.Components.Utils.ErrorMessageComponent Subject="@ErrorSubject" ErrorMessage="@ErrorMessage" />
-
-        <div class="ui menu top attached">
-            <div class="header left item"><i class="box icon"></i> @(string.IsNullOrEmpty(Subject) ? "Sandboxes" : Subject)</div>
-            @if (Permision.HasFlag(EntityManagementPermision.CanCreateNew))
-            {
-                <a class="right item" @onclick="async () => { if (CommandLiner.Runnable) { await OpenCreate(); } }"><i class="plus icon"></i></a>
-            }
-        </div>
-        <ALMS.App.Components.Utils.Paginated Collection="@Collection" @ref="Pagination" CssClass="bottom attached">
-            <table class="ui padded table attached">
-                <thead>
-                    <tr>
-                        <th class="single line">Name</th>
-                        <th class="single line">Description</th>
-                        <th class="right aligned"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var model in Pagination.ShowedModels)
-                    {
-                        <tr>
-                            <td><a href="javascript: void(0)" @onclick="() => { CommandLiner.SetSandbox(model); }">@model.Name</a></td>
-                            <td>@model.Description</td>
-                            <td class="right aligned">
-                                @if (Permision.HasFlag(EntityManagementPermision.CanCreateNew))
-                                {
-                                    <a class="ui blue icon button" @onclick="async () => { if (CommandLiner.Runnable) { await CreateCloneAsync(model); } }"><i class="clone icon"></i></a>
-                                }
-                                @if (Permision.HasFlag(EntityManagementPermision.CanEdit))
-                                {
-                                    <a class="ui blue icon button" @onclick="async() => { if (CommandLiner.Runnable) { await OpenEdit(model); } }"><i class="edit icon"></i></a>
-                                }
-                                @if (Permision.HasFlag(EntityManagementPermision.CanRemove))
-                                {
-                                    <a class="ui red icon button" @onclick="async () => { if (CommandLiner.Runnable) { CommandLiner.Runnable = false; await RemoveAsync(model); CommandLiner.Runnable = true; } }"><i class="trash icon"></i></a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            <ALMS.App.Components.Utils.CommandLiner @ref="@CommandLiner" HasBottom="@Pagination.HasPagination" />
-        </ALMS.App.Components.Utils.Paginated>
-
-
-        <div class="ui modal" id="edit-form-@ComponentId">
-            <div class="header">@(Mode == EditMode.CreateNew ? "Add New" : "Edit") Sandbox Template</div>
-            <div class="content">
-
-                @if (DB.Context.SandboxTemplates.Count() > 0)
-                {
-                    <div class="ui form">
-                        <div class="field">
-                            <label>Use package?</label>
-                            <select @onchange="OnChangePackage" class="ui fluid dropdown">
-                                <option value="" selected>from scratch</option>
-                                @foreach (var p in DB.Context.SandboxTemplates)
-                                {
-                                    <option value="@p.Name">@p.Subject</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-                }
-
-                <EditForm EditContext="@EditContext" OnSubmit="@Submit">
-                    <DataAnnotationsValidator />
-                    <div class="ui form">
-                        <div class="field">
-                            <label>Name</label>
-                            <InputText @bind-Value="@EdittingModel.Name" />
-                            <ValidationMessage For="@(() => EdittingModel.Name)" />
-                        </div>
-                        <div class="field">
-                            <label>Description</label>
-                            <InputTextArea @bind-Value="@EdittingModel.Description" />
-                            <ValidationMessage For="@(() => EdittingModel.Description)" />
-                        </div>
-                        <div class="field">
-                            <label>Setup Commands</label>
-                            <InputTextArea @bind-Value="@EdittingModel.SetupCommands" />
-                            <ValidationMessage For="@(() => EdittingModel.SetupCommands)" />
-                        </div>
-                    </div>
-
-                    <div class="content">
-                        <div class="actions">
-                            <div class="ui red cancel inverted button"><i class="remove icon"></i>Cancel</div>
-                            <button type="submit" class="ui green inverted button"><i class="checkmark icon"></i>OK</button>
-                        </div>
-                    </div>
-                </EditForm>
-
+        <div class="ui basic segment">
+            <div class="ui @(Processing ? "active" : "disabled") inverted dimmer">
+                <div class="ui text loader">Please wait...</div>
             </div>
-        </div>
 
+
+
+            <div class="ui menu top attached">
+                <div class="header left item"><i class="box icon"></i> @(string.IsNullOrEmpty(Subject) ? "Sandboxes" : Subject)</div>
+                @if (Permision.HasFlag(EntityManagementPermision.CanCreateNew))
+                {
+                    <a class="right item" @onclick="async () => { if (CommandLiner.Runnable) { await OpenCreate(); } }"><i class="plus icon"></i></a>
+                }
+            </div>
+            <ALMS.App.Components.Utils.Paginated Collection="@Collection" @ref="Pagination" CssClass="bottom attached">
+                <table class="ui padded table attached">
+                    <thead>
+                        <tr>
+                            <th class="single line">Name</th>
+                            <th class="single line">Description</th>
+                            <th class="right aligned"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var model in Pagination.ShowedModels)
+                        {
+                            <tr>
+                                <td><a href="javascript: void(0)" @onclick="() => { CommandLiner.SetSandbox(model); }">@model.Name</a></td>
+                                <td>@model.Description</td>
+                                <td class="right aligned">
+                                    @if (Permision.HasFlag(EntityManagementPermision.CanCreateNew))
+                                    {
+                                        <a class="ui blue icon button" @onclick="async () => { if (CommandLiner.Runnable) { await CreateCloneAsync(model); } }"><i class="clone icon"></i></a>
+                                    }
+                                    @if (Permision.HasFlag(EntityManagementPermision.CanEdit))
+                                    {
+                                        <a class="ui blue icon button" @onclick="async() => { if (CommandLiner.Runnable) { await OpenEdit(model); } }"><i class="edit icon"></i></a>
+                                    }
+                                    @if (Permision.HasFlag(EntityManagementPermision.CanRemove))
+                                    {
+                                        <a class="ui red icon button" @onclick="async () => { if (CommandLiner.Runnable) { CommandLiner.Runnable = false; await RemoveAsync(model); CommandLiner.Runnable = true; } }"><i class="trash icon"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <ALMS.App.Components.Utils.CommandLiner @ref="@CommandLiner" HasBottom="@Pagination.HasPagination" />
+            </ALMS.App.Components.Utils.Paginated>
+
+
+            <div class="ui modal" id="edit-form-@ComponentId">
+                <div class="header">@(Mode == EditMode.CreateNew ? "Add New" : "Edit") Sandbox Template</div>
+                <div class="content">
+
+                    @if (DB.Context.SandboxTemplates.Count() > 0)
+                    {
+                        <div class="ui form">
+                            <div class="field">
+                                <label>Use package?</label>
+                                <select @onchange="OnChangePackage" class="ui fluid dropdown">
+                                    <option value="" selected>from scratch</option>
+                                    @foreach (var p in DB.Context.SandboxTemplates)
+                                    {
+                                        <option value="@p.Name">@p.Subject</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    }
+
+                    <EditForm EditContext="@EditContext" OnSubmit="@Submit">
+                        <DataAnnotationsValidator />
+                        <div class="ui form">
+                            <div class="field">
+                                <label>Name</label>
+                                <InputText @bind-Value="@EdittingModel.Name" />
+                                <ValidationMessage For="@(() => EdittingModel.Name)" />
+                            </div>
+                            <div class="field">
+                                <label>Description</label>
+                                <InputTextArea @bind-Value="@EdittingModel.Description" />
+                                <ValidationMessage For="@(() => EdittingModel.Description)" />
+                            </div>
+                            <div class="field">
+                                <label>Setup Commands</label>
+                                <InputTextArea @bind-Value="@EdittingModel.SetupCommands" />
+                                <ValidationMessage For="@(() => EdittingModel.SetupCommands)" />
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <div class="actions">
+                                <div class="ui red cancel inverted button"><i class="remove icon"></i>Cancel</div>
+                                <button type="submit" class="ui green inverted button"><i class="checkmark icon"></i>OK</button>
+                            </div>
+                        </div>
+                    </EditForm>
+
+                </div>
+            </div>
+
+
+
+        </div>
     </div>
 
 

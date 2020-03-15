@@ -44,6 +44,8 @@ namespace ALMS.App.Components.Admin
         protected string ErrorMessage { get; set; }
         protected string ErrorSubject { get; set; }
 
+        protected bool Processing { get; set; }
+
         protected enum EditMode { CreateNew, Edit }
 
         protected Utils.Paginated<T> Pagination;
@@ -129,12 +131,15 @@ namespace ALMS.App.Components.Admin
         protected virtual void OnAfterCreateAndCloseDialog(T model) { }
         protected virtual void OnAfterUpdateAndCloseDialog(T model) { }
         protected virtual void OnAfterRemove() { }
-        protected virtual async Task OnAfterCreateAndCloseDialogAsync(T model) { }
-        protected virtual async Task OnAfterUpdateAndCloseDialogAsync(T model) { }
+        protected virtual async Task OnAfterCreateAsync(T model) { }
+        protected virtual async Task OnAfterUpdateAsync(T model) { }
         protected virtual async Task OnAfterRemoveAsync() { }
 
         protected virtual async Task OnValidAsync(EditContext editContext)
         {
+            Processing = true;
+            await InvokeAsync(() => StateHasChanged());
+            await CloseEditDialog();
             try
             {
                 if (Mode == EditMode.CreateNew)
@@ -149,9 +154,8 @@ namespace ALMS.App.Components.Admin
                         ErrorMessage = e.StackTrace;
                     }
                     DB.Context.SaveChanges();
-                    await CloseEditDialog();
                     OnAfterCreateAndCloseDialog(EdittingModel);
-                    await OnAfterCreateAndCloseDialogAsync(EdittingModel);
+                    await OnAfterCreateAsync(EdittingModel);
                 }
                 if (Mode == EditMode.Edit)
                 {
@@ -166,16 +170,17 @@ namespace ALMS.App.Components.Admin
                         ErrorMessage = e.StackTrace;
                     }
                     DB.Context.SaveChanges();
-                    await CloseEditDialog();
                     OnAfterUpdateAndCloseDialog(EdittingModel);
-                    await OnAfterUpdateAndCloseDialogAsync(EdittingModel);
+                    await OnAfterUpdateAsync(EdittingModel);
                 }
                 await InvokeAsync(() => StateHasChanged());
                 await InvokeAsync(() => Notifier.Update());
+                Processing = false;
             }
             catch (Exception e)
             {
                 ErrorMessage = e.Message;
+                Processing = false;
                 Console.Error.WriteLine(e);
                 await CloseEditDialog();
                 return;
