@@ -1,0 +1,28 @@
+﻿@page "/login"
+@inherits ALMS.App.ViewModels.LoginPageModel
+
+    <div class="ui container">
+        <h3>Login</h3>
+        <div class="content">
+            @ErrorMessage
+            <EditForm EditContext="@EditContext" OnSubmit="@SubmitAsync">
+                <DataAnnotationsValidator />
+                <div class="ui form">
+                    <div class="field">
+                        <label>Account</label>
+                        <InputText @bind-Value="@LoginData.Account" />
+                        <ValidationMessage For="@(() => LoginData.Account)" />
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <InputText Type="password" @bind-Value="@LoginData.Password" />
+                        <ValidationMessage For="@(() => LoginData.Password)" />
+                    </div>
+                    <div class="actions">
+                        <button type="submit" class="ui green inverted button"><i class="checkmark icon"></i>Login</button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+

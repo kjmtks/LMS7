@@ -1,0 +1,79 @@
+﻿@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Models.Entities;
+
+@attribute [Authorize(Roles = "Admin")]
+
+@inherits LayoutComponentBase;
+@inject DatabaseService DB;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+@page "/admin/"
+
+    <div class="ui container">
+
+        <h1 class="ui header">Administration</h1>
+
+
+        <h2 class="ui header">
+            <i class="user icon"></i>
+            <div class="content">
+                User Settings
+                <div class="sub header">Manage users</div>
+            </div>
+        </h2>
+        <UserManager CssClass="ui content"
+                     Permision="EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove"
+                     Collection="@DB.Context.Users.Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).AsNoTracking()" />
+
+        <h2 class="ui header">
+            <i class="database icon"></i>
+            <div class="content">
+                Queue Observation
+                <div class="sub header">Observe task queues</div>
+            </div>
+        </h2>
+        <QueueObserver CssClass="ui content" />
+
+
+        <h2 class="ui header">
+            <i class="folder icon"></i>
+            <div class="content">
+                System directory
+                <div class="sub header">Explore system directories</div>
+            </div>
+        </h2>
+        <DirectoryViewer CssClass="ui content" Subject="System Dir." RootPath="/" RootString="/" @ref="SystemDirectoryViewer" />
+
+
+        <h2 class="ui header">
+            <i class="box icon"></i>
+            <div class="content">
+                Sandbox Templates Settings
+                <div class="sub header">Manage sandbox templates</div>
+            </div>
+        </h2>
+        <SandboxTemplateManager CssClass="ui content"
+                                Permision="EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove"
+                                Collection="@DB.Context.SandboxTemplates.AsNoTracking()" />
+    </div>
+@code
+{
+    protected DirectoryViewer SystemDirectoryViewer;
+
+    protected override void OnInitialized()
+    {
+        Notifier.Notify += OnNotify;
+    }
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        await SystemDirectoryViewer.UpdateAsync();
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+}

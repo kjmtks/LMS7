@@ -1,0 +1,143 @@
+﻿@using ALMS.App.Models.Entities;
+@using ALMS.App.Components.Utils;
+@using Microsoft.EntityFrameworkCore;
+@inject DatabaseService DB;
+<div class="@CssClass">
+
+    <div class="ui menu top attached">
+        <div class="header left item"><i class="pencil icon"></i> @(string.IsNullOrEmpty(Subject) ? "Activity Action History" : Subject)</div>
+        <div class="item">
+            <div class="ui transparent icon input">
+                <input type="text" placeholder="Filter..." @onchange="OnChangeSearch">
+                <i class="search link icon"></i>
+            </div>
+        </div>
+    </div>
+    <ALMS.App.Components.Utils.Paginated Collection="@Filter(Collection).Reverse()" @ref="Pagination" EntriesPerPage="20" CssClass="bottom attached">
+        <table class="ui very compact table attached">
+            <thead>
+                <tr>
+                    <th>&nbsp;</th>
+                    <th>Activity</th>
+                    <th>Action</th>
+                    <th colspan="2">User</th>
+                    <th>Date time</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var history in Pagination.ShowedModels)
+                {
+                    var action = "";
+                <tr>
+                    <td>
+                        @switch (history.ActionType)
+                        {
+                            case ActivityActionType.Save:
+                                <i class="large save outline middle aligned icon"></i>
+                                action = "save";
+                                break;
+                            case ActivityActionType.SaveAndRun:
+                                <i class="large play circle outline middle aligned icon"></i>
+                                action = "run";
+                                break;
+                            case ActivityActionType.SaveAndSubmit:
+                                <i class="large cloud upload middle aligned icon"></i>
+                                action = "submit";
+                                break;
+                            case ActivityActionType.SaveAndValidateAccept:
+                                <i class="large icons middle aligned icon">
+                                    <i class="bug icon"></i>
+                                    <i class="corner green check icon"></i>
+                                </i>
+                                action = "validate, accept";
+                                break;
+                            case ActivityActionType.SaveAndValidateReject:
+                                <i class="large icons middle aligned icon">
+                                    <i class="bug icon"></i>
+                                    <i class="corner red times icon"></i>
+                                </i>
+                                action = "validate, reject";
+                                break;
+                        }
+                    </td>
+                    <td>@history.ActivityName</td>
+                    <td>@action</td>
+                    <td><a href="/users/@history.User.Account">@history.User.DisplayName</a></td>
+                    <td><a href="/users/@history.User.Account">@history.User.Account</a></td>
+                    <td>@history.DateTime.ToString("yyyy-MM-ddTHH:mm:sszzz")</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </ALMS.App.Components.Utils.Paginated>
+</div>
+
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public string Subject { get; set; }
+    [Parameter]
+    public Lecture Lecture { get; set; }
+    [Parameter]
+    public User User { get; set; }
+
+    public Func<IEnumerable<ActivityActionHistory>, IEnumerable<ActivityActionHistory>> Filter = (x) => x;
+    public IEnumerable<ActivityActionHistory> Collection { get; set; }
+
+    protected Paginated<ActivityActionHistory> Pagination;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Collection = DB.Context.ActivityActionHistories.Include(x => x.User).Include(x => x.Lecture).Where(x => x.LectureId == Lecture.Id).OrderBy(x => x.DateTime).AsNoTracking();
+    }
+
+    public async Task UpdateAsync()
+    {
+        Collection = DB.Context.ActivityActionHistories.Include(x => x.User).Include(x => x.Lecture).Where(x => x.LectureId == Lecture.Id).OrderBy(x => x.DateTime).AsNoTracking();
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public void OnChangeSearch(ChangeEventArgs e)
+    {
+        var str = e.Value.ToString();
+        var commands = str.Split(" ").Where(x => !string.IsNullOrWhiteSpace(x));
+        var splitted_commands = commands.Select(cmd => cmd.Split("=", 2)).Where(x => x.Count() == 2).Select(x => (x[0], x[1]));
+
+        Filter = (collection) =>
+        {
+            var fs1 = splitted_commands.Where(x => x.Item1 == "user").Select(x => x.Item2);
+            if(fs1.Count() > 0)
+            {
+                collection = collection.Where(x => fs1.Any(y => x.User.Account == y));
+            }
+
+            var fs2 = splitted_commands.Where(x => x.Item1 == "activity").Select(x => x.Item2);
+            if (fs2.Count() > 0)
+            {
+                collection = collection.Where(x => fs2.Any(y => x.ActivityName == y));
+            }
+
+            var fs3 = splitted_commands.Where(x => x.Item1 == "action").Select(x => x.Item2);
+            if (fs3.Count() > 0)
+            {
+                collection = collection.Where(x => fs3.Any(y => foo(x, y)));
+            }
+
+            return collection;
+        };
+    }
+    private bool foo(ActivityActionHistory x, string y)
+    {
+        if (y == "save") return x.ActionType == ActivityActionType.Save;
+        if (y == "run") return x.ActionType == ActivityActionType.SaveAndRun;
+        if (y == "submit") return x.ActionType == ActivityActionType.SaveAndSubmit;
+        if (y == "validate") return x.ActionType == ActivityActionType.SaveAndValidateAccept || x.ActionType == ActivityActionType.SaveAndValidateReject;
+        if (y == "accept") return x.ActionType == ActivityActionType.SaveAndValidateAccept;
+        if (y == "reject") return x.ActionType == ActivityActionType.SaveAndValidateReject;
+        return false;
+    }
+}

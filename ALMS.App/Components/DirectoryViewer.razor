@@ -1,0 +1,154 @@
+﻿@using System.IO;
+@using System.Linq;
+
+    <div class="@CssClass">
+        @if (Root != null)
+        {
+            <div class="ui menu top attached">
+                @if (!string.IsNullOrWhiteSpace(Subject))
+                {
+                    <div class="header item"><i class="folder icon"></i> @Subject</div>
+                }
+                @{ var cnt = 0; }
+                @foreach (var entry in Hierarchy(Current))
+                {
+                    <a class="borderless item" href="javascript: void(0)" @onclick="() => Goto(entry)">@(entry.FullName.TrimEnd('/') == Root.FullName.TrimEnd('/') ? RootString : entry.Name)</a>
+                    if (cnt > 0 && entry is DirectoryInfo)
+                    {
+                        <span class="borderless item">/</span>
+                    }
+                    cnt++;
+                }
+            </div>
+            @if (Current is DirectoryInfo)
+            {
+                DirectoryInfo currentDir = Current as DirectoryInfo;
+                <table class="ui celled padded table bottom attached">
+                    <thead>
+                        <tr>
+                            <th class="single line">Name</th>
+                            <th class="single line">Last Modified Date</th>
+                            <th class="single line">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (DirectoryInfo dir in currentDir.GetDirectories().OrderBy(x => x.Name))
+                        {
+                            <tr>
+                                <td><i class="folder outline icon"></i> <a href="javascript: void(0)" @onclick="() => Goto(dir)">@dir.Name</a></td>
+                                <td>@dir.LastWriteTime</td>
+                                <td>@(dir.GetDirectories().Count()) dirs, and @(dir.GetFiles().Count()) files</td>
+                            </tr>
+                        }
+                        @foreach (FileInfo file in currentDir.GetFiles().OrderBy(x => x.Name))
+                        {
+                            <tr>
+                                <td><i class="file outline icon"></i> <a href="javascript: void(0)" @onclick="() => Goto(file)">@file.Name</a></td>
+                                <td>@file.LastWriteTime</td>
+                                <td>@(file.Length) bytes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            @if (Current is FileInfo)
+            {
+                FileInfo currentFile = Current as FileInfo;
+                string body;
+                using (var r = currentFile.OpenText()) { body = r.ReadToEnd(); }
+                <pre class="ui segment bottom attached tt">@body</pre>
+            }
+        }
+        else
+        {
+            <div class="ui icon message">
+                <i class="notched times icon"></i>
+                <div class="content">
+                    <div class="header">
+                        Not found
+                    </div>
+                    <p>@RootPath is not exist.</p>
+                </div>
+            </div>
+        }
+
+    </div>
+
+
+
+
+@code {
+    
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public string Subject { get; set; }
+    [Parameter]
+    public string RootPath { get; set; }
+    [Parameter]
+    public string RootString { get; set; } = "~/";
+    [Parameter]
+    public FileSystemInfo Current { get; set; }
+
+    public FileSystemInfo Root { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if(Directory.Exists(RootPath))
+        {
+            Root = new DirectoryInfo(RootPath);
+        } else if(File.Exists(RootPath))
+        {
+            Root = new FileInfo(RootPath);
+        } else
+        {
+            Root = null;
+        }
+        if(Current == null)
+        {
+            Current = Root;
+        }
+    }
+
+    public async Task UpdateAsync()
+    {
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private Stack<FileSystemInfo> Hierarchy(FileSystemInfo current, Stack<FileSystemInfo> hierarchy = null)
+    {
+        if(hierarchy == null)
+        {
+            hierarchy = new Stack<FileSystemInfo>();
+        }
+        if(current == null)
+        {
+            return hierarchy;
+        }
+        if(current.FullName.TrimEnd('/') == Root.FullName.TrimEnd('/'))
+        {
+            hierarchy.Push(current);
+            return hierarchy;
+        }
+        else
+        {
+            hierarchy.Push(current);
+            if(current is FileInfo)
+            {
+                return Hierarchy(((FileInfo)current).Directory, hierarchy);
+            }
+            if(current is DirectoryInfo)
+            {
+                return Hierarchy(((DirectoryInfo)current).Parent, hierarchy);
+            }
+            return hierarchy;
+        }
+    }
+
+    protected void Goto(FileSystemInfo dir)
+    {
+        Current = dir;
+    }
+
+}

@@ -1,0 +1,398 @@
+﻿@using  System.Diagnostics;
+@using  ALMS.App.Models.Entities;
+@using Microsoft.EntityFrameworkCore;
+@inject IBackgroundTaskQueueSet queue;
+@inject IJSRuntime JS;
+@inject DatabaseService DB;
+@inject NotifierService Notifier;
+
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <ALMS.App.Components.Utils.ErrorMessageComponent Subject="@ErrorSubject" ErrorMessage="@ErrorMessage" />
+}
+else if (Activity == null)
+{
+    <ALMS.App.Components.Utils.ErrorMessageComponent Subject="Activity Build Error" ErrorMessage="Fail to build activity" />
+}
+else
+{
+    <div class="ui segment" id="activity-@ComponentId">
+        @if (!string.IsNullOrWhiteSpace(Activity?.Subject))
+        {
+            <h3 class="ui header">@Activity.Subject</h3>
+        }
+        @if (!string.IsNullOrWhiteSpace(Activity?.Description))
+        {
+            <div class="ui basic segment">
+                @((MarkupString)Activity.Description)
+            </div>
+        }
+
+        <div class="ui top attached mini bordered menu">
+            @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
+            {
+                <a class="@(i == SelectedTabIndex ? "active" : "") item" @onclick='() => ShowTab(i)'>
+                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesText)
+                    {
+                        <i class="file alternate outline icon"></i>
+                    }
+                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesCode)
+                    {
+                        <i class="code icon"></i>
+                    }
+                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesString)
+                    {
+                        <i class="terminal icon"></i>
+                    }
+                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesUpload)
+                    {
+                        <i class="upload icon"></i>
+                    }
+                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesForm)
+                    {
+                        <i class="edit outline icon"></i>
+                    }
+                    @(string.IsNullOrWhiteSpace(tab.Item1.Label) ? tab.Item1.Name : tab.Item1.Label)
+                </a>
+            }
+
+
+            <div class="right labeled icon borderless menu">
+
+                @if (Activity?.Deadline != null)
+                {
+                    <span class="borderless item">
+                        <i class="clock outline icon"></i> @ALMS.App.Models.Contents.Utility.DateTimeToString(Activity.Deadline)
+                    </span>
+                }
+
+                <span class="borderless item">
+                    <i style="visibility: @(Processing ? "visible" : "hidden")" class="spinner loading icon"></i>
+                </span>
+
+                @if (Activity.UseSave())
+                {
+                    <span data-tooltip="Save" data-variation="basic">
+                        <a class="@(Processing ? "disabled" : "") item" @onclick="SaveAsync"><i class="save outline icon"></i></a>
+                    </span>
+                }
+                @if (Activity.UseRun())
+                {
+                    <span data-tooltip="Run" data-variation="basic">
+                        <a class="@(Processing ? "disabled" : "") item" @onclick="RunAsync"><i class="play circle outline icon"></i></a>
+                    </span>
+                }
+                @if (Activity.UseSubmit())
+                {
+                    <span data-tooltip="Submit" data-variation="basic">
+                        <a class="@(Processing || (!Accepted && !Activity.Flags.CanSubmitBeforeAccept) || (DateTime.Now > Activity.Deadline && !Activity.Flags.CanSubmitAfterDeadline) ? "disabled" : "") item" @onclick="SubmitAsync">
+                            <i class="icons">
+                                <i class="cloud upload icon"></i>
+                                @if (SubmittedActionHistory != null)
+                                {
+                                    <i class="corner green check icon"></i>
+                                }
+                            </i>
+                        </a>
+                    </span>
+                }
+                @if (Activity.UseValidate())
+                {
+                    <span data-tooltip="Validate" data-variation="basic">
+                        <a class="@(Processing ? "disabled" : "") item" @onclick="ValidateAsync">
+                            <i class="icons">
+                                <i class="bug icon"></i>
+                                @if (Accepted)
+                                {
+                                    <i class="corner green check icon"></i>
+                                }
+                            </i>
+                        </a>
+                    </span>
+                }
+                @if (Activity.UseReset())
+                {
+                    <span data-tooltip="Reset" data-variation="basic">
+                        <a class="@(Processing ? "disabled" : "") item" @onclick="ResetAsync"><i class="trash alternate outline icon"></i></a>
+                    </span>
+                }
+                @if (User.IsTeacher(Lecture))
+                {
+                    <span data-tooltip="Answer" data-variation="basic">
+                        <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
+                    </span>
+                }
+                @if (TabSize == Size.Normal)
+                {
+                    <span data-tooltip="Expand" data-variation="basic">
+                        <a class="item" @onclick="() => { TabSize = Size.Large; }">
+                            <i class="icons">
+                                <i class="window maximize outline icon"></i>
+                                <i class="inverted corner plus icon"></i>
+                            </i>
+                        </a>
+                    </span>
+                }
+                @if (TabSize == Size.Large)
+                {
+                    <span data-tooltip="Shrink" data-variation="basic">
+                        <a class="item" @onclick="() => { TabSize = Size.Normal; }">
+                            <i class="icons">
+                                <i class="window maximize outline icon"></i>
+                                <i class="inverted corner minus icon"></i>
+                            </i>
+                        </a>
+                    </span>
+                }
+            </div>
+        </div>
+
+        @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
+        {
+            <div class="ui bottom attached segment" style="padding: 0; height: @((int)TabSize)em; display: @(i==SelectedTabIndex ? "block" : "none")">
+                @tab.Item2
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <div class="ui top attached mini icon menu">
+                <span class="borderless item"><i class="exclamation icon"></i>&nbsp;&nbsp;Message</span>
+                <a class="right item" @onclick='() => { Message = ""; }'><i class="times icon"></i></a>
+            </div>
+            <pre class="ui green segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@Message</pre>
+        }
+        @if (!string.IsNullOrWhiteSpace(@StandardOutput))
+        {
+            <div class="ui top attached mini icon menu">
+                <span class="borderless item"><i class="desktop icon"></i>&nbsp;&nbsp;Satndard Output</span>
+                <a class="right item" @onclick='() => { StandardOutput = ""; }'><i class="times icon"></i></a>
+            </div>
+            <pre class="ui green segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardOutput</pre>
+        }
+        @if (!string.IsNullOrWhiteSpace(@StandardError))
+        {
+            <div class="ui top attached mini icon menu">
+                <span class="borderless item"><i class="desktop icon"></i>&nbsp;&nbsp;Satndard Error</span>
+                <a class="right item" @onclick='() => { StandardError = ""; }'><i class="times icon"></i></a>
+            </div>
+            <pre class="ui red segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardError</pre>
+        }
+
+    </div>
+}
+
+
+
+@code {
+    protected int ComponentId;
+
+    public enum Size { Normal = 10, Large = 30 }
+
+    [Parameter]
+    public ALMS.App.Models.Entities.Lecture Lecture { get; set; }
+    [Parameter]
+    public ALMS.App.Models.Entities.User User { get; set; }
+    //[Parameter]
+    //public string Path { get; set; }
+    //[Parameter]
+    //public IDictionary<string, string> Parameters { get; set; }
+    [Parameter]
+    public ALMS.App.Models.Contents.Activity Activity { get; set; }
+    [Parameter]
+    public string ErrorSubject { get; set; }
+    [Parameter]
+    public string ErrorMessage { get; set; }
+
+    protected string Message;
+    protected string StandardOutput;
+    protected string StandardError;
+    protected bool Accepted = false;
+    protected ActivityActionHistory SubmittedActionHistory = null;
+
+    protected Size TabSize = Size.Normal;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ComponentId = new Random().Next();
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && string.IsNullOrWhiteSpace(ErrorMessage) && Activity != null)
+        {
+            SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActivityName == Activity.Name && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
+            await Activity.SetInitialValueAsync(Lecture, User);
+        }
+    }
+
+    protected int SelectedTabIndex = 0;
+    protected void ShowTab(int index)
+    {
+        SelectedTabIndex = index;
+        StateHasChanged();
+    }
+
+    protected async Task SaveAsync()
+    {
+        if (Processing) { return; }
+        if (!Activity.UseSave()) { return; }
+        Processing = true;
+        ExitCode = null;
+        StandardOutput = "";
+        StandardError = "";
+        StateHasChanged();
+
+
+        var time = DateTime.Now;
+        var (isSuccess, message) = await Activity.SaveAsync(Lecture, User, DB.Context);
+        if (isSuccess)
+        {
+            StandardOutput = message;
+        }
+        else
+        {
+            StandardError = message;
+        }
+        Processing = false;
+        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(() => Notifier.Update());
+    }
+
+    protected async Task RunAsync()
+    {
+        if (Processing) { return; }
+        if (!Activity.UseRun()) { return; }
+        var sandbox = DB.Context.LectureSandboxes.Where(x => x.Name == Activity.Sandbox).FirstOrDefault();
+        if (sandbox == null)
+        {
+            StandardError = $"Not found sandbox `{Activity.Sandbox}'";
+            return;
+        }
+        Processing = true;
+        ExitCode = null;
+        StandardOutput = "";
+        StandardError = "";
+        StateHasChanged();
+
+        await Activity.RunAsync(Lecture, User, DB.Context, queue, SendOutput, SendError, (code, isSuccess, message) =>
+        {
+            if (isSuccess)
+            {
+                ExitCode = code.Value;
+            }
+            else
+            {
+                StandardError = message;
+            }
+            Processing = false;
+            InvokeAsync(() => StateHasChanged());
+            InvokeAsync(() => Notifier.Update());
+        });
+    }
+
+    protected async Task SubmitAsync()
+    {
+        if (Processing || (!Accepted && !Activity.Flags.CanSubmitBeforeAccept) || (DateTime.Now > Activity.Deadline && !Activity.Flags.CanSubmitAfterDeadline)) { return; }
+        if (!Activity.UseRun()) { return; }
+
+        Processing = true;
+        ExitCode = null;
+        StandardOutput = "";
+        StandardError = "";
+        StateHasChanged();
+
+        var time = DateTime.Now;
+        var (saveSuccessfully, message) = await Activity.SubmitAsync(Lecture, User, DB.Context);
+        if (!saveSuccessfully)
+        {
+            StandardError = message;
+            return;
+        }
+        StandardOutput = "Files were submitted successfully";
+        Processing = false;
+        SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
+        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(() => Notifier.Update());
+    }
+
+    protected async Task ValidateAsync()
+    {
+        if (Processing) { return; }
+        if (!Activity.UseRun()) { return; }
+        var sandbox = DB.Context.LectureSandboxes.Where(x => x.Name == Activity.Sandbox).FirstOrDefault();
+        if (sandbox == null)
+        {
+            StandardError = $"Not found sandbox `{Activity.Sandbox}'";
+            return;
+        }
+        Processing = true;
+        ExitCode = null;
+        StandardOutput = "";
+        StandardError = "";
+        StateHasChanged();
+
+
+        await Activity.ValidateAsync(Lecture, User, DB.Context, queue, (result, isSuccess, message) =>
+        {
+            if (isSuccess)
+            {
+                if(result.Value)
+                {
+                    StandardOutput = "Accept";
+                }
+                else
+                {
+                    StandardError = "Reject";
+                }
+                Accepted = result.Value;
+            }
+            else
+            {
+                StandardError = message;
+                Accepted = false;
+            }
+            Processing = false;
+            InvokeAsync(() => { StateHasChanged(); });
+            InvokeAsync(() => Notifier.Update());
+        });
+    }
+    protected async Task ResetAsync()
+    {
+        foreach (var com in Activity.GetFileComponents())
+        {
+            await com.Value.SetDefaultValueAsync();
+        }
+    }
+    protected async Task AnswerAsync()
+    {
+        foreach (var com in Activity.GetFileComponents())
+        {
+            await com.Value.SetAnswerValueAsync();
+        }
+    }
+
+    protected int? ExitCode;
+    protected bool Processing;
+
+    public void SendOutput(object sender, DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+        {
+            StandardOutput += e.Data + Environment.NewLine;
+            //JS.InvokeVoidAsync("scrollToBottom", $"activity-stdout-{ComponentId}");
+            InvokeAsync(() => { StateHasChanged(); });
+        }
+    }
+    public void SendError(object sender, DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+        {
+            StandardError += e.Data + Environment.NewLine;
+            //JS.InvokeVoidAsync("scrollToBottom", $"activity-stderr-{ComponentId}");
+            InvokeAsync(() => { StateHasChanged(); });
+        }
+    }
+}

@@ -1,0 +1,115 @@
+﻿
+@using  ALMS.App.Models.Entities;
+@using  System.Diagnostics;
+@inject IBackgroundTaskQueueSet queue;
+@inject NotifierService Notifier;
+@inject IJSRuntime JS;
+
+@if (SelectedSandbox != null)
+{
+    <div class="ui segment @(HasBottom ? "" : "bottom") attached">
+        <form @onsubmit='() => { if (Runnable) { Run("root", Command, SelectedSandbox); } }'>
+            <div class="ui right icon left labeled  input top attached" style="width: 100%">
+
+                <label for="sandbox-template-command-@ComponentId" class="ui label">@SelectedSandbox.Name $</label>
+                <input type="text" id="sandbox-template-command-@ComponentId" class="tt" style="font-family: 'Courier New', Courier, monospace;" placeholder="Command..." @bind-value="Command">
+
+                @if (!Runnable)
+                {
+                    <i class="spinner loading icon"></i>
+                }
+                else
+                {
+                    <i class="rotated level down alternate icon"></i>
+                }
+
+            </div>
+            <pre class="ui segment tt bottom attached" id="command-liner-log-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@CreationOutputs</pre>
+
+        </form>
+    </div>
+
+}
+
+@code{
+    public string CreationOutputs { get; set; } = null;
+    public string Command { get; set; }
+    public int? ExitCode { get; set; } = null;
+    protected ISandbox SelectedSandbox;
+    public void SetSandbox(ISandbox s)
+    {
+        SelectedSandbox = s;
+        StateHasChanged();
+    }
+
+    protected int ComponentId;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ComponentId = new Random().Next();
+    }
+
+
+    [Parameter]
+    public bool HasBottom { get; set; } = false;
+
+    public bool Runnable { get; set; } = true;
+
+    public void Run(string username, string command, ISandbox sandbox)
+    {
+        if (!Runnable) { return; }
+        Runnable = false;
+        Command = null;
+        ExitCode = null;
+        CreationOutputs = $"$ {command}{Environment.NewLine}";
+        StateHasChanged();
+        queue.QueueBackgroundWorkItem(async token =>
+        {
+            await sandbox.DoOnSandboxAsync(username, command, SendOutput, SendError, (code) =>
+            {
+                ExitCode = code;
+                Runnable = true;
+                InvokeAsync(() => StateHasChanged());
+                InvokeAsync(() => Notifier.Update());
+            });
+        });
+    }
+    public void Run(Func<System.Threading.CancellationToken, Task> asyncAction, string label = null)
+    {
+        if (!Runnable) { return; }
+        Runnable = false;
+        Command = null;
+        ExitCode = null;
+        CreationOutputs = label + Environment.NewLine;
+        StateHasChanged();
+        queue.QueueBackgroundWorkItem(async token =>
+        {
+            await asyncAction(token);
+            Runnable = true;
+            await InvokeAsync(() => StateHasChanged());
+            await InvokeAsync(() => Notifier.Update());
+        });
+    }
+
+    public void SendOutput(object sender, DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+        {
+            this.CreationOutputs += e.Data + Environment.NewLine;
+            InvokeAsync(() => { StateHasChanged(); });
+            JS.InvokeVoidAsync("scrollToBottom", $"command-liner-log-{ComponentId}"); // don't it work?
+            // Console.WriteLine(e.Data);
+        }
+    }
+    public void SendError(object sender, DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+        {
+            this.CreationOutputs += e.Data + Environment.NewLine;
+            InvokeAsync(() => { StateHasChanged(); });
+            JS.InvokeVoidAsync("scrollToBottom", $"command-liner-log-{ComponentId}"); // don't it work?
+            // Console.WriteLine(e.Data);
+        }
+    }
+
+}

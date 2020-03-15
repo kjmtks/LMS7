@@ -1,0 +1,86 @@
+﻿@page "/admin/users/{UserAccount}";
+@inject DatabaseService DB;
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Components;
+@using ALMS.App.Models.Entities;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+@attribute [Authorize]
+
+@if (User != null)
+{
+    <div class="ui grid">
+        <div class="right floated four wide column">
+            <UserCard CssClass="ui content" User="@User" />
+        </div>
+        <div class="left floated twelve wide column">
+            <LectureManager CssClass="ui content" Parent="@User"
+                             Collection="@DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Include(x => x.Sandboxes).Where(x => x.OwnerId == User.Id).AsNoTracking()" />
+
+            @{
+                var assigned = DB.Context.Lectures
+                    .Include(x => x.Owner)
+                    .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+                    .Include(x => x.Sandboxes)
+                    .Where(x => x.LectureUsers.Any(y => y.UserId == User.Id))
+                    .AsNoTracking();
+            }
+            @if (assigned.Count() > 0)
+            {
+                <LectureList CssClass="ui content" User="@User" Collection="@assigned" Subject="Assigned Lectures" />
+            }
+
+
+            <SandboxManager CssClass="ui content" Parent="@User"
+                            Collection="@DB.Context.Sandboxes.Include(x => x.Owner).Where(x => x.OwnerId == User.Id).AsNoTracking()" />
+
+            <DirectoryViewer CssClass="ui content" Subject="User Dir." RootPath="@User.DirectoryPath" RootString="~/" @ref="UserDirectoryViewer" />
+        </div>
+    </div>
+}
+else
+{
+    <div class="ui icon message">
+        <i class="notched times icon"></i>
+        <div class="content">
+            <div class="header">
+                Not found
+            </div>
+            <p>@UserAccount is not exist.</p>
+        </div>
+    </div>
+}
+
+
+@code{
+
+    [Parameter]
+    public string UserAccount { get; set; }
+
+    protected User User { get; set; }
+
+    protected DirectoryViewer UserDirectoryViewer;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Notifier.Notify += OnNotify;
+        User = DB.Context.Users.Where(x => x.Account == UserAccount)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        await UserDirectoryViewer.UpdateAsync();
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+}
+

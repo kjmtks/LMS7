@@ -1,0 +1,40 @@
+﻿@{
+// temporary...
+// wainting for https://github.com/dotnet/aspnetcore/issues/18539
+}
+
+@page "/lecture/{OwnerAccount}/{LectureName}/page/{Branch}/{Name1}/{Name2}/{Name3}/{Name4}";
+@inherits ALMS.App.Components.Contents.FiniteDepthPageComponent;
+@using Microsoft.EntityFrameworkCore;
+
+<AuthorizeView>
+    <Authorized>
+        @{
+            var user = DB.Context.Users.Where(x => x.Account == context.User.Identity.Name).FirstOrDefault();
+            if (user != null && Lecture != null)
+            {
+                var branch = user.IsTeacher(Lecture) ? Branch : "master";
+                <ALMS.App.Components.Contents.PageComponent Lecture="@Lecture" Path="@Path" Branch="@branch" User="@user" />
+            }
+        }
+    </Authorized>
+</AuthorizeView>
+
+
+@code{
+    
+    [Parameter]
+    public string Name1 { get; set; }
+    [Parameter]
+    public string Name2 { get; set; }
+    [Parameter]
+    public string Name3 { get; set; }
+    [Parameter]
+    public string Name4 { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Path = $"{Name1}/{Name2}/{Name3}/{Name4}";
+    }
+}

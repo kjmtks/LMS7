@@ -1,0 +1,143 @@
+﻿@page "/"
+@inject DatabaseService DB;
+@inject AuthenticationStateProvider Auth;
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Components;
+@using ALMS.App.Models.Entities;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+    <h1 class="ui center aligned header">
+        <i class="circular pencil alternate icon"></i>
+        ALMS
+    </h1>
+
+
+<br />
+<br />
+<br />
+<br />
+
+<AuthorizeView>
+    <Authorized>
+        @if (Loaded)
+        {
+            @if (Assigned.Count() > 0)
+            {
+                <h2 class="ui header">
+                    <i class="pencil alternate icon"></i>
+                    <div class="content">
+                        Lectures
+                        <div class="sub header">Show lectures you assigned</div>
+                    </div>
+                </h2>
+                <div class="ui basic segment">
+                    <div class="ui huge divided list">
+                        @foreach (var lecture in Assigned)
+                        {
+                            <div class="item">
+                                @if (User.IsTeacher(lecture))
+                                {
+                                    <i class="large chess king middle aligned icon"></i>
+                                }
+                                else
+                                {
+                                    <i class="large chess pawn middle aligned icon"></i>
+                                }
+                                <div class="content">
+                                    <a class="header" href="/lecture/@lecture.Owner.Account/@lecture.Name/page/master/">@lecture.Subject</a>
+                                    <div class="description">@lecture.Description</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <br />
+                <br />
+                <br />
+                <br />
+            }
+        }
+        else
+        {
+            <div class="ui segment">
+                <div class="ui active dimmer">
+                    <div class="ui text loader">Loading</div>
+                </div>
+                <br />
+                <br />
+                <br />
+                <br />
+            </div>
+        }
+        <h2 class="ui header">
+            <i class="list icon"></i>
+            <div class="content">
+                TODO
+                <div class="sub header">For developpers</div>
+            </div>
+        </h2>
+        <div class="ui basic segment">
+
+            <ol>
+                <li>ユーザーリポジトリのAPI公開</li>
+                <li>コンテンツおよび提出ファイルへのURL割り当て</li>
+                <li>リポジトリビューワにおいて，バイナリファイルを開いた場合の処理</li>
+                <li>LDAP対応（以前のコードから移植でOK）</li>
+                <li>
+                    UIの安定化
+                    <ul>
+                        <li>LectureSandboxの生成時の振る舞いの調整</li>
+                    </ul>
+                </li>
+                <li>ファイルアップロード機能の実装</li>
+                <li>アクティビティ実行時のリソース制限を実装</li>
+                <li>PageModelの機能拡張</li>
+                <li>アプリケーションキーのハードコードを解消</li>
+                <li>デザインの調整</li>
+                <li>ページのコンパイル時に発生した例外の発生行数の補正（StackTraceを作り替える？）</li>
+            </ol>
+
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+
+
+@code
+{
+
+
+    protected IEnumerable<Lecture> Assigned;
+    protected User User;
+    protected bool Loaded = false;
+    protected override async Task OnInitializedAsync()
+    {
+        Loaded = false;
+        base.OnInitialized();
+        var auth = await Auth.GetAuthenticationStateAsync();
+
+        Notifier.Notify += OnNotify;
+        Assigned = DB.Context.Lectures
+            .Include(x => x.Owner)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+            .Include(x => x.Sandboxes)
+            .Where(x => x.LectureUsers.Any(y => y.User.Account == auth.User.Identity.Name))
+            .AsNoTracking();
+        User = DB.Context.Users.Where(x => x.Account == auth.User.Identity.Name)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+        Loaded = true;
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+}

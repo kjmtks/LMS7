@@ -1,0 +1,44 @@
+﻿@if (string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    @renderer
+}
+else
+{
+    <ALMS.App.Components.Utils.ErrorMessageComponent Subject="@ErrorSubject" ErrorMessage="@ErrorMessage" />
+}
+
+
+@code {
+
+    [Parameter]
+    public ALMS.App.Models.Entities.Lecture Lecture { get; set; }
+    [Parameter]
+    public ALMS.App.Models.Entities.User User { get; set; }
+    [Parameter]
+    public string Path { get; set; }
+    [Parameter]
+    public string Branch { get; set; }
+
+    protected ALMS.App.Models.Contents.Page Page;
+    protected RenderFragment renderer;
+    protected string ErrorMessage;
+    protected string ErrorSubject;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        try
+        {
+            Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
+            renderer = await Page.RenderAsync(User);
+        }
+        catch (Exception e)
+        {
+            ErrorSubject = e.Message;
+            ErrorMessage = e.StackTrace;
+        }
+    }
+
+
+}

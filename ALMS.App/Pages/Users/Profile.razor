@@ -1,0 +1,144 @@
+﻿@page "/users/{UserAccount}";
+@page "/profile"
+
+@inject DatabaseService DB;
+@inject AuthenticationStateProvider Auth;
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Components;
+@using ALMS.App.Models.Entities;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+<AuthorizeView>
+    <Authorized Context="AuthorizedContext">
+        @if (Loaded)
+        {
+            @if (User != null)
+            {
+                <div class="ui grid">
+                    <div class="right floated four wide column">
+                        <UserCard CssClass="ui content" User="@User" />
+                    </div>
+                    <div class="left floated twelve wide column">
+                        @if (Assigned.Count() > 0)
+                        {
+                            <h2 class="ui header">
+                                <i class="pencil alternate icon"></i>
+                                <div class="content">
+                                    Lectures
+                                    <div class="sub header">Show lectures you assigned</div>
+                                </div>
+                            </h2>
+                            <LectureList CssClass="ui content" User="@User" Collection="@Assigned" Subject="Assigned Lectures" />
+                        }
+
+                        @if (AuthorizedContext.User.Identity.Name == User.Account)
+                        {
+                            @if (User.IsSenior || User.IsAdmin)
+                            {
+                                <h2 class="ui header">
+                                    <i class="pen square icon"></i>
+                                    <div class="content">
+                                        Lectur Settings
+                                        <div class="sub header">Manage your lectures</div>
+                                    </div>
+                                </h2>
+                                <LectureManager CssClass="ui content" Parent="@User"
+                                                Permision="EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove"
+                                                Collection="@DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Include(x => x.Sandboxes).Where(x => x.OwnerId == User.Id).AsNoTracking()" />
+
+                                <h2 class="ui header">
+                                    <i class="box icon"></i>
+                                    <div class="content">
+                                        Sandbox Settings
+                                        <div class="sub header">Manage your sandboxes</div>
+                                    </div>
+                                </h2>
+                                <SandboxManager CssClass="ui content" Parent="@User"
+                                                Permision="EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove"
+                                                Collection="@DB.Context.Sandboxes.Include(x => x.Owner).Where(x => x.OwnerId == User.Id).AsNoTracking()" />
+                            }
+
+
+                            <h2 class="ui header">
+                                <i class="folder icon"></i>
+                                <div class="content">
+                                    Your directory
+                                    <div class="sub header">Explore your directories</div>
+                                </div>
+                            </h2>
+                            <DirectoryViewer CssClass="ui content" Subject="User Dir." RootPath="@User.DirectoryPath" RootString="~/" @ref="UserDirectoryViewer" />
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="ui icon message">
+                    <i class="notched times icon"></i>
+                    <div class="content">
+                        <div class="header">
+                            Not found
+                        </div>
+                        <p>@UserAccount is not exist.</p>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="ui segment">
+                <div class="ui active dimmer">
+                    <div class="ui indeterminate text loader">Loading</div>
+                </div>
+                <p style="height: 10em"></p>
+            </div>
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+@code{
+
+    [Parameter]
+    public string UserAccount { get; set; }
+
+    protected User User { get; set; }
+
+    protected DirectoryViewer UserDirectoryViewer;
+    protected IEnumerable<Lecture> Assigned;
+    protected bool Loaded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        var auth = await Auth.GetAuthenticationStateAsync();
+        UserAccount = UserAccount ?? auth.User.Identity.Name;
+
+        Notifier.Notify += OnNotify;
+        User = DB.Context.Users.Where(x => x.Account == UserAccount)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+
+        Assigned = DB.Context.Lectures
+            .Include(x => x.Owner)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+            .Include(x => x.Sandboxes)
+            .Where(x => x.LectureUsers.Any(y => y.UserId == User.Id))
+            .AsNoTracking();
+        Loaded = true;
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        await UserDirectoryViewer.UpdateAsync();
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+}
+

@@ -1,0 +1,238 @@
+﻿@using System.IO;
+@using System.Linq;
+@using ALMS.App.Models.Entities;
+@inject DatabaseService DB;
+
+<div class="@CssClass">
+    @if (Root != null)
+    {
+        <div class="ui menu top attached" top>
+            @if (!string.IsNullOrWhiteSpace(Subject))
+            {
+                <div class="header item"><i class="database icon"></i> @Subject</div>
+            }
+            @if (Root is DirectoryInfo)
+            {
+                DirectoryInfo root = Root as DirectoryInfo;
+                message = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%s\"", working_dir: root.FullName));
+                //git log --date=iso --pretty=format:"[%ad] %h %an : %s" | grep  "noracorn :" | wc -l
+                
+                @if (!string.IsNullOrWhiteSpace(message))
+                {
+                    <div class="borderless item"><small>@message</small></div>
+                }
+            }
+            @if (RepositoryPair.SharedRepository is IApiedRepository repos)
+            {
+                <div class="right menu">
+                    <div class="ui right aligned item" style="width: 20em">
+                        <div class="ui transparent left icon input">
+                            <i class="git square icon"></i>
+                            <input class="prompt tt" style="width: 100%" type="text" value="git clone @repos.ApiUrl">
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <div class="ui menu attached">
+                @{ var cnt = 0; }
+                @foreach (var entry in Hierarchy(Current))
+                {
+                    <a class="borderless item" href="javascript: void(0)" @onclick="() => Goto(entry)">@(entry.FullName.TrimEnd('/') == Root.FullName.TrimEnd('/') ? RootString : entry.Name)</a>
+                    if (cnt > 0 && entry is DirectoryInfo)
+                    {
+                        <span class="borderless item">/</span>
+                    }
+                    cnt++;
+                }
+            </div>
+            @if (Current is DirectoryInfo)
+            {
+                DirectoryInfo currentDir = Current as DirectoryInfo;
+                <table class="ui celled padded table bottom attached">
+                    <thead>
+                        <tr>
+                            <th class="single line">Name</th>
+                            <th class="single line">Commit Message</th>
+                            <th class="right aligned">Commiter</th>
+                            <th class="right aligned">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (DirectoryInfo dir in currentDir.GetDirectories().OrderBy(x => x.Name).Where(x => currentDir.FullName.TrimEnd('/') != Root.FullName.TrimEnd('/') || x.Name != ".git"))
+                        {
+                            var message = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%s\" \"{dir.Name}\"", working_dir: currentDir.FullName)).Trim();
+                            var email = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%ae\" \"{dir.Name}\"", working_dir: currentDir.FullName)).Trim();
+                            var date = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%ad\" \"{dir.Name}\"", working_dir: currentDir.FullName)).Trim();
+                            var user = DB.Context.Users.Where(x => x.EmailAddress == email).FirstOrDefault();
+                            <tr>
+                                <td><i class="folder outline icon"></i> <a href="javascript: void(0)" @onclick="() => Goto(dir)">@dir.Name</a></td>
+                                <td><small>@message</small></td>
+                                @if (user != null)
+                                {
+                                    <td class="right aligned"><small><a href="/admin/users/@user.Account">@user.DisplayName</a></small></td>
+                                }
+                                else
+                                {
+                                    var commiter = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%an\" \"{dir.Name}\"", working_dir: currentDir.FullName));
+                                    <td class="right aligned"><small>@commiter</small></td>
+                                }
+                                <td class="right aligned"><small>@date</small></td>
+                            </tr>
+                        }
+                        @foreach (FileInfo file in currentDir.GetFiles().OrderBy(x => x.Name))
+                        {
+                            var message = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%s\" \"{file.Name}\"", working_dir: currentDir.FullName)).Trim();
+                            var email = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%ae\" \"{file.Name}\"", working_dir: currentDir.FullName)).Trim();
+                            var date = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%ad\" \"{file.Name}\"", working_dir: currentDir.FullName)).Trim();
+                            var user = DB.Context.Users.Where(x => x.EmailAddress == email).FirstOrDefault();
+                            <tr>
+                                <td><i class="file outline icon"></i> <a href="javascript: void(0)" @onclick="() => Goto(file)">@file.Name</a></td>
+                                <td><small>@message</small></td>
+                                @if (user != null)
+                                {
+                                    <td class="right aligned"><small><a href="/admin/users/@user.Account">@user.DisplayName</a></small></td>
+                                }
+                                else
+                                {
+                                    var commiter = System.Text.Encoding.UTF8.GetString(RepositoryPair.ClonedRepository.Execute($"log -1 --pretty=\"%an\" \"{file.Name}\"", working_dir: currentDir.FullName));
+                                    <td class="right aligned"><small>@commiter</small></td>
+                                }
+                                <td class="right aligned"><small>@date</small></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            @if (Current is FileInfo)
+            {
+                FileInfo currentFile = Current as FileInfo;
+                string body;
+                using (var r = currentFile.OpenText()) { body = r.ReadToEnd(); }
+                <pre class="ui segment bottom attached tt">@body</pre>
+            }
+        }
+        else if(RepositoryPair.SharedRepository is IApiedRepository repos2 && repos2.CanPush(User))
+        {
+            <div class="ui segment bottom attached">
+                <pre class="tt">git init .
+git remote add origin @repos2.ApiUrl
+touch .keep
+git add .
+git commit -m "Initial Commit"
+git push origin master</pre>
+            </div>
+        }
+        else
+        {
+            <div class="ui segment bottom attached">
+                No content
+            </div>
+        }
+    }
+    else
+    {
+        <div class="ui icon message">
+            <i class="notched times icon"></i>
+            <div class="content">
+                <div class="header">
+                    Not found
+                </div>
+                <p>@RootPath is not exist.</p>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+
+@code {
+
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public string Subject { get; set; }
+    [Parameter]
+    public IRepositoryPair RepositoryPair { get; set; }
+    [Parameter]
+    public string RootString { get; set; } = "~/";
+    [Parameter]
+    public FileSystemInfo Current { get; set; }
+    [Parameter]
+    public User User { get; set; }
+
+    [Parameter]
+    public string Branch { get; set; }
+
+    public FileSystemInfo Root { get; set; }
+    protected string RootPath;
+
+    protected string message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateAsync();
+    }
+
+    public async Task UpdateAsync()
+    {
+        RootPath = RepositoryPair.ClonedRepository.DirectoryPath;
+        base.OnInitialized();
+        if (Directory.Exists(RootPath))
+        {
+            Root = new DirectoryInfo(RootPath);
+        }
+        else if (File.Exists(RootPath))
+        {
+            Root = new FileInfo(RootPath);
+        }
+        else
+        {
+            Root = null;
+        }
+        if (Current == null)
+        {
+            Current = Root;
+        }
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    private Stack<FileSystemInfo> Hierarchy(FileSystemInfo current, Stack<FileSystemInfo> hierarchy = null)
+    {
+        if (hierarchy == null)
+        {
+            hierarchy = new Stack<FileSystemInfo>();
+        }
+        if (current == null)
+        {
+            return hierarchy;
+        }
+        if (current.FullName.TrimEnd('/') == Root.FullName.TrimEnd('/'))
+        {
+            hierarchy.Push(current);
+            return hierarchy;
+        }
+        else
+        {
+            hierarchy.Push(current);
+            if (current is FileInfo)
+            {
+                return Hierarchy(((FileInfo)current).Directory, hierarchy);
+            }
+            if (current is DirectoryInfo)
+            {
+                return Hierarchy(((DirectoryInfo)current).Parent, hierarchy);
+            }
+            return hierarchy;
+        }
+    }
+
+    protected void Goto(FileSystemInfo dir)
+    {
+        Current = dir;
+    }
+
+}

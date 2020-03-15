@@ -1,0 +1,77 @@
+﻿@using ALMS.App.Models.Entities;
+
+<div class="@CssClass">
+    <div class="ui cards">
+        <div class="card">
+            <div class="content">
+                <div class="header">
+                    @User.DisplayName
+                </div>
+                <div class="meta">
+                    @User.Account
+                </div>
+                <div class="description">
+                    <div>
+                        <i class="envelope outline icon"></i>@User.EmailAddress
+                    </div>
+                </div>
+            </div>
+            <div class="extra content">
+                <span class="floated">
+                    <div>
+                        @if (User.IsSenior)
+                        {
+                            <span class="ui teal tag label">Senior</span>
+                        }
+                        @if (User.IsAdmin)
+                        {
+                            <span class="ui red tag label">Admin</span>
+                        }
+                    </div>
+                    @if (User.IsSenior || User.IsAdmin)
+                    {
+                        var a = User.Lectures.Count();
+                        var b = User.Sandboxes.Count();
+                        @if (a > 0)
+                        {
+                            <div>
+                                <i class="pen square icon"></i>@a Lectures
+                            </div>
+                        }
+                        @if (b > 0)
+                        {
+                            <div>
+                                <i class="box icon"></i>@b Sandboxes
+                            </div>
+                        }
+                    }
+                    @{
+                        var n = User.LectureUsers.Where(x => x.Role == LectureUserRole.Teacher).Count();
+                        var m = User.LectureUsers.Where(x => x.Role == LectureUserRole.Student).Count();
+                    }
+                    @if (n > 0)
+                    {
+                        <div>
+                            <i class="chess king icon"></i>@n Assigned as Teacher
+                        </div>
+                    }
+                    @if (m > 0)
+                    {
+                        <div>
+                            <i class="chess pawn icon"></i>@m Assigned as Student
+                        </div>
+                    }
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code{
+    [Parameter]
+    public User User { get; set; }
+    [Parameter]
+    public string CssClass { get; set; }
+}

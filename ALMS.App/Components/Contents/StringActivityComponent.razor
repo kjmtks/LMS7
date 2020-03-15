@@ -1,0 +1,34 @@
+﻿@inherits FileActivityComponentBase
+<div class="ui form" style="margin-left: 1em; margin-right: 1em;">
+    <div class="field">
+        <input type="text" class="tt" style="margin-top: 1em; font-family: 'Courier New', Courier, monospace;" @bind="Value" />
+    </div>
+</div>
+@code
+{
+    protected string Value { get; set; }
+    public override Task<string> GetValueAsync()
+    {
+        return Task.Run<string>(() => Value );
+    }
+    public override Task SetValueAsync(string value)
+    {
+        return Task.Run(() => { Value = value; });
+    }
+    public override Task SetDefaultValueAsync()
+    {
+        return Task.Run(() =>
+        {
+            var file = File as ALMS.App.Models.Contents.ActivityFilesString;
+            Value = file.Default;
+        });
+    }
+    public override Task SetAnswerValueAsync()
+    {
+        return Task.Run(() =>
+        {
+            var file = File as ALMS.App.Models.Contents.ActivityFilesString;
+            Value = file.Answer;
+        });
+    }
+}

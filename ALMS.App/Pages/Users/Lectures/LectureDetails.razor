@@ -1,0 +1,141 @@
+﻿@page "/users/{UserAccount}/lectures/{LectureName}";
+@inject DatabaseService DB;
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Components;
+@using ALMS.App.Components.Utils;
+@using ALMS.App.Models.Entities;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+
+
+<AuthorizeView>
+    <Authorized Context="AuthorizedContext">
+        @if (Lecture != null)
+        {
+            var LoginUser = DB.Context.Users.Where(x => x.Account == AuthorizedContext.User.Identity.Name)
+                .Include(x => x.Lectures)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            @if (LoginUser.IsTeacher(Lecture))
+            {
+                var p = LoginUser.IsSenior || LoginUser.IsAdmin ? EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove : EntityManagementPermision.DenyAll;
+
+                <LectureInfo CssClass="ui content" Lecture="@Lecture" />
+
+                <h2 class="ui header">
+                    <i class="database icon"></i>
+                    <div class="content">
+                        Contents Repository
+                        <div class="sub header">Explore contents repository</div>
+                    </div>
+                </h2>
+                <RepositoryViewer CssClass="ui content"
+                                  Subject="Contents"
+                                  User="@LoginUser"
+                                  RepositoryPair="@Lecture.LectureContentsRepositoryPair"
+                                  RootString="/"
+                                  @ref="ContentsRepositoryViewer" />
+
+                <h2 class="ui header">
+                    <i class="database icon"></i>
+                    <div class="content">
+                        Submissions Repository
+                        <div class="sub header">Explore submissions repository</div>
+                    </div>
+                </h2>
+                <RepositoryViewer CssClass="ui content"
+                                  Subject="Submissions"
+                                  User="@LoginUser"
+                                  RepositoryPair="@Lecture.LectureSubmissionsRepositoryPair"
+                                  RootString="/"
+                                  @ref="SubmissionsRepositoryViewer" />
+
+                <h2 class="ui header">
+                    <i class="box icon"></i>
+                    <div class="content">
+                        Sandbox Settings
+                        <div class="sub header">Manage lecture's sandboxes</div>
+                    </div>
+                </h2>
+                <LectureSandboxManager CssClass="ui content" Parent="@Lecture"
+                                       User="@LoginUser"
+                                       Permision="@p"
+                                       Collection="@DB.Context.LectureSandboxes.Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.LectureId == Lecture.Id).AsNoTracking()" />
+
+                <h2 class="ui header">
+                    <i class="folder icon"></i>
+                    <div class="content">
+                        Lecture directory
+                        <div class="sub header">Explore lecture directories</div>
+                    </div>
+                </h2>
+                <DirectoryViewer CssClass="ui content"
+                                 Subject="Lecture Dir."
+                                 RootPath="@Lecture.DirectoryPath"
+                                 RootString="/"
+                                 @ref="DirectoryViewer" />
+
+                <h2 class="ui header">
+                    <i class="box icon"></i>
+                    <div class="content">
+                        Activity Action History
+                        <div class="sub header">Observe activity action histories</div>
+                    </div>
+                </h2>
+                <ActivityActionHistoryComponent CssClass="ui content" Lecture="Lecture" User="User" @ref="ActivityActionHistoryComponent" />
+            }
+        }
+        else
+        {
+            <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+@code{
+
+    [Parameter]
+    public string UserAccount { get; set; }
+    [Parameter]
+    public string LectureName { get; set; }
+
+    protected User User { get; set; }
+    protected Lecture Lecture { get; set; }
+
+    protected DirectoryViewer DirectoryViewer;
+    protected RepositoryViewer ContentsRepositoryViewer;
+    protected RepositoryViewer SubmissionsRepositoryViewer;
+    protected ActivityActionHistoryComponent ActivityActionHistoryComponent;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Notifier.Notify += OnNotify;
+        User = DB.Context.Users.Where(x => x.Account == UserAccount)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+        Lecture = DB.Context.Lectures
+            .Include(x => x.Owner)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+            .Where(x => x.Name == LectureName && x.Owner.Account == UserAccount).FirstOrDefault();
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        await ContentsRepositoryViewer.UpdateAsync();
+        await SubmissionsRepositoryViewer.UpdateAsync();
+        await DirectoryViewer.UpdateAsync();
+        await ActivityActionHistoryComponent.UpdateAsync();
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+}
+

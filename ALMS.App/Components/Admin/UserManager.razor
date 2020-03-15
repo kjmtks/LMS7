@@ -1,0 +1,112 @@
+﻿@inherits EditableEntityComponentBase<ALMS.App.Models.Entities.User>
+
+    <div class="@CssClass">
+
+
+        <ALMS.App.Components.Utils.ErrorMessageComponent Subject="@ErrorSubject" ErrorMessage="@ErrorMessage" />
+
+        <div class="ui menu top attached">
+            <div class="header left item"><i class="user icon"></i> @(string.IsNullOrEmpty(Subject) ? "Users" : Subject)</div>
+            @if (Permision.HasFlag(EntityManagementPermision.CanCreateNew))
+            {
+                <a class="right item" @onclick="() => OpenCreate()"><i class="plus icon"></i></a>
+            }
+        </div>
+
+        <ALMS.App.Components.Utils.Paginated Collection="@Collection" @ref="@Pagination" CssClass="bottom attached">
+            <table class="ui padded table @(Pagination.HasPagination ? "" : "bottom") attached">
+                <thead>
+                    <tr>
+                        <th class="single line">Account</th>
+                        <th class="single line">Name</th>
+                        <th class="single line">Email Address</th>
+                        <th class="single line">Roles</th>
+                        <th class="right aligned"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var model in Pagination.ShowedModels)
+                    {
+                        <tr>
+                            <td><a href="/users/@model.Account">@model.Account</a></td>
+                            <td>@model.DisplayName</td>
+                            <td>@model.EmailAddress</td>
+                            <td>
+                                @if (@model.IsAdmin)
+                                {
+                                    <text>Admin</text>
+                                }
+                                &nbsp;
+                                @if (@model.IsSenior)
+                                {
+                                    <text>Senior</text>
+                                }
+                            </td>
+                            <td class="right aligned">
+                                @if (Permision.HasFlag(EntityManagementPermision.CanEdit))
+                                {
+                                    <a class="ui blue icon button" @onclick="() => OpenEdit(model)"><i class="edit icon"></i></a>
+                                }
+                                @if (Permision.HasFlag(EntityManagementPermision.CanRemove))
+                                {
+                                    <a class="ui red icon button" @onclick="() => RemoveAsync(model)"><i class="trash icon"></i></a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </ALMS.App.Components.Utils.Paginated>
+
+
+        <div class="ui modal" id="edit-form-@ComponentId">
+            <div class="header">@(Mode == EditMode.CreateNew ? "Add New" : "Edit") User</div>
+            <div class="content">
+
+                <EditForm EditContext="@EditContext" OnSubmit="@Submit">
+                    <DataAnnotationsValidator />
+                    <div class="ui form">
+                        <div class="field">
+                            <label>Account</label>
+                            <InputText @bind-Value="@EdittingModel.Account" />
+                            <ValidationMessage For="@(() => EdittingModel.Account)" />
+                        </div>
+                        <div class="field">
+                            <label>Password</label>
+                            <InputText type="password" @bind-Value="@EdittingModel.Password" />
+                            <ValidationMessage For="@(() => EdittingModel.Password)" />
+                        </div>
+                        <div class="field">
+                            <label>DisplayName</label>
+                            <InputText @bind-Value="@EdittingModel.DisplayName" />
+                            <ValidationMessage For="@(() => EdittingModel.DisplayName)" />
+                        </div>
+                        <div class="field">
+                            <label>Email Address</label>
+                            <InputText @bind-Value="@EdittingModel.EmailAddress" />
+                            <ValidationMessage For="@(() => EdittingModel.EmailAddress)" />
+                        </div>
+                        <div class="field">
+                            <label>Is Admin</label>
+                            <InputCheckbox @bind-Value="@EdittingModel.IsAdmin" />
+                            <ValidationMessage For="@(() => EdittingModel.IsAdmin)" />
+                        </div>
+                        <div class="field">
+                            <label>Is Senior</label>
+                            <InputCheckbox @bind-Value="@EdittingModel.IsSenior" />
+                            <ValidationMessage For="@(() => EdittingModel.IsSenior)" />
+                        </div>
+                    </div>
+
+                    <div class="content">
+                        <div class="actions">
+                            <div class="ui red cancel inverted button"><i class="remove icon"></i>Cancel</div>
+                            <button type="submit" class="ui green inverted button"><i class="checkmark icon"></i>OK</button>
+                        </div>
+                    </div>
+                </EditForm>
+
+            </div>
+        </div>
+
+    </div>

@@ -1,0 +1,67 @@
+﻿@using ALMS.App.Models.Entities;
+
+<div class="@CssClass">
+
+    <div class="ui menu top attached">
+        <div class="header left item"><i class="pen square icon"></i> @(string.IsNullOrEmpty(Subject) ? "Assigned Lectures" : Subject)</div>
+    </div>
+    <ALMS.App.Components.Utils.Paginated Collection="@Collection" @ref="Pagination" CssClass="bottom attached">
+        <table class="ui padded table @(Pagination.HasPagination ? "" : "bottom") attached">
+            <thead>
+                <tr>
+                    <th class="single line">Name</th>
+                    <th class="single line">Subject</th>
+                    <th class="single line">Description</th>
+                    <th class="single line"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var model in Pagination.ShowedModels)
+                {
+                <tr>
+                    <td>
+                        @if (User.IsTeacher(model))
+                        {
+                            <i class="chess king icon"></i>
+                        }
+                        @if (User.IsStudent(model))
+                        {
+                            <i class="chess pawn icon"></i>
+                        }
+                        <a href="/lecture/@model.Owner.Account/@model.Name/page/master/">@model.Name</a>
+                    </td>
+                    <td>@model.Subject</td>
+                    <td>@model.Description</td>
+                    <td>
+
+                        @if (User.IsTeacher(model))
+                        {
+                            <div class="ui small labels">
+                                @foreach (var b in model.LectureContentsRepositoryPair.SharedRepository.GetBranches())
+                                {
+                                    <a href="/lecture/@model.Owner.Account/@model.Name/page/@b/" class="ui label">@b</a>
+                                }
+                            </div>
+                        }
+
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </ALMS.App.Components.Utils.Paginated>
+
+</div>
+
+@code{
+    [Parameter]
+    public User User { get; set; }
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public string Subject { get; set; }
+    [Parameter]
+    public IEnumerable<Lecture> Collection { get; set; }
+
+    protected Utils.Paginated<Lecture> Pagination;
+}

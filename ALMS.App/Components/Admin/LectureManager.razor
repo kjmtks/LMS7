@@ -1,0 +1,129 @@
+﻿@inherits EditableChildEntityComponentBase<ALMS.App.Models.Entities.Lecture, ALMS.App.Models.Entities.User>;
+
+    <div class="@CssClass">
+
+        <ALMS.App.Components.Utils.ErrorMessageComponent Subject="@ErrorSubject" ErrorMessage="@ErrorMessage" />
+
+        <div class="ui menu top attached">
+            <div class="header left item"><i class="pen square icon"></i> @(string.IsNullOrEmpty(Subject) ? "Lectures" : Subject)</div>
+            @if (Permision.HasFlag(EntityManagementPermision.CanCreateNew))
+            {
+                <a class="right item" @onclick="() => OpenCreate()"><i class="plus icon"></i></a>
+            }
+        </div>
+        <ALMS.App.Components.Utils.Paginated Collection="@Collection" @ref="Pagination" CssClass="bottom attached">
+            <table class="ui padded table @(Pagination.HasPagination ? "" : "bottom") attached">
+                <thead>
+                    <tr>
+                        <th class="single line">Name</th>
+                        <th class="single line">Subject</th>
+                        <th class="single line">Description</th>
+                        <th class="right aligned"></th>
+                        <th class="right aligned"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var model in Pagination.ShowedModels)
+                    {
+                        <tr>
+                            <td>
+                                <a href="/users/@model.Owner.Account/lectures/@model.Name">@model.Name</a>
+                            </td>
+                            <td>@model.Subject</td>
+                            <td>@model.Description</td>
+                            <td class="right aligned">
+                                <i class="chess king icon"></i> @model.GetTeachers().Count()
+                                &nbsp;&nbsp;
+                                <i class="chess pawn icon"></i> @model.GetStudents().Count()
+                                &nbsp;&nbsp;
+                                <i class="box pawn icon"></i> @model.Sandboxes.Count()
+                            </td>
+                            <td class="right aligned">
+                                @if (Permision.HasFlag(EntityManagementPermision.CanEdit))
+                                {
+                                    <a class="ui blue icon button" @onclick="() => OpenEdit(model)"><i class="edit icon"></i></a>
+                                }
+                                @if (Permision.HasFlag(EntityManagementPermision.CanRemove))
+                                {
+                                    <a class="ui red icon button" @onclick="() => RemoveAsync(model)"><i class="trash icon"></i></a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </ALMS.App.Components.Utils.Paginated>
+
+
+        <div class="ui modal" id="edit-form-@ComponentId">
+            <div class="header">@(Mode == EditMode.CreateNew ? "Add New" : "Edit") Lecture</div>
+            <div class="content">
+
+                <EditForm EditContext="@EditContext" OnSubmit="@Submit">
+                    <DataAnnotationsValidator />
+                    <div class="ui form">
+                        <div class="field">
+                            <label>Name</label>
+                            <InputText @bind-Value="@EdittingModel.Name" />
+                            <ValidationMessage For="@(() => EdittingModel.Name)" />
+                        </div>
+                        <div class="field">
+                            <label>Subject</label>
+                            <InputText @bind-Value="@EdittingModel.Subject" />
+                            <ValidationMessage For="@(() => EdittingModel.Subject)" />
+                        </div>
+                        <div class="field">
+                            <label>Description</label>
+                            <InputTextArea @bind-Value="@EdittingModel.Description" />
+                            <ValidationMessage For="@(() => EdittingModel.Description)" />
+                        </div>
+                        <div class="field">
+                            <label>Teachers</label>
+                            <InputTextArea @bind-Value="@EdittingModel.TeachersForEdit" />
+                            <ValidationMessage For="@(() => EdittingModel.TeachersForEdit)" />
+                        </div>
+                        <div class="field">
+                            <label>Students</label>
+                            <InputTextArea @bind-Value="@EdittingModel.StudentsForEdit" />
+                            <ValidationMessage For="@(() => EdittingModel.StudentsForEdit)" />
+                        </div>
+                        @if (Mode == EditMode.CreateNew)
+                        {
+                            <div class="field">
+                                <label>Empty Repositories</label>
+                                <InputCheckbox @bind-Value="@EdittingModel.IsEmptyRepositories" />
+                                <ValidationMessage For="@(() => EdittingModel.IsEmptyRepositories)" />
+                            </div>
+                        }
+                    </div>
+
+                    <div class="content">
+                        <div class="actions">
+                            <div class="ui red cancel inverted button"><i class="remove icon"></i>Cancel</div>
+                            <button type="submit" class="ui green inverted button"><i class="checkmark icon"></i>OK</button>
+                        </div>
+                    </div>
+                </EditForm>
+
+            </div>
+        </div>
+
+    </div>
+
+
+
+@code{
+    /*
+<div class="field">
+    <label>Owner</label>
+
+    <ALMS.App.Components.Utils.InputSelectEntity CssClass="fluid dropdown" Collection="@DB.Context.Users" @bind-Value="@EdittingModel.Owner">
+        @foreach (var user in DB.Context.Users.OrderBy(u => u.Id))
+        {
+            <option value="@user.Id">@user.Account (@user.DisplayName)</option>
+        }
+    </ALMS.App.Components.Utils.InputSelectEntity>
+    <ValidationMessage For="@(() => EdittingModel.Owner)" />
+</div>
+    */
+}

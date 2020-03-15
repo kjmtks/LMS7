@@ -1,0 +1,114 @@
+﻿@inject IBackgroundTaskQueueSet BTQS
+
+    <div class="@CssClass">
+
+        <div class="actions">
+            <button class="ui black button" @onclick="() => { Delay = 0; }">Stop</button>
+            <button class="ui red button" @onclick="() => { Delay = 5000; }">Very Slow</button>
+            <button class="ui yellow button" @onclick="() => { Delay = 2500; }">Slow</button>
+            <button class="ui green button" @onclick="() => { Delay = 1000; }">Normal</button>
+            <button class="ui blue button" @onclick="() => { Delay = 500; }">Fast</button>
+            <button class="ui purple button" @onclick="() => { Delay = 100; }">Very Fast</button>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            @if (isTimerRunning)
+            {
+                <div class="ui label">
+                    Update span
+                    <div class="detail">@(Delay / 1000.0) sec.</div>
+                </div>
+            }
+            else
+            {
+                <div class="ui label">
+                    Update stopped
+                </div>
+            }
+        </div>
+
+        <div class="content">
+            <table class="ui padded table bottom attached">
+                <thead>
+                    <tr>
+                        <th class="left aligned">#</th>
+                        <th class="left aligned">Type</th>
+                        <th class="left aligned">Status</th>
+                        <th class="left aligned">Num. of Queued</th>
+                        <th class="right aligned"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+
+                        var queues = BTQS.GetPrioritiedQueues().Select(q => (q, "chess king")).ToList<(BackgroundTaskQueue, string)>();
+                        queues.AddRange(BTQS.GetQueues().Select(q => (q, "chess pawn")));
+                    }
+                    @foreach (var queue in queues.Select((q, i) => (q, i)))
+                    {
+                        <tr>
+                            <td>#@(queue.i + 1)</td>
+                            <td><i class="@queue.q.Item2 icon"></i></td>
+                            <td>
+                                @if (queue.q.Item1.IsRunning)
+                                {
+                                    <div class="ui active inline mini loader"></div>
+                                }
+                            </td>
+                            <td>
+                                @{
+                                    var c = queue.q.Item1.Count;
+                                    var color = c <= 5 ? "blue" : c <= 10 ? "yellow" : "red";
+                                }
+                                @if (c > 0)
+                                {
+                                    <i class="ui @color circular label">@c</i>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+
+
+
+
+@code{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    protected double Delay
+    {
+        get { return timer.Interval; }
+        set
+        {
+            timer.Stop();
+            if (value > 0)
+            {
+                timer.Interval = value;
+                isTimerRunning = true;
+                timer.Start();
+            }
+            else
+            {
+                isTimerRunning = false;
+            }
+
+        }
+    }
+    private bool isTimerRunning = true;
+    protected System.Timers.Timer timer { get; set; } = new System.Timers.Timer(1000);
+    protected override void OnInitialized()
+    {
+        Task.Run(() =>
+        {
+            timer.Elapsed += (s, e) =>
+            {
+                InvokeAsync(() => { StateHasChanged(); });
+            };
+            timer.Start();
+        });
+    }
+}

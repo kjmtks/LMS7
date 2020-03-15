@@ -1,0 +1,42 @@
+﻿@inherits FileActivityComponentBase
+@inject IJSRuntime JS;
+
+
+<div id="code-activity-@ComponentId" class="ace-editor" style="height: 100%"></div>
+
+
+@code
+{
+
+    protected int ComponentId = new Random().Next();
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var file = File as ALMS.App.Models.Contents.ActivityFilesCode;
+        await JS.InvokeVoidAsync("setupAceEditor", $"code-activity-{ComponentId}", file.Language);
+    }
+
+    
+    public override async Task<String> GetValueAsync()
+    {
+        return await JS.InvokeAsync<string>("getTextFromAceEditor", $"code-activity-{ComponentId}");
+    }
+    public override async Task SetValueAsync(string value)
+    {
+        await JS.InvokeVoidAsync("setTextToAceEditor", $"code-activity-{ComponentId}", value);
+    }
+    public override async Task SetDefaultValueAsync()
+    {
+        var file = File as ALMS.App.Models.Contents.ActivityFilesCode;
+        await JS.InvokeVoidAsync("setTextToAceEditor", $"code-activity-{ComponentId}", file.Default);
+    }
+    public override async Task SetAnswerValueAsync()
+    {
+        var file = File as ALMS.App.Models.Contents.ActivityFilesCode;
+        await JS.InvokeVoidAsync("setTextToAceEditor", $"code-activity-{ComponentId}", file.Answer);
+    }
+}

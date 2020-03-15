@@ -1,0 +1,278 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  
+  <xs:group name="Validatable">
+    <xs:choice>
+      <xs:element ref="Validation" />
+      <xs:element ref="Negation" />
+      <xs:element ref="Conjunction" />
+      <xs:element ref="Disjunction" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:element name="Validation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Run" type="xs:string" />
+        <xs:element name="Answer" type="xs:string" />
+      </xs:sequence>
+      <xs:attribute name="Name" type="xs:string" use="required" />
+      <xs:attribute name="Type" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Negation">
+    <xs:complexType>
+      <xs:group minOccurs="1" maxOccurs="1" ref="Validatable" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Conjunction">
+    <xs:complexType>
+      <xs:sequence minOccurs="1">
+        <xs:group ref="Validatable" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Disjunction">
+    <xs:complexType>
+      <xs:sequence minOccurs="1">
+        <xs:group ref="Validatable" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:group name="Form">
+    <xs:choice>
+      <xs:group ref="FormInput" />
+      <xs:element ref="FormGroup" />
+    </xs:choice>
+  </xs:group>
+
+
+  <xs:group name="FormInput">
+    <xs:choice>
+      <xs:element name="Text">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="Block" type="xs:boolean" use="optional" />
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Checkbox">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="Name" type="xs:string" use="required" />
+              <xs:attribute name="True" type="xs:string" use="required" />
+              <xs:attribute name="False" type="xs:string" use="required" />
+              <xs:attribute name="Default" type="xs:boolean" use="required" />
+              <xs:attribute name="Answer" type="xs:boolean" use="optional" />
+              <xs:attribute name="Block" type="xs:boolean" use="optional" />
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Select">
+        <xs:complexType>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Option">
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute name="Value" type="xs:string" use="required" />
+                    <xs:attribute name="Default" type="xs:boolean" use="required" />
+                    <xs:attribute name="Answer" type="xs:boolean" use="optional" />
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Block" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Radio">
+        <xs:complexType>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Option">
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute name="Value" type="xs:string" use="required" />
+                    <xs:attribute name="Default" type="xs:boolean" use="required" />
+                    <xs:attribute name="Answer" type="xs:boolean" use="optional" />
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Block" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Textarea">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Default" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="Answer" type="xs:string" minOccurs="0" maxOccurs="1" />
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Maxlength" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="Rows" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="Block" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="String">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Default" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="Answer" type="xs:string" minOccurs="0" maxOccurs="1" />
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Size" type="xs:string" use="optional" />
+          <xs:attribute name="Maxlength" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="Block" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+
+
+
+
+  <xs:group name="File">
+    <xs:choice>
+      <xs:element name="Code">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Default" type="xs:string" />
+            <xs:element name="Answer" type="xs:string" />
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Language" type="xs:string" use="optional" />
+          <xs:attribute name="ContentType" type="xs:string" use="optional" />
+          <xs:attribute name="Maxlength" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="ReadOnly" type="xs:boolean" use="optional" />
+          <xs:attribute name="Submit" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Text">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Default" type="xs:string" />
+            <xs:element name="Answer" type="xs:string" />
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="ContentType" type="xs:string" use="optional" />
+          <xs:attribute name="Maxlength" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="ReadOnly" type="xs:boolean" use="optional" />
+          <xs:attribute name="Submit" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="String">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Default" type="xs:string" />
+            <xs:element name="Answer" type="xs:string" />
+          </xs:sequence>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="ContentType" type="xs:string" use="optional" />
+          <xs:attribute name="Maxlength" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="ReadOnly" type="xs:boolean" use="optional" />
+          <xs:attribute name="Submit" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Upload">
+        <xs:complexType>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Maxsize" type="xs:unsignedInt" use="optional" />
+          <xs:attribute name="Submit" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Form">
+        <xs:complexType>
+          <xs:choice>
+            <xs:element name="Item" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                  <xs:group ref="FormInput" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:group ref="FormInput" />
+          </xs:choice>
+          <xs:attribute name="Name" type="xs:string" use="required" />
+          <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="Submit" type="xs:boolean" use="optional" />
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+
+
+
+
+  <xs:element name="Activity">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Sandbox" type="xs:string" />
+        <xs:element name="Name" type="xs:string" />
+        <xs:element name="Subject" type="xs:string" />
+        <xs:element name="Description" type="xs:string" />
+        <xs:element name="Deadline" type="xs:dateTime" />
+        <xs:element name="Directory" type="xs:string" />
+        <xs:element name="Flags">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="UseStdout" type="xs:boolean" />
+              <xs:element name="UseStderr" type="xs:boolean" />
+              <xs:element name="UseSave" type="xs:boolean" />
+              <xs:element name="UseReset" type="xs:boolean" />
+              <xs:element name="CanSubmitAfterDeadline" type="xs:boolean" />
+              <xs:element name="CanSubmitBeforeAccept" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Files">
+          <xs:complexType>
+            <xs:group minOccurs="0" maxOccurs="unbounded" ref="FormInput" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Run" type="xs:string" />
+        <xs:element name="Limits">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RealTime" type="xs:unsignedByte" />
+              <xs:element name="Memory" type="xs:string" />
+              <xs:element name="StdoutLength" type="xs:unsignedShort" />
+              <xs:element name="StderrLength" type="xs:unsignedShort" />
+              <xs:element name="Pids" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Validations">
+          <xs:complexType>
+            <xs:group minOccurs="1" maxOccurs="1" ref="Validatable" />
+          </xs:complexType>
+        </xs:element>
+
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

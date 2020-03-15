@@ -1,0 +1,133 @@
+﻿@using ALMS.App.Models.Entities;
+
+    <div clsaa="@CssClass">
+        <div class="ui grid">
+
+            <div class="row">
+                <div class="ui three wide column">
+                    <div class="ui breadcrumb">
+                        <a class="section" href="/users/@Lecture.Owner.Account"><i class="user icon"></i> @Lecture.Owner.Account</a>
+                        <i class="right chevron icon divider"></i>
+                        <span class="active section"><i class="pen square icon"></i> @Lecture.Name</span>
+
+                    </div>
+                </div>
+                <div class="ui thirteen wide column">
+                    <div class="ui small labels">
+                        @foreach (var b in Lecture.LectureContentsRepositoryPair.SharedRepository.GetBranches())
+                        {
+                            <a href="/lecture/@Lecture.Owner.Account/@Lecture.Name/page/@b/" class="ui label">@b</a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="six wide column">
+                    <h1 class="ui header">@Lecture.Subject</h1>
+                </div>
+                <div class="ten wide column">
+                    <div class="ui mini statistics">
+                        <div class="statistic">
+                            <div class="value">
+                                <i class="chess king icon"></i> @Lecture.GetTeachers().Count()
+                            </div>
+                            <div class="label">
+                                Teachers
+                            </div>
+                        </div>
+                        <div class="statistic">
+                            <div class="value">
+                                <i class="chess pawn icon"></i> @Lecture.GetStudents().Count()
+                            </div>
+                            <div class="label">
+                                Students
+                            </div>
+                        </div>
+                        <div class="statistic">
+                            <div class="value">
+                                <i class="box icon"></i> @Lecture.Sandboxes.Count()
+                            </div>
+                            <div class="label">
+                                Sandboxes
+                            </div>
+                        </div>
+                        <div class="statistic">
+                            <div class="value">
+                                <i class="fas fa-code-branch"></i> @Lecture.LectureContentsRepositoryPair.SharedRepository.GetBranches().Count()
+                            </div>
+                            <div class="label">
+                                Branches
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Lecture.Description))
+        {
+            <div class="ui basic segment">
+                <p>@Lecture.Description</p>
+            </div>
+        }
+
+        @try
+        {
+            <h2 class="ui header">
+                <i class="dollar sign  icon"></i>
+                <div class="content">
+                    Parameters
+                    <div class="sub header">Show lecture's parameters</div>
+                </div>
+            </h2>
+
+            var parameters = Lecture.GetParameters().GetValues();
+            @if (parameters.Count() > 0)
+            {
+                <div class="ui menu top attached">
+                    <div class="header left item"><i class="dollar sign icon"></i> Parameters</div>
+                </div>
+                <table class="ui padded table attached">
+                    <thead>
+                        <tr>
+                            <th class="single line">Name</th>
+                            <th class="single line">Type</th>
+                            <th class="single line">Value</th>
+                            <th class="single line">Description</th>
+                            <th class="right aligned"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in parameters)
+                        {
+                            <tr>
+                                <td>@p.Name</td>
+                                <td>@p.DataType.Name</td>
+                                <td>@p.GetValue()</td>
+                                <td>@p.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+        catch (Exception e)
+        {
+            <div class="ui negative message">
+                <div class="ui header">Parse parameters.xml Error</div>
+                <p>@e.Message</p>
+            </div>
+        }
+
+    </div>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public Lecture Lecture { get; set; }
+}

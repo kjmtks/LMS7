@@ -1,0 +1,249 @@
+﻿@inherits FileActivityComponentBase
+
+<div class="ui basic segment" style="overflow-y: auto; position: absolute; height: 100%; width: 100%">
+
+    <div class="ui form">
+
+        @foreach (var input in FormFile.Children)
+        {
+            if (input is ALMS.App.Models.Contents.ActivityFilesFormText inpx)
+            {
+                @if (inpx.Block)
+                {
+                    <p>@inpx.Text</p>
+                }
+                else
+                {
+                    <text>@inpx.Text</text>
+                }
+            }
+            if (input is ALMS.App.Models.Contents.ActivityFilesFormString inps)
+            {
+                @if (inps.Block)
+                {
+                    <div class="field">
+                        @if (!string.IsNullOrWhiteSpace(inps.Label))
+                        {
+                            <label>@inps.Label</label>
+                        }
+                        <input type="text" @bind="values[inps.Name]" maxlength="@inps.Maxlength" class="tt" style="width: @(StyleSize(inps.Size))" />
+                    </div>
+                }
+                else
+                {
+                    <input type="text" @bind="@values[inps.Name]" placeholder="@inps.Label" maxlength="@inps.Maxlength" class="tt" style="vertical-align: middle; width: @(StyleSize(inps.Size))" />
+                }
+            }
+            if (input is ALMS.App.Models.Contents.ActivityFilesFormTextarea inpt)
+            {
+                @if (inpt.Block)
+                {
+                    <div class="field">
+                        @if (!string.IsNullOrWhiteSpace(inpt.Label))
+                        {
+                            <label>@inpt.Label</label>
+                        }
+                        <textarea class="tt" rows="@inpt.Rows" maxlength="@inpt.Maxlength" @bind="values[inpt.Name]"></textarea>
+                    </div>
+                }
+                else
+                {
+                    <textarea placeholder="@inpt.Label" class="tt" rows="@inpt.Rows" maxlength="@inpt.Maxlength" @bind="values[inpt.Name]"></textarea>
+                }
+            }
+            if (input is ALMS.App.Models.Contents.ActivityFilesFormSelect inpl)
+            {
+                @if (inpl.Block)
+                {
+                    <div class="field">
+                        @if (!string.IsNullOrWhiteSpace(inpl.Label))
+                        {
+                            <label>@inpl.Label</label>
+                        }
+                        <select class="ui fluid dropdown" @bind="values[inpl.Name]">
+                            @foreach (var opt in inpl.Options)
+                            {
+                                <option value="@opt.Value">@opt.Label</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <select class="ui dropdown" style="width: auto; display: inline" @bind="values[inpl.Name]">
+                        @foreach (var opt in inpl.Options)
+                        {
+                            <option value="@opt.Value">@opt.Label</option>
+                        }
+                    </select>
+                }
+            }
+            if (input is ALMS.App.Models.Contents.ActivityFilesFormRadio inpr)
+            {
+                @if (inpr.Block)
+                {
+                    <div class="field">
+                        @if (!string.IsNullOrWhiteSpace(inpr.Label))
+                        {
+                            <label>@inpr.Label</label>
+                        }
+                        @foreach (var opt in inpr.Options)
+                        {
+                            <input type="radio" name="@inpr.Name"
+                                   checked="@(values[inpr.Name] == opt.Value ? "checked" : "")"
+                                   @onchange='(e) => { if((string)e.Value == "on") { values[inpr.Name] = opt.Value; } }'> @opt.Label <text>&nbsp;&nbsp;</text>
+                            }
+                    </div>
+                }
+                else
+                {
+                    @foreach (var opt in inpr.Options)
+                    {
+                        <input type="radio" name="@inpr.Name"
+                               checked="@(values[inpr.Name] == opt.Value ? true : false)"
+                               @onchange='(e) => { if((string)e.Value == "on") { values[inpr.Name] = opt.Value; } }'> @opt.Label <text>&nbsp;&nbsp;</text>
+                        }
+                }
+            }
+            if (input is ALMS.App.Models.Contents.ActivityFilesFormCheckbox inpb)
+            {
+                @if (inpb.Block)
+                {
+                    <div class="field">
+                        @if (!string.IsNullOrWhiteSpace(inpb.Label))
+                        {
+                            <label>@inpb.Label</label>
+                        }
+                        <input type="checkbox" name="@inpb.Name"
+                               checked="@(values[inpb.Name] == inpb.True ? "checked" : "")"
+                               @onchange="(e) => { values[inpb.Name] = ((bool)e.Value) ? inpb.True : inpb.False; }"> @inpb.Label
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="checkbox" name="@inpb.Name"
+                               checked="@(values[inpb.Name] == inpb.True ? "checked" : "")"
+                               @onchange="(e) => { values[inpb.Name] = ((bool)e.Value) ? inpb.True : inpb.False; }"> @inpb.Label
+                        }
+            }
+        }
+    </div>
+</div>
+
+@code
+{
+    protected Dictionary<string, string> values;
+
+    protected ALMS.App.Models.Contents.ActivityFilesForm FormFile { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        FormFile = File as ALMS.App.Models.Contents.ActivityFilesForm;
+        values = new Dictionary<string, string>();
+        foreach (var input in FormFile.Children.Where(x => !string.IsNullOrWhiteSpace(x.Name)))
+        {
+            values.Add(input.Name, "");
+        }
+    }
+
+    public override Task<string> GetValueAsync()
+    {
+        var options = new System.Text.Json.JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All),
+            WriteIndented = true
+        };
+        return Task.Run<string>(() => System.Text.Json.JsonSerializer.Serialize<Dictionary<string, string>>(values, options));
+    }
+    public override Task SetValueAsync(string value)
+    {
+        return Task.Run(() => {
+            var vs = new Dictionary<string, string>();
+            try
+            {
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All),
+                    WriteIndented = true
+                };
+                vs = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(value, options);
+            }
+            catch { }
+
+            foreach (var input in FormFile.Children.Where(x => !string.IsNullOrWhiteSpace(x.Name)))
+            {
+                if (vs.ContainsKey(input.Name))
+                {
+                    values[input.Name] = vs[input.Name];
+                }
+                else
+                {
+                    if(input.GetDefault() != null)
+                    {
+                        values[input.Name] = input.GetDefault();
+                    }
+                    else
+                    {
+                        if (!values.ContainsKey(input.Name))
+                        {
+                            values[input.Name] = "";
+                        }
+                    }
+                }
+            }
+        });
+    }
+    public override Task SetDefaultValueAsync()
+    {
+        return Task.Run(() =>
+        {
+            foreach (var input in FormFile.Children.Where(x => !string.IsNullOrWhiteSpace(x.Name)))
+            {
+                if (input.GetDefault() != null)
+                {
+                    values[input.Name] = input.GetDefault();
+                }
+                else
+                {
+                    if (!values.ContainsKey(input.Name))
+                    {
+                        values[input.Name] = "";
+                    }
+                }
+            }
+        });
+    }
+    public override Task SetAnswerValueAsync()
+    {
+        return Task.Run(() =>
+        {
+            foreach (var input in FormFile.Children.Where(x => !string.IsNullOrWhiteSpace(x.Name)))
+            {
+                if (input.GetAnswer() != null)
+                {
+                    values[input.Name] = input.GetAnswer();
+                }
+                else
+                {
+                    if (!values.ContainsKey(input.Name))
+                    {
+                        values[input.Name] = "";
+                    }
+                }
+            }
+        });
+    }
+
+    private string StyleSize(string size)
+    {
+        switch (size.ToLower())
+        {
+            case "tiny": return "3em";
+            case "small": return "5em";
+            case "normal": return "8em";
+            case "large": return "12em";
+            default: return "8em";
+        }
+    }
+}
