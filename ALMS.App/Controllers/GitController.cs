@@ -18,6 +18,7 @@ namespace ALMS.App.Controllers
     {
         public GitController(DatabaseService db) : base(db)
         { }
+
         [HttpGet("/api/git/lecture/{user_account}/{lecture_name}.contents.git/info/refs")]
         public IActionResult contents_info_refs(string lecture_name, string user_account, [FromQuery]string service)
         {
@@ -84,6 +85,52 @@ namespace ALMS.App.Controllers
                 return await git_receive_pack(lecture.LectureSubmissionsRepositoryPair, user);
             });
         }
+
+
+
+        [HttpGet("/api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/info/refs")]
+        public IActionResult lecture_data_info_refs(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
+        {
+            var lectureUser = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
+                .Where(x => x.User.Account == user_account && x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account)
+                .FirstOrDefault();
+            if (lectureUser == null) return new NotFoundResult();
+            return BasicAuthFiltered(user => user.Account == user_account || user.IsTeacher(lectureUser.Lecture), user =>
+            {
+                return info_refs(lectureUser.RepositoryPair.SharedRepository, service, user);
+            });
+        }
+        [HttpPost("/api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/git-upload-pack")]
+        [RequestSizeLimit(120_000_000)]
+        public IActionResult lecture_data_git_upload_pack(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
+        {
+            var lectureUser = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
+                .Where(x => x.User.Account == user_account && x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account)
+                .FirstOrDefault();
+            if (lectureUser == null) return new NotFoundResult();
+            return BasicAuthFiltered(user => user.Account == user_account || user.IsTeacher(lectureUser.Lecture), async user =>
+            {
+                return await git_upload_pack(lectureUser.RepositoryPair.SharedRepository, user);
+            });
+        }
+        [HttpPost("/api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/git-receive-pack")]
+        [RequestSizeLimit(120_000_000)]
+        public IActionResult lecture_data_git_receive_pack(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
+        {
+            var lectureUser = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
+                .Where(x => x.User.Account == user_account && x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account)
+                .FirstOrDefault();
+            if (lectureUser == null) return new NotFoundResult();
+            return BasicAuthFiltered(user => user.Account == user_account || user.IsTeacher(lectureUser.Lecture), async user =>
+            {
+                return await git_receive_pack(lectureUser.RepositoryPair, user);
+            });
+        }
+
+
+
+
+
 
 
 
