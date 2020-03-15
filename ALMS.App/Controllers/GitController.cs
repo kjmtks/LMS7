@@ -24,7 +24,7 @@ namespace ALMS.App.Controllers
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Name == lecture_name && x.Owner.Account == user_account).FirstOrDefault();
             if (lecture == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.IsTeacher(lecture), user =>
+            return BasicAuthFiltered(user => true, user =>
             {
                 return info_refs(lecture.LectureContentsRepositoryPair.SharedRepository, service, user);
             });
@@ -34,7 +34,7 @@ namespace ALMS.App.Controllers
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Name == lecture_name && x.Owner.Account == user_account).FirstOrDefault();
             if (lecture == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.IsTeacher(lecture), user =>
+            return BasicAuthFiltered(user => true, user =>
             {
                 return info_refs(lecture.LectureSubmissionsRepositoryPair.SharedRepository, service, user);
             });
@@ -46,7 +46,7 @@ namespace ALMS.App.Controllers
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Name == lecture_name && x.Owner.Account == user_account).FirstOrDefault();
             if (lecture == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.IsTeacher(lecture), async user =>
+            return BasicAuthFiltered(user => true, async user =>
             {
                 return await git_upload_pack(lecture.LectureContentsRepositoryPair.SharedRepository, user);
             });
@@ -57,7 +57,7 @@ namespace ALMS.App.Controllers
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Name == lecture_name && x.Owner.Account == user_account).FirstOrDefault();
             if (lecture == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.IsTeacher(lecture), async user =>
+            return BasicAuthFiltered(user => true, async user =>
             {
                 return await git_upload_pack(lecture.LectureSubmissionsRepositoryPair.SharedRepository, user);
             });
@@ -69,7 +69,7 @@ namespace ALMS.App.Controllers
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Name == lecture_name && x.Owner.Account == user_account).FirstOrDefault();
             if (lecture == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.IsTeacher(lecture), async user =>
+            return BasicAuthFiltered(user => true, async user =>
             {
                 return await git_receive_pack(lecture.LectureContentsRepositoryPair, user);
             });
@@ -80,7 +80,7 @@ namespace ALMS.App.Controllers
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Name == lecture_name && x.Owner.Account == user_account).FirstOrDefault();
             if (lecture == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.IsTeacher(lecture), async user =>
+            return BasicAuthFiltered(user => true, async user =>
             {
                 return await git_receive_pack(lecture.LectureSubmissionsRepositoryPair, user);
             });
@@ -95,7 +95,7 @@ namespace ALMS.App.Controllers
                 .Where(x => x.User.Account == user_account && x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account)
                 .FirstOrDefault();
             if (lectureUser == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.Account == user_account || user.IsTeacher(lectureUser.Lecture), user =>
+            return BasicAuthFiltered(user => true, user =>
             {
                 return info_refs(lectureUser.RepositoryPair.SharedRepository, service, user);
             });
@@ -108,7 +108,7 @@ namespace ALMS.App.Controllers
                 .Where(x => x.User.Account == user_account && x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account)
                 .FirstOrDefault();
             if (lectureUser == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.Account == user_account || user.IsTeacher(lectureUser.Lecture), async user =>
+            return BasicAuthFiltered(user => true, async user =>
             {
                 return await git_upload_pack(lectureUser.RepositoryPair.SharedRepository, user);
             });
@@ -121,7 +121,7 @@ namespace ALMS.App.Controllers
                 .Where(x => x.User.Account == user_account && x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account)
                 .FirstOrDefault();
             if (lectureUser == null) return new NotFoundResult();
-            return BasicAuthFiltered(user => user.Account == user_account || user.IsTeacher(lectureUser.Lecture), async user =>
+            return BasicAuthFiltered(user => true, async user =>
             {
                 return await git_receive_pack(lectureUser.RepositoryPair, user);
             });
