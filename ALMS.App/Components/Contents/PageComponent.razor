@@ -1,6 +1,27 @@
 ﻿@if (string.IsNullOrWhiteSpace(ErrorMessage))
 {
-    @renderer
+    if (!Building)
+    {
+        @renderer
+    }
+    else
+    {
+        <br />
+        <br />
+        <br />
+        <br />
+        <div class="ui basic segment">
+            <div class="ui active inverted dimmer">
+                <div class="ui medium text loader">Page building...</div>
+            </div>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+        </div>
+    }
 }
 else
 {
@@ -24,21 +45,28 @@ else
     protected string ErrorMessage;
     protected string ErrorSubject;
 
+    protected bool Building = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        base.OnInitialized();
-        try
+        await base.OnAfterRenderAsync(firstRender);
+        if(firstRender)
         {
-            Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
-            renderer = await Page.RenderAsync(User);
-        }
-        catch (Exception e)
-        {
-            ErrorSubject = e.Message;
-            ErrorMessage = e.StackTrace;
+            Building = true;
+            StateHasChanged();
+            try
+            {
+                Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
+                renderer = await Page.RenderAsync(User);
+            }
+            catch (Exception e)
+            {
+                ErrorSubject = e.Message;
+                ErrorMessage = e.StackTrace;
+            }
+            Building = false;
+            StateHasChanged();
         }
     }
-
 
 }
