@@ -73,16 +73,8 @@ namespace ALMS.App.Models.Entities
 
     public interface ISharedRepository : IRepository
     {
-        public enum FileType { Text, Binary }
         public string Pack(PackService pack_service);
         public Task<byte[]> Pack(PackService pack_service, Stream body);
-
-        public (MemoryStream, FileType) ReadFile(string path, string branch = "master");
-        public MemoryStream ReadFileWithoutTypeCheck(string path, string branch = "master");
-
-        public CommitInfo ReadCommitInfo(string path=".", string branch = "master");
-
-        public IEnumerable<string> GetBranches();
     }
     public interface IClonedRepository : IRepository
     {
@@ -120,10 +112,18 @@ namespace ALMS.App.Models.Entities
 
     public interface IRepositoryPair
     {
+        public enum FileType { Text, Binary }
+
         public void Create();
         public void ResetRemoteUrl();
         public ISharedRepository SharedRepository { get; }
         public IClonedRepository ClonedRepository { get; }
+
+
+        public (MemoryStream, FileType) ReadFile(string path, string branch = "master");
+        public MemoryStream ReadFileWithoutTypeCheck(string path, string branch = "master");
+        public CommitInfo ReadCommitInfo(string path = ".", string branch = "master");
+        public IEnumerable<string> GetBranches();
     }
 
     public interface IEntityRepositoryPair<ME, SHARED, CLONED, ENTITY> : IRepositoryPair

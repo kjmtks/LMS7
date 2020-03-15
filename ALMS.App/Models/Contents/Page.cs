@@ -75,7 +75,7 @@ namespace ALMS.App.Models.Contents
                .UseEmbeddedResourcesProject(typeof(Dummy))
                .UseMemoryCachingProvider()
                .Build();
-            var commitInfo = Lecture.LectureContentsRepositoryPair.SharedRepository.ReadCommitInfo($"pages/{Path}", Branch);
+            var commitInfo = Lecture.LectureContentsRepositoryPair.ReadCommitInfo($"pages/{Path}", Branch);
             var model = new PageModel(Lecture, user, commitInfo, Path, Branch);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"@model {model.GetType().FullName}");

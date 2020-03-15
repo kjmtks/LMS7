@@ -285,7 +285,7 @@ namespace ALMS.App.Models.Entities
  
         public string ReadPageFile(string page_path, string branch = "master")
         {
-            var text = LectureContentsRepositoryPair.SharedRepository.ReadFileWithoutTypeCheck($"pages/{page_path}", branch);
+            var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck($"pages/{page_path}", branch);
             using (var r = new StreamReader(text))
             {
                 return r.ReadToEnd();
@@ -293,7 +293,7 @@ namespace ALMS.App.Models.Entities
         }
         public string ReadActivityFile(string page_path, string branch = "master")
         {
-            var text = LectureContentsRepositoryPair.SharedRepository.ReadFileWithoutTypeCheck($"activities/{page_path}", branch);
+            var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck($"activities/{page_path}", branch);
             using (var r = new StreamReader(text))
             {
                 return r.ReadToEnd();
@@ -304,7 +304,7 @@ namespace ALMS.App.Models.Entities
         {
             try
             {
-                var text = LectureContentsRepositoryPair.SharedRepository.ReadFileWithoutTypeCheck("parameters.xml", branch);
+                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("parameters.xml", branch);
                 XmlSerializer serializer = new XmlSerializer(typeof(LectureParameters));
                 LectureParameters parameters = (LectureParameters)serializer.Deserialize(text);
                 return parameters;

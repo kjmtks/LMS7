@@ -22,7 +22,7 @@ namespace ALMS.App.Models.Contents
                .UseEmbeddedResourcesProject(typeof(Dummy))
                .UseMemoryCachingProvider()
                .Build();
-            var commitInfo = lecture.LectureContentsRepositoryPair.SharedRepository.ReadCommitInfo($"activities/{activity_filename}", branch);
+            var commitInfo = lecture.LectureContentsRepositoryPair.ReadCommitInfo($"activities/{activity_filename}", branch);
             var model = new PageModel(lecture, user, commitInfo, current_page_path, branch);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"@model {model.GetType().FullName}");

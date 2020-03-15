@@ -17,6 +17,7 @@ namespace ALMS.App.Models
     {
         public abstract ENTITY Entity { get; }
         public abstract string DirectoryPath { get; }
+
         public (byte[], int) ExecuteWithExitCode(string arguments, byte[] input = null, string program = "git", string working_dir = null)
         {
             var psinfo = new ProcessStartInfo();
@@ -51,68 +52,12 @@ namespace ALMS.App.Models
     }
 
     public abstract class SharedRepositoryBase<ME, CLONED, PAIR, ENTITY> :
-        RepositoryBase<ENTITY, PAIR, ME, CLONED>, IEntitySharedRepository<ME, CLONED, PAIR, ENTITY>, IApiedRepository
+        RepositoryBase<ENTITY, PAIR, ME, CLONED>, IEntitySharedRepository<ME, CLONED, PAIR, ENTITY>
         where ENTITY : IRepositoriesMountedEntity<ENTITY, PAIR, ME, CLONED>
         where PAIR : IEntityRepositoryPair<PAIR, ME, CLONED, ENTITY>
         where ME : IEntitySharedRepository<ME, CLONED, PAIR, ENTITY>
         where CLONED : IEntityClonedRepository<CLONED, ME, PAIR, ENTITY>
     {
-        public abstract string ApiUrl { get; }
-
-        public abstract bool CanPull(User user);
-        public abstract bool CanPush(User user);
-
-        public IEnumerable<string> GetBranches()
-        {
-            return  System.Text.Encoding.UTF8.GetString(Execute("branch --format=\"%(refname:short)\"")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
-        }
-
-        public CommitInfo ReadCommitInfo(string path, string branch = "master")
-        {
-            var message = System.Text.Encoding.UTF8.GetString(Execute($"log -1 --pretty=\"%s\" \"{branch}\" -- \"{path}\"")).Trim();
-            var authorName = System.Text.Encoding.UTF8.GetString(Execute($"log -1 --pretty=\"%an\" \"{branch}\" -- \"{path}\"")).Trim();
-            var authorEmail = System.Text.Encoding.UTF8.GetString(Execute($"log -1 --pretty=\"%ae\" \"{branch}\" -- \"{path}\"")).Trim();
-            var datestring = System.Text.Encoding.UTF8.GetString(Execute($"log -1 --pretty=\"%ad\" \"{branch}\" -- \"{path}\"")).Trim();
-            DateTime date;
-            DateTime.TryParseExact(datestring,
-                "ddd MMM d HH:mm:ss yyyy K",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out date);
-            return new CommitInfo()
-            {
-                Message = message,
-                AuthorName = authorName,
-                AuthorEmail = authorEmail,
-                Date = date
-            };
-        }
-
-
-        public (MemoryStream, ISharedRepository.FileType) ReadFile(string path, string branch = "master")
-        {
-            var (data, code) = ExecuteWithExitCode($"show \"{branch}\":\"{path}\"");
-            if (code != 0) throw new FileNotFoundException($"File not found `{branch}:{path}'");
-            var log = Execute($"log -1 --pretty=\"\" \"{branch}\" --numstat \"{path}\"");
-            using (var r = new StreamReader(new MemoryStream(log)))
-            {
-                if(r.ReadLine()[0] == '-')
-                {
-                    return (new MemoryStream(data), ISharedRepository.FileType.Binary);
-                }
-                else
-                {
-                    return (new MemoryStream(data), ISharedRepository.FileType.Text);
-                }
-            }
-        }
-
-        public MemoryStream ReadFileWithoutTypeCheck(string path, string branch = "master")
-        {
-            var (data, code) = ExecuteWithExitCode($"show --binary \"{branch}\":\"{path}\"");
-            if (code != 0) throw new FileNotFoundException($"File not found `{branch}:{path}'");
-            return new MemoryStream(data);
-        }
-
         public string Pack(PackService pack_service)
         {
             var service = pack_service switch
@@ -174,7 +119,7 @@ namespace ALMS.App.Models
     }
 
     public abstract class RepositoryPairBase<ME, SHARED, CLONED, ENTITY> :
-        IEntityRepositoryPair<ME, SHARED, CLONED, ENTITY>
+        IEntityRepositoryPair<ME, SHARED, CLONED, ENTITY>, IApiedRepository
         where ENTITY : IRepositoriesMountedEntity<ENTITY, ME, SHARED, CLONED>
         where ME : IEntityRepositoryPair<ME, SHARED, CLONED, ENTITY>
         where SHARED : IEntitySharedRepository<SHARED, CLONED, ME, ENTITY>
@@ -189,6 +134,62 @@ namespace ALMS.App.Models
         ISharedRepository IRepositoryPair.SharedRepository => SharedRepository;
 
         IClonedRepository IRepositoryPair.ClonedRepository => ClonedRepository;
+
+        public abstract string ApiUrl { get; }
+        public abstract bool CanPull(User user);
+        public abstract bool CanPush(User user);
+
+
+        public IEnumerable<string> GetBranches()
+        {
+            return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute("branch --format=\"%(refname:short)\"")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
+        }
+
+        public CommitInfo ReadCommitInfo(string path, string branch = "master")
+        {
+            var message = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%s\" \"{branch}\" -- \"{path}\"")).Trim();
+            var authorName = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%an\" \"{branch}\" -- \"{path}\"")).Trim();
+            var authorEmail = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%ae\" \"{branch}\" -- \"{path}\"")).Trim();
+            var datestring = System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"log -1 --pretty=\"%ad\" \"{branch}\" -- \"{path}\"")).Trim();
+            DateTime date;
+            DateTime.TryParseExact(datestring,
+                "ddd MMM d HH:mm:ss yyyy K",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out date);
+            return new CommitInfo()
+            {
+                Message = message,
+                AuthorName = authorName,
+                AuthorEmail = authorEmail,
+                Date = date
+            };
+        }
+
+        public (MemoryStream, IRepositoryPair.FileType) ReadFile(string path, string branch = "master")
+        {
+            var (data, code) = SharedRepository.ExecuteWithExitCode($"show \"{branch}\":\"{path}\"");
+            if (code != 0) throw new FileNotFoundException($"File not found `{branch}:{path}'");
+            var log = SharedRepository.Execute($"log -1 --pretty=\"\" \"{branch}\" --numstat \"{path}\"");
+            using (var r = new StreamReader(new MemoryStream(log)))
+            {
+                if (r.ReadLine()[0] == '-')
+                {
+                    return (new MemoryStream(data), IRepositoryPair.FileType.Binary);
+                }
+                else
+                {
+                    return (new MemoryStream(data), IRepositoryPair.FileType.Text);
+                }
+            }
+        }
+
+        public MemoryStream ReadFileWithoutTypeCheck(string path, string branch = "master")
+        {
+            var (data, code) = SharedRepository.ExecuteWithExitCode($"show --binary \"{branch}\":\"{path}\"");
+            if (code != 0) throw new FileNotFoundException($"File not found `{branch}:{path}'");
+            return new MemoryStream(data);
+        }
+
 
         public void Create()
         {

@@ -37,7 +37,7 @@
                         @if (User.IsTeacher(model))
                         {
                             <div class="ui small labels">
-                                @foreach (var b in model.LectureContentsRepositoryPair.SharedRepository.GetBranches())
+                                @foreach (var b in model.LectureContentsRepositoryPair.GetBranches())
                                 {
                                     <a href="/lecture/@model.Owner.Account/@model.Name/page/@b/" class="ui label">@b</a>
                                 }

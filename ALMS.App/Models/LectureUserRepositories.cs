@@ -24,6 +24,17 @@ namespace ALMS.App.Models
         public override LectureUserHomeSharedRepository SharedRepository => lectureUserHomeSharedRepository;
 
         public override LectureUserHomeClonedRepository ClonedRepository => lectureUserHomeClonedRepository;
+
+        public override string ApiUrl => $"http://localhost:8080/api/git/user/{lectureUser.User.Account}/lecture_data/{lectureUser.Lecture.Name}.home.git";
+
+        public override bool CanPull(User user)
+        {
+            return user.Account == lectureUser.User.Account || user.IsTeacher(lectureUser.Lecture);
+        }
+        public override bool CanPush(User user)
+        {
+            return user.Account == lectureUser.User.Account || (user.IsTeacher(lectureUser.Lecture) && (user.IsSenior || user.IsAdmin));
+        }
     }
 
     public class LectureUserHomeSharedRepository : SharedRepositoryBase<LectureUserHomeSharedRepository, LectureUserHomeClonedRepository, LectureUserHomeRepositoryPair, LectureUser>
@@ -36,18 +47,6 @@ namespace ALMS.App.Models
         public override LectureUser Entity => lectureUser;
 
         public override string DirectoryPath => $"{lectureUser.DirectoryPath}/home.git";
-
-        public override string ApiUrl => $"http://localhost:8080/api/git/user/{lectureUser.User.Account}/lecture_data/{lectureUser.Lecture.Name}.home.git";
-
-        public override bool CanPull(User user)
-        {
-            return user.Account == lectureUser.User.Account || user.IsTeacher(lectureUser.Lecture);
-        }
-
-        public override bool CanPush(User user)
-        {
-            return user.Account == lectureUser.User.Account || (user.IsTeacher(lectureUser.Lecture) && (user.IsSenior || user.IsAdmin));
-        }
     }
     public class LectureUserHomeClonedRepository : ClonedRepositoryBase<LectureUserHomeClonedRepository, LectureUserHomeSharedRepository, LectureUserHomeRepositoryPair, LectureUser>
     {

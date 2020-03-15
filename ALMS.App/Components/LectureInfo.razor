@@ -14,7 +14,7 @@
                 </div>
                 <div class="ui thirteen wide column">
                     <div class="ui small labels">
-                        @foreach (var b in Lecture.LectureContentsRepositoryPair.SharedRepository.GetBranches())
+                        @foreach (var b in Lecture.LectureContentsRepositoryPair.GetBranches())
                         {
                             <a href="/lecture/@Lecture.Owner.Account/@Lecture.Name/page/@b/" class="ui label">@b</a>
                         }
@@ -55,7 +55,7 @@
                         </div>
                         <div class="statistic">
                             <div class="value">
-                                <i class="fas fa-code-branch"></i> @Lecture.LectureContentsRepositoryPair.SharedRepository.GetBranches().Count()
+                                <i class="fas fa-code-branch"></i> @Lecture.LectureContentsRepositoryPair.GetBranches().Count()
                             </div>
                             <div class="label">
                                 Branches

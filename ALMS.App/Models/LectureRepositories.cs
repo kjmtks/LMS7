@@ -26,18 +26,6 @@ namespace ALMS.App.Models
         public override LectureContentsSharedRepository SharedRepository => lectureContentsSharedRepository;
 
         public override LectureContentsClonedRepository ClonedRepository => lectureContentsClonedRepository;
-    }
-
-    public class LectureContentsSharedRepository : SharedRepositoryBase<LectureContentsSharedRepository, LectureContentsClonedRepository, LectureContentsRepositoryPair, Lecture>
-    {
-        private Lecture lecture;
-        public LectureContentsSharedRepository(Lecture lecture)
-        {
-            this.lecture = lecture;
-        }
-        public override Lecture Entity => lecture;
-
-        public override string DirectoryPath => $"{lecture.DirectoryPath}/contents.git";
 
         public override string ApiUrl => $"http://localhost:8080/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.contents.git";
 
@@ -50,6 +38,18 @@ namespace ALMS.App.Models
         {
             return user.IsTeacher(lecture) && (user.IsSenior || user.IsAdmin);
         }
+    }
+
+    public class LectureContentsSharedRepository : SharedRepositoryBase<LectureContentsSharedRepository, LectureContentsClonedRepository, LectureContentsRepositoryPair, Lecture>
+    {
+        private Lecture lecture;
+        public LectureContentsSharedRepository(Lecture lecture)
+        {
+            this.lecture = lecture;
+        }
+        public override Lecture Entity => lecture;
+
+        public override string DirectoryPath => $"{lecture.DirectoryPath}/contents.git";
     }
     public class LectureContentsClonedRepository : ClonedRepositoryBase<LectureContentsClonedRepository, LectureContentsSharedRepository, LectureContentsRepositoryPair, Lecture>
     {
@@ -83,6 +83,17 @@ namespace ALMS.App.Models
         public override LectureSubmissionsSharedRepository SharedRepository => lectureSubmissionsSharedRepository;
 
         public override LectureSubmissionsClonedRepository ClonedRepository => lectureSubmissionsClonedRepository;
+
+        public override string ApiUrl => $"http://localhost:8080/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.submissions.git";
+
+        public override bool CanPull(User user)
+        {
+            return user.IsTeacher(lecture);
+        }
+        public override bool CanPush(User user)
+        {
+            return user.IsTeacher(lecture) && (user.IsSenior || user.IsAdmin);
+        }
     }
 
     public class LectureSubmissionsSharedRepository : SharedRepositoryBase<LectureSubmissionsSharedRepository, LectureSubmissionsClonedRepository, LectureSubmissionsRepositoryPair, Lecture>
@@ -95,18 +106,6 @@ namespace ALMS.App.Models
         public override Lecture Entity => lecture;
 
         public override string DirectoryPath => $"{lecture.DirectoryPath}/submissions.git";
-
-        public override string ApiUrl => $"http://localhost:8080/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.submissions.git";
-
-        public override bool CanPull(User user)
-        {
-            return user.IsTeacher(lecture);
-        }
-
-        public override bool CanPush(User user)
-        {
-            return user.IsTeacher(lecture) && (user.IsSenior || user.IsAdmin);
-        }
     }
     public class LectureSubmissionsClonedRepository : ClonedRepositoryBase<LectureSubmissionsClonedRepository, LectureSubmissionsSharedRepository, LectureSubmissionsRepositoryPair, Lecture>
     {

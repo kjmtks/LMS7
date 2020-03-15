@@ -23,7 +23,7 @@ namespace ALMS.App.Controllers
 
             if (lecture == null) return new NotFoundResult();
 
-            var ms = lecture.LectureContentsRepositoryPair.SharedRepository.ReadFileWithoutTypeCheck(Path.Combine("pages", path), branch);
+            var ms = lecture.LectureContentsRepositoryPair.ReadFileWithoutTypeCheck(Path.Combine("pages", path), branch);
 
             var provider = new FileExtensionContentTypeProvider();
             if (!provider.TryGetContentType(path, out var contentType))
