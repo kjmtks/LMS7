@@ -18,6 +18,9 @@ using ALMS.App.Services;
 using System.Net.Http;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Http;
 
 namespace ALMS.App
 {
@@ -34,6 +37,17 @@ namespace ALMS.App
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<CookiePolicyOptions>(options => {
+                options.CheckConsentNeeded = context => !context.User.Identity.IsAuthenticated;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+                options.Secure = CookieSecurePolicy.Always;
+                options.HttpOnly = HttpOnlyPolicy.Always;
+            });
+            services
+               .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+               .AddCookie(options => { options.LoginPath = "/login"; options.LogoutPath = "/logout"; });
+
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
 
@@ -46,12 +60,6 @@ namespace ALMS.App
             services.AddScoped<DatabaseService>();
 
             services.AddSingleton<NotifierService>();
-
-            services.AddScoped<HttpClient>();
-            services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
-            services.AddScoped<ILocalStorageService, LocalStorageService>();
-            services.AddScoped<IAuthService, DatabaseAuthService>();
-            services.AddAuthorizationCore();
 
         }
 
@@ -80,6 +88,9 @@ namespace ALMS.App
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
