@@ -14,6 +14,8 @@ make start
 
 then, open `http://localhost:8080` in your browser.
 
+The initial user account and password are `admin` and `admin`, respectively.
+
 ## Remove
 
 ```
