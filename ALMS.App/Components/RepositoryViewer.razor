@@ -82,9 +82,10 @@
                         var fullname = string.IsNullOrWhiteSpace(CurrentPath) ? name : $"{CurrentPath}/{name}";
                         var commitInfo = RepositoryPair.ReadCommitInfo(fullname, Branch);
                         var user = DB.Context.Users.Where(x => x.EmailAddress == commitInfo.AuthorEmail).FirstOrDefault();
+                        var isDir = GetChildren(fullname).Count() > 0;
                         <tr>
                             <td>
-                                <i class="@(true ? "folder" : "file") outline icon"></i>
+                                <i class="@(isDir ? "folder" : "file") outline icon"></i>
                                 <a href="javascript: void(0)" @onclick='() => { CurrentPath = fullname; }'>@name</a>
                             </td>
                             <td><small>@ToShortText(commitInfo.Message, 64)</small></td>
@@ -115,10 +116,12 @@
             else
             {
                 <div class="ui placeholder  segment bottom attached">
-
                     <div class="ui icon header">
                         <i class="file image icon"></i>
                         Binary file
+                    </div>
+                    <div class="inline">
+                        <a class="ui button" href="@GetRawFileUrl(Branch, CurrentPath)" target="_blank">Show Raw File</a>
                     </div>
                 </div>
             }
@@ -160,6 +163,9 @@ git push origin master</pre>
     public User User { get; set; }
     [Parameter]
     public string CurrentPath { get; set; } = "";
+
+    [Parameter]
+    public Func<string, string, string> GetRawFileUrl { get; set; }
 
     protected CommitInfo CurrentCommitInfo { get; set; }
     protected IEnumerable<string> Files { get; set; }

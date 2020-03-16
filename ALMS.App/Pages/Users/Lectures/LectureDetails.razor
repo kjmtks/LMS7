@@ -35,6 +35,7 @@
                                   Subject="Contents"
                                   User="@LoginUser"
                                   RepositoryPair="@Lecture.LectureContentsRepositoryPair"
+                                  GetRawFileUrl='(branch, path) => $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/contents/{branch}/{path}"'
                                   @ref="ContentsRepositoryViewer" />
 
                 <h2 class="ui header">
