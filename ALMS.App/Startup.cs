@@ -21,6 +21,7 @@ using System.IO;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace ALMS.App
 {
@@ -46,7 +47,8 @@ namespace ALMS.App
             services
                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(options => { options.LoginPath = "/login"; options.LogoutPath = "/logout"; });
-
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"/data/DataProtectionKey"));
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
