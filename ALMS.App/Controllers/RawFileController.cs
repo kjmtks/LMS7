@@ -39,8 +39,19 @@ namespace ALMS.App.Controllers
             {
                 return new UnauthorizedResult();
             }
+            if(!user.IsTeacher(lecture))
+            {
+                if (branch != "master")
+                {
+                    return new UnauthorizedResult();
+                }
+                if(path.Split("/").FirstOrDefault() != "pages")
+                {
+                    return new UnauthorizedResult();
+                }
+            }
 
-            var ms = lecture.LectureContentsRepositoryPair.ReadFileWithoutTypeCheck(Path.Combine("pages", path), branch);
+            var ms = lecture.LectureContentsRepositoryPair.ReadFileWithoutTypeCheck(path, branch);
 
             var provider = new FileExtensionContentTypeProvider();
             if (!provider.TryGetContentType(path, out var contentType))
@@ -48,7 +59,7 @@ namespace ALMS.App.Controllers
                 contentType = "application/octet-stream";
             }
             return File(ms, contentType);
-
         }
+
     }
 }
