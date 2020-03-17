@@ -29,7 +29,7 @@
       <Default>World!!</Default>
       <Answer>World!!</Answer>
     </String>
-    <Upload Name="report.pdf" Label="レポート" Maxsize="1000000" Submit="true" />
+    <Upload Name="report.pdf" Label="レポート" Maxsize="@(1024*1024*1024)" Submit="true" AllowedContentTypes="application/pdf; application/vnd.openxmlformats-officedocument.presentationml.presentation; application/pptx"/>
     <Form Name="form.json" Submit="true">
       <Select Name="select" Label="SEL" Block="true">
         <Option Value="1" Answer="true">One</Option>
@@ -71,7 +71,6 @@
   <Run>
     cat stdin | ruby program.rb `cat arguments`
     rm stdin arguments
-    cat &lt; program.rb
   </Run>
 
   <Limits>

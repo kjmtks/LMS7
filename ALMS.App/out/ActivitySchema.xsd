@@ -198,6 +198,7 @@
         <xs:complexType>
           <xs:attribute name="Name" type="xs:string" use="required" />
           <xs:attribute name="Label" type="xs:string" use="optional" />
+          <xs:attribute name="AllowedContentTypes" type="xs:string" use="optional" />
           <xs:attribute name="Maxsize" type="xs:unsignedInt" use="optional" />
           <xs:attribute name="Submit" type="xs:boolean" use="optional" />
         </xs:complexType>

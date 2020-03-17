@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using ALMS.App.Services;
 
 namespace ALMS.App.Models.Contents
 {
@@ -46,15 +47,22 @@ namespace ALMS.App.Models.Contents
                         fileInfo.Directory.Create();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Name}/home").WaitForExit();
                     }
-                    using (var t = new StreamWriter(fileInfo.FullName))
+
+                    if (fileComponents.ContainsKey(f.Name))
                     {
-                        if (fileComponents.ContainsKey(f.Name))
+                        using (var t = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
                         {
-                            t.Write(await fileComponents[f.Name].GetValueAsync());
-                        }
-                        else
-                        {
-                            t.Write("");
+                            if (fileComponents[f.Name] is UploadActivityComponent uac && uac.Data != null)
+                            {
+                                t.Write(uac.Data, 0, uac.Data.Length);
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(t))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
@@ -104,15 +112,22 @@ namespace ALMS.App.Models.Contents
                         fileInfo.Directory.Create();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Name}/home").WaitForExit();
                     }
-                    using (var t = new StreamWriter(fileInfo.FullName))
+
+                    if (fileComponents.ContainsKey(f.Name))
                     {
-                        if (fileComponents.ContainsKey(f.Name))
+                        using (var t = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
                         {
-                            t.Write(await fileComponents[f.Name].GetValueAsync());
-                        }
-                        else
-                        {
-                            t.Write("");
+                            if (fileComponents[f.Name] is UploadActivityComponent uac && uac.Data != null)
+                            {
+                                t.Write(uac.Data, 0, uac.Data.Length);
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(t))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
@@ -160,15 +175,22 @@ namespace ALMS.App.Models.Contents
                         fileInfo.Directory.Create();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Name}/home").WaitForExit();
                     }
-                    using (var t = new StreamWriter(fileInfo.FullName))
+
+                    if (fileComponents.ContainsKey(f.Name))
                     {
-                        if (fileComponents.ContainsKey(f.Name))
+                        using (var t = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
                         {
-                            t.Write(await fileComponents[f.Name].GetValueAsync());
-                        }
-                        else
-                        {
-                            t.Write("");
+                            if (fileComponents[f.Name] is UploadActivityComponent uac && uac.Data != null)
+                            {
+                                t.Write(uac.Data, 0, uac.Data.Length);
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(t))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
@@ -184,16 +206,24 @@ namespace ALMS.App.Models.Contents
                     {
                         fileInfo.Directory.Create();
                     }
-                    using (var t = new StreamWriter(fileInfo.FullName))
+
+                    if (fileComponents.ContainsKey(f.Name))
                     {
-                        if (fileComponents.ContainsKey(f.Name))
+                        using (var t = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
                         {
-                            t.Write(await fileComponents[f.Name].GetValueAsync());
+                            if (fileComponents[f.Name] is UploadActivityComponent uac && uac.Data != null)
+                            {
+                                t.Write(uac.Data, 0, uac.Data.Length);
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(t))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
                         }
-                        else
-                        {
-                            t.Write("");
-                        }
+                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
                 }
                 lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
@@ -239,15 +269,22 @@ namespace ALMS.App.Models.Contents
                         fileInfo.Directory.Create();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Name}/home").WaitForExit();
                     }
-                    using (var t = new StreamWriter(fileInfo.FullName))
+
+                    if (fileComponents.ContainsKey(f.Name))
                     {
-                        if (fileComponents.ContainsKey(f.Name))
+                        using (var t = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
                         {
-                            t.Write(await fileComponents[f.Name].GetValueAsync());
-                        }
-                        else
-                        {
-                            t.Write("");
+                            if (fileComponents[f.Name] is UploadActivityComponent uac && uac.Data != null)
+                            {
+                                t.Write(uac.Data, 0, uac.Data.Length);
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(t))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
@@ -363,6 +400,17 @@ namespace ALMS.App.Models.Contents
                     {
                         builder.OpenComponent(0, typeof(StringActivityComponent));
                         builder.AddAttribute(1, "File", fs);
+                        builder.AddComponentReferenceCapture(2, e => { fileComponents[file.Name] = e as FileActivityComponentBase; });
+                        builder.CloseComponent();
+                    };
+                    frgs.Add((file, frg));
+                }
+                else if (file is ActivityFilesUpload fu)
+                {
+                    RenderFragment frg = (RenderTreeBuilder builder) =>
+                    {
+                        builder.OpenComponent(0, typeof(UploadActivityComponent));
+                        builder.AddAttribute(1, "File", fu);
                         builder.AddComponentReferenceCapture(2, e => { fileComponents[file.Name] = e as FileActivityComponentBase; });
                         builder.CloseComponent();
                     };
@@ -504,6 +552,8 @@ namespace ALMS.App.Models.Contents
         public string Name { get; set; }
         [XmlAttribute]
         public string Label { get; set; }
+        [XmlAttribute]
+        public string AllowedContentTypes { get; set; }
         [XmlAttribute]
         public uint Maxsize { get; set; }
         [XmlAttribute]
