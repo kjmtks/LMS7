@@ -131,7 +131,7 @@
         if(!string.IsNullOrWhiteSpace(sandbox.SetupCommands))
         {
             CommandLiner.SetSandbox(sandbox);
-            CommandLiner.Run("root", sandbox.SetupCommands, sandbox);
+            CommandLiner.Run("root", sandbox.SetupCommands.Replace("\r\n", "\n").Replace("\r", "\n"), sandbox);
         }
     }
 
