@@ -61,5 +61,30 @@ namespace ALMS.App.Controllers
             return File(ms, contentType);
         }
 
+        [HttpGet("/lecture/{owner_account}/{lecture_name}/submissions/{branch}/{**path}")]
+        public IActionResult LectureSubmissionsRawFile(string owner_account, string lecture_name, string branch, string path)
+        {
+            var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).Where(x => x.Owner.Account == owner_account && x.Name == lecture_name).FirstOrDefault();
+            if (lecture == null)
+            {
+                return new NotFoundResult();
+            }
+
+            var user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).Where(x => x.Account == HttpContext.User.Identity.Name).FirstOrDefault();
+            if (user == null || !user.IsTeacher(lecture))
+            {
+                return new UnauthorizedResult();
+            }
+
+            var ms = lecture.LectureSubmissionsRepositoryPair.ReadFileWithoutTypeCheck(path, branch);
+
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(path, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+            return File(ms, contentType);
+        }
+
     }
 }

@@ -49,6 +49,7 @@
                                   Subject="Submissions"
                                   User="@LoginUser"
                                   RepositoryPair="@Lecture.LectureSubmissionsRepositoryPair"
+                                  GetRawFileUrl='(branch, path) => $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/submissions/{branch}/{path}"'
                                   @ref="SubmissionsRepositoryViewer" />
 
                 <h2 class="ui header">
