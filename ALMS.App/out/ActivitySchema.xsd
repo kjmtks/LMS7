@@ -274,6 +274,7 @@
         </xs:element>
 
       </xs:sequence>
+      <xs:attribute name="Version" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
 </xs:schema>
