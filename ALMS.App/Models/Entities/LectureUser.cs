@@ -36,7 +36,7 @@ namespace ALMS.App.Models.Entities
             LectureUserHomeRepositoryPair = new LectureUserHomeRepositoryPair(this);
         }
 
-        public string DirectoryPath => $"{User.DirectoryPath}/lecture_data/{Lecture.Name}";
+        public string DirectoryPath => $"{User.DirectoryPath}/lecture_data/{Lecture.Owner.Account}/{Lecture.Name}";
 
         [NotMapped]
         User IChildEntity<LectureUser, User>.Parent { get { return User; } set { User = value; } }
@@ -108,7 +108,7 @@ namespace ALMS.App.Models.Entities
         {
             if (previous.Name != Lecture.Name)
             {
-                Directory.Move($"{User.DirectoryPath}/lecture_data/{previous.Name}", $"{User.DirectoryPath}/lecture_data/{successor.Name}");
+                Directory.Move($"{User.DirectoryPath}/lecture_data/{previous.Owner.Account}/{previous.Name}", $"{User.DirectoryPath}/lecture_data/{successor.Owner.Account}/{successor.Name}");
                 LectureUserHomeRepositoryPair.ResetRemoteUrl();
             }
         }

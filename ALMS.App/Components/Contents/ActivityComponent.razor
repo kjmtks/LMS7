@@ -179,6 +179,24 @@ else
             </div>
             <pre class="ui red segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardError</pre>
         }
+        @if(Images.Count() > 0)
+        {
+            foreach(var imgs in Images)
+            {
+                <div class="ui top attached mini icon menu">
+                    <span class="borderless item"><i class="image icon"></i>&nbsp;&nbsp;@imgs.Item1</span>
+                    <a class="right item" @onclick='() => { Images.Remove(imgs); }'><i class="times icon"></i></a>
+                </div>
+                <div class="ui yellow segment bottom attached">
+                    @foreach(var img in imgs.Item2)
+                    {
+                        var hash = Guid.NewGuid().ToString("N").Substring(0, 16);
+                        var url = $"myfiles/lecture_data/{Lecture.Owner.Account}/{Lecture.Name}/home/{Activity.Directory}/{img}";
+                        <a href="@url" target="_blank"><img width="300" src="@(url)?hash=@(hash)" /></a>
+                    }
+                </div>
+            }
+        }
 
     </div>
 }
@@ -213,6 +231,8 @@ else
 
     protected Size TabSize = Size.Normal;
 
+    protected List<(string, IEnumerable<string>)> Images = new List<(string, IEnumerable<string>)>();
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -225,6 +245,7 @@ else
         {
             SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActivityName == Activity.Name && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
             await Activity.SetInitialValueAsync(Lecture, User);
+            StateHasChanged();
         }
     }
 
@@ -243,6 +264,7 @@ else
         ExitCode = null;
         StandardOutput = "";
         StandardError = "";
+        Images.Clear();
         StateHasChanged();
 
 
@@ -275,9 +297,19 @@ else
         ExitCode = null;
         StandardOutput = "";
         StandardError = "";
+        Images.Clear();
         StateHasChanged();
 
-        await Activity.RunAsync(Lecture, User, DB.Context, queue, SendOutput, SendError, (code, isSuccess, message) =>
+        await Activity.RunAsync(Lecture, User, DB.Context, queue, SendOutput, SendError, (cmd) =>
+        {
+            var terms = cmd.Split();
+            if (terms.Count() >= 3 && terms[0] == "image")
+            {
+                Images.Add((terms[1], terms.Skip(2)));
+            }
+
+            InvokeAsync(() => { StateHasChanged(); });
+        }, (code, isSuccess, message) =>
         {
             if (isSuccess)
             {
@@ -302,6 +334,7 @@ else
         ExitCode = null;
         StandardOutput = "";
         StandardError = "";
+        Images.Clear();
         StateHasChanged();
 
         var time = DateTime.Now;
@@ -332,6 +365,7 @@ else
         ExitCode = null;
         StandardOutput = "";
         StandardError = "";
+        Images.Clear();
         StateHasChanged();
 
 

@@ -212,7 +212,7 @@ namespace ALMS.App.Models.Entities
                 {
                     h.Create();
                 }
-                var f = new System.IO.DirectoryInfo($"{user.DirectoryPath}/lecture_data/{Lecture.Name}/home");
+                var f = new System.IO.DirectoryInfo($"{user.DirectoryPath}/lecture_data/{Lecture.Owner.Account}/{Lecture.Name}/home");
                 if (!f.Exists)
                 {
                     f.Create();

@@ -86,5 +86,28 @@ namespace ALMS.App.Controllers
             return File(ms, contentType);
         }
 
+        [HttpGet("/myfiles/{**path}")]
+        public IActionResult UserFiles(string path)
+        {
+            var user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.LectureUsers).Where(x => x.Account == HttpContext.User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return new UnauthorizedResult();
+            }
+
+            var ms = new MemoryStream();
+            using (var r = new FileStream($"{user.DirectoryPath}/{path}", FileMode.Open, FileAccess.Read))
+            {
+                r.CopyTo(ms);
+            }
+
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(path, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+            ms.Seek(0, SeekOrigin.Begin);
+            return File(ms, contentType);
+        }
     }
 }
