@@ -133,7 +133,6 @@ namespace ALMS.App.Models.Contents
                             builder.OpenElement(seq++, el.TagName);
                             if (el.TagName == "A")
                             {
-                                // TODO: if the href attribute indicates local path, replace its path.
                                 foreach (var attr in el.Attributes.Where(x => x.Name != "href"))
                                 {
                                     builder.AddAttribute(seq++, attr.Name, attr.Value);
@@ -143,13 +142,29 @@ namespace ALMS.App.Models.Contents
                                     var href = el.GetAttribute("href");
                                     if(!Regex.IsMatch(href, "^[a-zA-Z0-9]+://"))
                                     {
-                                        href = localUrl(href);
+                                        href = $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{localPath(href)}";
                                     }
                                     var ec = EventCallback.Factory.Create(el, () => {
                                         NM.NavigateTo(href, true);
                                     });
                                     builder.AddAttribute(seq++, "href", "javascript: void(0);");
                                     builder.AddAttribute(seq++, "onclick", ec);
+                                }
+                            }
+                            else if (el.TagName == "IMG")
+                            {
+                                foreach (var attr in el.Attributes.Where(x => x.Name != "src"))
+                                {
+                                    builder.AddAttribute(seq++, attr.Name, attr.Value);
+                                }
+                                if (el.HasAttribute("src"))
+                                {
+                                    var src = el.GetAttribute("src");
+                                    if (!Regex.IsMatch(src, "^[a-zA-Z0-9]+://"))
+                                    {
+                                        src = $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/contents/{Branch}/pages/{localPath(src)}";
+                                    }
+                                    builder.AddAttribute(seq++, "src", src);
                                 }
                             }
                             else
@@ -191,7 +206,7 @@ namespace ALMS.App.Models.Contents
             return source.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
         }
 
-        private string localUrl(string page_path)
+        private string localPath(string page_path)
         {
             string path;
             if (page_path[0] == '/')
@@ -211,7 +226,7 @@ namespace ALMS.App.Models.Contents
                 }
             }
 
-            return $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{path}";
+            return path;
         }
     }
 }
