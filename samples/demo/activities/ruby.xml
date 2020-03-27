@@ -75,10 +75,10 @@
   </Run>
 
   <Limits>
-    <RealTime>10</RealTime>
+    <CpuTime>10</CpuTime>
     <Memory>100M</Memory>
-    <StdoutLength>5000</StdoutLength>
-    <StderrLength>5000</StderrLength>
+    <StdoutLength>50000</StdoutLength>
+    <StderrLength>50000</StderrLength>
     <Pids>10</Pids>
   </Limits>
   

@@ -95,19 +95,26 @@ namespace ALMS.App.Controllers
                 return new UnauthorizedResult();
             }
 
-            var ms = new MemoryStream();
-            using (var r = new FileStream($"{user.DirectoryPath}/{path}", FileMode.Open, FileAccess.Read))
+            try
             {
-                r.CopyTo(ms);
-            }
+                var ms = new MemoryStream();
+                using (var r = new FileStream($"{user.DirectoryPath}/{path}", FileMode.Open, FileAccess.Read))
+                {
+                    r.CopyTo(ms);
+                }
 
-            var provider = new FileExtensionContentTypeProvider();
-            if (!provider.TryGetContentType(path, out var contentType))
-            {
-                contentType = "application/octet-stream";
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(path, out var contentType))
+                {
+                    contentType = "application/octet-stream";
+                }
+                ms.Seek(0, SeekOrigin.Begin);
+                return File(ms, contentType);
             }
-            ms.Seek(0, SeekOrigin.Begin);
-            return File(ms, contentType);
+            catch
+            {
+                return new NotFoundResult();
+            }
         }
     }
 }

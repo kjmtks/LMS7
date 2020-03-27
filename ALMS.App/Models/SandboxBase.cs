@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ALMS.App.Models.Contents;
 using ALMS.App.Models.Entities;
 using Microsoft.Extensions.Configuration;
 
@@ -13,14 +16,16 @@ namespace ALMS.App.Models
         public abstract string Name { get; set; }
 
         public Task DoOnSandboxAsync(string username, string commands,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
-                Action<int> doneCallback = null);
-        public Task DoOnSandboxWithCmdAsync(User user, string commands,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
+                Action<int> doneCallback = null,
+                ActivityLimits limit = null);
+        public Task DoOnSandboxWithCmdAsync(Entities.User user, string commands,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
                 Action<string> cmdCallback = null,
-                Action<int> doneCallback = null);
+                Action<int> doneCallback = null,
+                ActivityLimits limit = null);
     }
 
 
@@ -39,62 +44,107 @@ namespace ALMS.App.Models
 
 
         public async Task BuildAsync(string buildCommands,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
                 Action<int> doneCallback = null)
         {
             await DoAsync($@"debootstrap stretch {DirectoryPath} http://http.debian.net/debian;",
                     stdoutCallback, stderrCallback);
             if (!string.IsNullOrWhiteSpace(buildCommands))
             {
-                await DoAsync(buildCommands, stdoutCallback, stderrCallback, doneCallback, "chroot", $"{DirectoryPath} /bin/sh");
+                await DoAsync(buildCommands, stdoutCallback, stderrCallback, doneCallback, null, "chroot", $"{DirectoryPath} /bin/bash");
             }
         }
 
+        private string MakeUlimitCommand(ActivityLimits limit, string midstgring="")
+        {
+            var sb = new StringBuilder();
+            bool useCpuTime = false;
+
+            if (limit.CpuTime > 0)
+            {
+                sb.Append($"ulimit -t {limit.CpuTime};");
+                useCpuTime = true;
+            }
+
+            if (limit.Pids > 0)
+            {
+                sb.Append($"ulimit -u {limit.Pids};");
+                useCpuTime = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(limit.Memory))
+            {
+                var regex = new Regex("^(?<dec>[0-9.]+)(?<uni>(|K|M|G))$");
+                var m = regex.Match(limit.Memory);
+                if(!m.Groups["dec"].Success || !decimal.TryParse(m.Groups["dec"].Value, out var value))
+                {
+                    value = 0;
+                }
+                var unit = m.Groups["uni"].Success ? m.Groups["uni"].Value?.ToLower() : "";
+                if (unit == "k")
+                {
+                    value = value * 1024;
+                }
+                if (unit == "m")
+                {
+                    value = value * 1024 * 1024;
+                }
+                if (unit == "g")
+                {
+                    value = value * 1024 * 1024 * 1024;
+                }
+                sb.Append($"ulimit -m {value}; ulimit -v {value};");
+            }
+
+            return useCpuTime ? $"{sb.ToString()} {midstgring} timeout {limit.CpuTime} " : $"{sb.ToString()} {midstgring}";
+        }
 
         public Task DoOnSandboxAsync(string username, string commands,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
-                Action<int> doneCallback = null)
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
+                Action<int> doneCallback = null,
+                ActivityLimits limit = null)
         {
             string args;
-            int? CpuTimeLimit = null; // TODO
-            if (CpuTimeLimit != null)
+
+            if(limit != null)
             {
-                args = $"-c \"ulimit -t {CpuTimeLimit}; HOME=/home/{username} timeout {CpuTimeLimit} chroot --userspec {username}:{username} {DirectoryPath} /bin/sh\"";
+                args = $"-c \"{MakeUlimitCommand(limit, $"HOME=/home/{username}")} chroot --userspec {username}:{username} {DirectoryPath} /bin/sh\"";
             }
             else
             {
                 args = $"-c \"HOME=/home/{username} chroot --userspec {username}:{username} {DirectoryPath} /bin/sh\"";
             }
-            return DoAsync(commands, stdoutCallback, stderrCallback, doneCallback, "/bin/sh", args);
+            return DoAsync(commands, stdoutCallback, stderrCallback, doneCallback, limit, "/bin/sh", args);
         }
 
-        public async Task DoOnSandboxWithCmdAsync(User user, string commands,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
+        public async Task DoOnSandboxWithCmdAsync(Entities.User user, string commands,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
                 Action<string> cmdCallback = null,
-                Action<int> doneCallback = null)
+                Action<int> doneCallback = null,
+                ActivityLimits limit = null)
         {
             string args;
-            int? CpuTimeLimit = null; // TODO
-            if (CpuTimeLimit != null)
+            if (limit != null)
             {
-                args = $"-c \"ulimit -t {CpuTimeLimit}; HOME=/home/{user.Account} timeout {CpuTimeLimit} chroot --userspec {user.Account}:{user.Account} {DirectoryPath} /bin/sh\"";
+                args = $"-c \"{MakeUlimitCommand(limit, $"HOME=/home/{user.Account}")} chroot --userspec {user.Account}:{user.Account} {DirectoryPath} /bin/sh\"";
             }
             else
             {
                 args = $"-c \"HOME=/home/{user.Account} chroot --userspec {user.Account}:{user.Account} {DirectoryPath} /bin/sh\"";
             }
 
-            await DoWithCmdAsync(commands, user, stdoutCallback, stderrCallback, cmdCallback, doneCallback, "/bin/sh", args);
+            await DoWithCmdAsync(commands, user, stdoutCallback, stderrCallback, cmdCallback, doneCallback, limit, "/bin/bash", args);
         }
 
 
-        public async Task DoAsync(string commands,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
+        protected async Task DoAsync(string commands,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
                 Action<int> doneCallback = null,
+                ActivityLimits limit = null,
                 string program = "/bin/sh", string args = "")
         {
             await Task.Run(() => {
@@ -108,8 +158,55 @@ namespace ALMS.App.Models
                 proc.StartInfo.CreateNoWindow = true;
                 proc.StartInfo.UseShellExecute = false;
 
-                if (stdoutCallback != null) { proc.OutputDataReceived += stdoutCallback; }
-                if (stderrCallback != null) { proc.ErrorDataReceived += stderrCallback; }
+                if (stdoutCallback != null && limit.StdoutLength > 0)
+                {
+                    var remaind = limit.StdoutLength;
+                    proc.OutputDataReceived += (o, e) =>
+                    {
+                        if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.Length <= remaind)
+                            {
+                                stdoutCallback(e.Data);
+                                remaind -= (uint)e.Data.Length;
+                            }
+                            else
+                            {
+                                stdoutCallback(e.Data.Substring(0, (int)remaind));
+                                remaind = 0;
+                            }
+                        }
+                    };
+                }
+                else
+                {
+                    proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                }
+
+                if (stderrCallback != null && limit.StderrLength > 0)
+                {
+                    var remaind = limit.StderrLength;
+                    proc.ErrorDataReceived += (o, e) =>
+                    {
+                        if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.Length <= remaind)
+                            {
+                                stderrCallback(e.Data);
+                                remaind -= (uint)e.Data.Length;
+                            }
+                            else
+                            {
+                                stderrCallback(e.Data.Substring(0, (int)remaind));
+                                remaind = 0;
+                            }
+                        }
+                    };
+                }
+                else
+                {
+                    proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
+                }
 
                 proc.Start();
                 proc.StandardInput.WriteLine(commands);
@@ -121,19 +218,18 @@ namespace ALMS.App.Models
             });
         }
 
-        public async Task DoWithCmdAsync(string commands, User user,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
+        protected async Task DoWithCmdAsync(string commands, Entities.User user,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
                 Action<string> cmdCallback = null,
                 Action<int> doneCallback = null,
+                ActivityLimits limit = null,
                 string program = "/bin/sh", string args = "")
         {
             await Task.Run(() => {
                 var fifoname = Guid.NewGuid().ToString("N").Substring(0, 32);
-                Console.WriteLine($"Fifo Name: {fifoname}");
                 Process.Start("mkfifo", $"{DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
                 Process.Start("chown", $"{user.Id + 1000} {DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
-                Console.WriteLine("start process");
                 var mainProc = Task.Run(() => {
                     var proc = new Process();
                     proc.StartInfo.FileName = program;
@@ -146,8 +242,55 @@ namespace ALMS.App.Models
                     proc.StartInfo.CreateNoWindow = true;
                     proc.StartInfo.UseShellExecute = false;
 
-                    if (stdoutCallback != null) { proc.OutputDataReceived += stdoutCallback; }
-                    if (stderrCallback != null) { proc.ErrorDataReceived += stderrCallback; }
+                    if(stdoutCallback != null && limit.StdoutLength > 0)
+                    {
+                        var remaind = limit.StdoutLength;
+                        proc.OutputDataReceived += (o, e) =>
+                        {
+                            if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                            {
+                                if (e.Data.Length <= remaind)
+                                {
+                                    stdoutCallback(e.Data);
+                                    remaind -= (uint)e.Data.Length;
+                                }
+                                else
+                                {
+                                    stdoutCallback(e.Data.Substring(0, (int)remaind));
+                                    remaind = 0;
+                                }
+                            }
+                        };
+                    }
+                    else
+                    {
+                        proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                    }
+
+                    if (stderrCallback != null && limit.StderrLength > 0)
+                    {
+                        var remaind = limit.StderrLength;
+                        proc.ErrorDataReceived += (o, e) =>
+                        {
+                            if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                            {
+                                if (e.Data.Length <= remaind)
+                                {
+                                    stderrCallback(e.Data);
+                                    remaind -= (uint)e.Data.Length;
+                                }
+                                else
+                                {
+                                    stderrCallback(e.Data.Substring(0, (int)remaind));
+                                    remaind = 0;
+                                }
+                            }
+                        };
+                    }
+                    else
+                    {
+                        proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
+                    }
 
                     proc.Start();
                     proc.StandardInput.WriteLine(commands);
@@ -157,7 +300,6 @@ namespace ALMS.App.Models
                     proc.WaitForExit();
                     doneCallback?.Invoke(proc.ExitCode); proc.Close();
                 });
-                Console.WriteLine("start observe");
                 var tokenSource = new CancellationTokenSource();
                 var token = tokenSource.Token;
                 var observer = Task.Run(() => {
@@ -179,10 +321,11 @@ namespace ALMS.App.Models
                 }, token);
                 mainProc.Wait();
                 tokenSource.Cancel();
-                Console.WriteLine("end observe");
                 Process.Start("rm", $"{DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
             });
         }
+
+
 
         public abstract void CreateDirectory(DatabaseContext context, IConfiguration config);
         public abstract void UpdateDirectory(DatabaseContext context, IConfiguration config, SANDBOX previous);

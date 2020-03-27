@@ -91,21 +91,21 @@
         });
     }
 
-    public void SendOutput(object sender, DataReceivedEventArgs e)
+    public void SendOutput(string data)
     {
-        if (e.Data != null)
+        if (data != null)
         {
-            this.CreationOutputs += e.Data + Environment.NewLine;
+            this.CreationOutputs += data + Environment.NewLine;
             InvokeAsync(() => { StateHasChanged(); });
             JS.InvokeVoidAsync("scrollToBottom", $"command-liner-log-{ComponentId}"); // don't it work?
             // Console.WriteLine(e.Data);
         }
     }
-    public void SendError(object sender, DataReceivedEventArgs e)
+    public void SendError(string data)
     {
-        if (e.Data != null)
+        if (data != null)
         {
-            this.CreationOutputs += e.Data + Environment.NewLine;
+            this.CreationOutputs += data + Environment.NewLine;
             InvokeAsync(() => { StateHasChanged(); });
             JS.InvokeVoidAsync("scrollToBottom", $"command-liner-log-{ComponentId}"); // don't it work?
             // Console.WriteLine(e.Data);

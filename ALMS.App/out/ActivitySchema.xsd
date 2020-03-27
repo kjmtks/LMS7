@@ -258,7 +258,7 @@
         <xs:element name="Limits">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="RealTime" type="xs:unsignedByte" />
+              <xs:element name="CpuTime" type="xs:unsignedByte" />
               <xs:element name="Memory" type="xs:string" />
               <xs:element name="StdoutLength" type="xs:unsignedShort" />
               <xs:element name="StderrLength" type="xs:unsignedShort" />

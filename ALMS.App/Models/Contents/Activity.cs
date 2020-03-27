@@ -96,8 +96,8 @@ namespace ALMS.App.Models.Contents
 
         public async Task RunAsync(Entities.Lecture lecture, Entities.User user, DatabaseContext context,
                 IBackgroundTaskQueueSet queue,
-                DataReceivedEventHandler stdoutCallback = null,
-                DataReceivedEventHandler stderrCallback = null,
+                Action<string> stdoutCallback = null,
+                Action<string> stderrCallback = null,
                 Action<string> cmdCallback = null,
                 Action<int?, bool, string> doneCallback = null)
         {
@@ -160,7 +160,7 @@ namespace ALMS.App.Models.Contents
                         });
                         context.SaveChanges();
                         doneCallback(code, true, "Run successfully");
-                    });
+                    }, Limits);
                 });
             }
             catch (Exception e)
@@ -316,7 +316,7 @@ namespace ALMS.App.Models.Contents
                         var stdout = new System.Text.StringBuilder();
                         var stderr = new System.Text.StringBuilder();
                         await sandbox.DoOnSandboxAsync(user.Account, command,
-                            (_, e) => { stdout.AppendLine(e.Data); }, (_, e) => { stderr.AppendLine(e.Data); });
+                            data => { stdout.AppendLine(data); }, data => { stderr.AppendLine(data); }, null, Limits);
 
                         if (validation.Type.ToLower() == "equals")
                         {
@@ -472,7 +472,7 @@ namespace ALMS.App.Models.Contents
     [Serializable]
     public partial class ActivityLimits
     {
-        public uint RealTime { get; set; }
+        public uint CpuTime { get; set; }
         public string Memory { get; set; }
         public uint StdoutLength { get; set; }
         public uint StderrLength { get; set; }

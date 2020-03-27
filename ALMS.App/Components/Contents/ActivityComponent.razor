@@ -411,20 +411,20 @@ else
     protected int? ExitCode;
     protected bool Processing;
 
-    public void SendOutput(object sender, DataReceivedEventArgs e)
+    public void SendOutput(string data)
     {
-        if (e.Data != null)
+        if (data != null)
         {
-            StandardOutput += e.Data + Environment.NewLine;
+            StandardOutput += data + Environment.NewLine;
             //JS.InvokeVoidAsync("scrollToBottom", $"activity-stdout-{ComponentId}");
             InvokeAsync(() => { StateHasChanged(); });
         }
     }
-    public void SendError(object sender, DataReceivedEventArgs e)
+    public void SendError(string data)
     {
-        if (e.Data != null)
+        if (data != null)
         {
-            StandardError += e.Data + Environment.NewLine;
+            StandardError += data + Environment.NewLine;
             //JS.InvokeVoidAsync("scrollToBottom", $"activity-stderr-{ComponentId}");
             InvokeAsync(() => { StateHasChanged(); });
         }
