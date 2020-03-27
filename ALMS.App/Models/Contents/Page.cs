@@ -13,8 +13,6 @@ using System.Text;
 namespace ALMS.App.Models.Contents
 {
 
-
-
     public class Page
     {
         public ALMS.App.Models.Entities.Lecture Lecture { get; set; }
@@ -31,9 +29,13 @@ namespace ALMS.App.Models.Contents
                 // TODO
                 Path = "@index.md";
             }
+            else
+            {
+                Path = Regex.Replace(Path, "/$", "");
+            }
         }
 
-        public async Task<RenderFragment> RenderAsync(Entities.User user)
+        public async Task<RenderFragment> RenderAsync(NavigationManager NM, Entities.User user)
         {
             try
             {
@@ -53,7 +55,7 @@ namespace ALMS.App.Models.Contents
                         var options = new AngleSharp.Html.Parser.HtmlParserOptions();
                         var parser = new AngleSharp.Html.Parser.HtmlParser(options);
                         var doc = parser.ParseDocument(source);
-                        var content = compile(doc.Body, user);
+                        var content = compile(NM, doc.Body, user);
                         builder.AddContent(0, content);
                     };
                 }
@@ -95,7 +97,7 @@ namespace ALMS.App.Models.Contents
             return await engine.CompileRenderStringAsync($"{Lecture.DirectoryPath}/contents/pages/{Path}:{Branch}", sb.ToString(), model, viewbag);
         }
 
-        private RenderFragment compile(AngleSharp.Dom.IElement element, Entities.User user, int depth=0)
+        private RenderFragment compile(NavigationManager NM, AngleSharp.Dom.IElement element, Entities.User user, int depth=0)
         {
             return (builder) => {
                 var seq = 0; // <-- bad performance...
@@ -117,8 +119,6 @@ namespace ALMS.App.Models.Contents
                                 builder.AddAttribute(seq++, "Activity", activity);
                                 builder.AddAttribute(seq++, "Lecture", Lecture);
                                 builder.AddAttribute(seq++, "User", user);
-                                //builder.AddAttribute(seq++, "Path", el.GetAttribute("ref"));
-                                //builder.AddAttribute(seq++, "Parameters", parameters);
                             }
                             catch (Exception ex)
                             {
@@ -131,11 +131,30 @@ namespace ALMS.App.Models.Contents
                         else
                         {
                             builder.OpenElement(seq++, el.TagName);
-                            foreach (var attr in el.Attributes)
+                            if (el.TagName == "A")
                             {
-                                builder.AddAttribute(seq++, attr.Name, attr.Value);
+                                // TODO: if the href attribute indicates local path, replace its path. 
+                                foreach (var attr in el.Attributes.Where(x => x.Name != "href"))
+                                {
+                                    builder.AddAttribute(seq++, attr.Name, attr.Value);
+                                }
+                                if(el.HasAttribute("href"))
+                                {
+                                    var ec = EventCallback.Factory.Create(el, () => {
+                                        NM.NavigateTo(el.GetAttribute("href"), true);
+                                    });
+                                    builder.AddAttribute(seq++, "href", "javascript: void(0);");
+                                    builder.AddAttribute(seq++, "onclick", ec);
+                                }
                             }
-                            var c = compile(el, user, depth + 1);
+                            else
+                            {
+                                foreach (var attr in el.Attributes)
+                                {
+                                    builder.AddAttribute(seq++, attr.Name, attr.Value);
+                                }
+                            }
+                            var c = compile(NM, el, user, depth + 1);
                             builder.AddContent(seq++, c);
                             builder.CloseElement();
                         }

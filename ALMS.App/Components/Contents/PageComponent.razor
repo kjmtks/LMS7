@@ -1,4 +1,6 @@
-﻿@if (string.IsNullOrWhiteSpace(ErrorMessage))
+﻿@inject NavigationManager NM;
+
+@if (string.IsNullOrWhiteSpace(ErrorMessage))
 {
     if (!Building)
     {
@@ -57,7 +59,7 @@ else
             try
             {
                 Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
-                renderer = await Page.RenderAsync(User);
+                renderer = await Page.RenderAsync(NM, User);
             }
             catch (Exception e)
             {
