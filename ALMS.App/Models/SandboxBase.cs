@@ -190,7 +190,7 @@ namespace ALMS.App.Models
                     if (limit?.StderrLength != null && limit.StderrLength > 0)
                     {
                         var remaind = limit.StderrLength;
-                        proc.OutputDataReceived += (o, e) =>
+                        proc.ErrorDataReceived += (o, e) =>
                         {
                             if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
                             {
@@ -209,7 +209,7 @@ namespace ALMS.App.Models
                     }
                     else
                     {
-                        proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                        proc.ErrorDataReceived += (o, e) => { stdoutCallback(e.Data); };
                     }
                 }
 
@@ -280,7 +280,7 @@ namespace ALMS.App.Models
                         if (limit?.StderrLength != null && limit.StderrLength > 0)
                         {
                             var remaind = limit.StderrLength;
-                            proc.OutputDataReceived += (o, e) =>
+                            proc.ErrorDataReceived += (o, e) =>
                             {
                                 if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
                                 {
@@ -299,7 +299,7 @@ namespace ALMS.App.Models
                         }
                         else
                         {
-                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                            proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
                         }
                     }
 
