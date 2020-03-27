@@ -158,55 +158,61 @@ namespace ALMS.App.Models
                 proc.StartInfo.CreateNoWindow = true;
                 proc.StartInfo.UseShellExecute = false;
 
-                if (stdoutCallback != null && limit.StdoutLength > 0)
+                if (stdoutCallback != null)
                 {
-                    var remaind = limit.StdoutLength;
-                    proc.OutputDataReceived += (o, e) =>
+                    if (limit?.StdoutLength != null && limit.StdoutLength > 0)
                     {
-                        if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                        var remaind = limit.StdoutLength;
+                        proc.OutputDataReceived += (o, e) =>
                         {
-                            if (e.Data.Length <= remaind)
+                            if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
                             {
-                                stdoutCallback(e.Data);
-                                remaind -= (uint)e.Data.Length;
+                                if (e.Data.Length <= remaind)
+                                {
+                                    stdoutCallback(e.Data);
+                                    remaind -= (uint)e.Data.Length;
+                                }
+                                else
+                                {
+                                    stdoutCallback(e.Data.Substring(0, (int)remaind));
+                                    remaind = 0;
+                                }
                             }
-                            else
-                            {
-                                stdoutCallback(e.Data.Substring(0, (int)remaind));
-                                remaind = 0;
-                            }
-                        }
-                    };
+                        };
+                    }
+                    else
+                    {
+                        proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                    }
                 }
-                else
+                if (stderrCallback != null)
                 {
-                    proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                    if (limit?.StderrLength != null && limit.StderrLength > 0)
+                    {
+                        var remaind = limit.StderrLength;
+                        proc.OutputDataReceived += (o, e) =>
+                        {
+                            if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                            {
+                                if (e.Data.Length <= remaind)
+                                {
+                                    stderrCallback(e.Data);
+                                    remaind -= (uint)e.Data.Length;
+                                }
+                                else
+                                {
+                                    stderrCallback(e.Data.Substring(0, (int)remaind));
+                                    remaind = 0;
+                                }
+                            }
+                        };
+                    }
+                    else
+                    {
+                        proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                    }
                 }
 
-                if (stderrCallback != null && limit.StderrLength > 0)
-                {
-                    var remaind = limit.StderrLength;
-                    proc.ErrorDataReceived += (o, e) =>
-                    {
-                        if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
-                        {
-                            if (e.Data.Length <= remaind)
-                            {
-                                stderrCallback(e.Data);
-                                remaind -= (uint)e.Data.Length;
-                            }
-                            else
-                            {
-                                stderrCallback(e.Data.Substring(0, (int)remaind));
-                                remaind = 0;
-                            }
-                        }
-                    };
-                }
-                else
-                {
-                    proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
-                }
 
                 proc.Start();
                 proc.StandardInput.WriteLine(commands);
@@ -242,55 +248,61 @@ namespace ALMS.App.Models
                     proc.StartInfo.CreateNoWindow = true;
                     proc.StartInfo.UseShellExecute = false;
 
-                    if(stdoutCallback != null && limit.StdoutLength > 0)
+                    if (stdoutCallback != null)
                     {
-                        var remaind = limit.StdoutLength;
-                        proc.OutputDataReceived += (o, e) =>
+                        if (limit?.StdoutLength != null && limit.StdoutLength > 0)
                         {
-                            if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                            var remaind = limit.StdoutLength;
+                            proc.OutputDataReceived += (o, e) =>
                             {
-                                if (e.Data.Length <= remaind)
+                                if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
                                 {
-                                    stdoutCallback(e.Data);
-                                    remaind -= (uint)e.Data.Length;
+                                    if (e.Data.Length <= remaind)
+                                    {
+                                        stdoutCallback(e.Data);
+                                        remaind -= (uint)e.Data.Length;
+                                    }
+                                    else
+                                    {
+                                        stdoutCallback(e.Data.Substring(0, (int)remaind));
+                                        remaind = 0;
+                                    }
                                 }
-                                else
-                                {
-                                    stdoutCallback(e.Data.Substring(0, (int)remaind));
-                                    remaind = 0;
-                                }
-                            }
-                        };
+                            };
+                        }
+                        else
+                        {
+                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                        }
                     }
-                    else
+                    if (stderrCallback != null)
                     {
-                        proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                        if (limit?.StderrLength != null && limit.StderrLength > 0)
+                        {
+                            var remaind = limit.StderrLength;
+                            proc.OutputDataReceived += (o, e) =>
+                            {
+                                if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                                {
+                                    if (e.Data.Length <= remaind)
+                                    {
+                                        stderrCallback(e.Data);
+                                        remaind -= (uint)e.Data.Length;
+                                    }
+                                    else
+                                    {
+                                        stderrCallback(e.Data.Substring(0, (int)remaind));
+                                        remaind = 0;
+                                    }
+                                }
+                            };
+                        }
+                        else
+                        {
+                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                        }
                     }
 
-                    if (stderrCallback != null && limit.StderrLength > 0)
-                    {
-                        var remaind = limit.StderrLength;
-                        proc.ErrorDataReceived += (o, e) =>
-                        {
-                            if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
-                            {
-                                if (e.Data.Length <= remaind)
-                                {
-                                    stderrCallback(e.Data);
-                                    remaind -= (uint)e.Data.Length;
-                                }
-                                else
-                                {
-                                    stderrCallback(e.Data.Substring(0, (int)remaind));
-                                    remaind = 0;
-                                }
-                            }
-                        };
-                    }
-                    else
-                    {
-                        proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
-                    }
 
                     proc.Start();
                     proc.StandardInput.WriteLine(commands);
