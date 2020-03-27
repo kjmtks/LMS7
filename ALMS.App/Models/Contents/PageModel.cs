@@ -38,28 +38,6 @@ namespace ALMS.App.Models.Contents
         {
             return Utility.DateTimeToString(dt);
         }
-        public string To(string page_path)
-        {
-            string path;
-            if (page_path[0] == '/')
-            {
-                path = page_path.Substring(1);
-            }
-            else
-            {
-                var xs = CurrentPagePath.Split("/").Where(x => !string.IsNullOrWhiteSpace(x));
-                if (xs.Count() <= 1)
-                {
-                    path = page_path;
-                }
-                else
-                {
-                    path = string.Join("/", xs.Take(xs.Count() - 1)) + "/" + page_path;
-                }
-            }
-
-            return $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{path}";
-        }
     }
 
     //-----

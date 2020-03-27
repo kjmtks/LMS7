@@ -133,15 +133,20 @@ namespace ALMS.App.Models.Contents
                             builder.OpenElement(seq++, el.TagName);
                             if (el.TagName == "A")
                             {
-                                // TODO: if the href attribute indicates local path, replace its path. 
+                                // TODO: if the href attribute indicates local path, replace its path.
                                 foreach (var attr in el.Attributes.Where(x => x.Name != "href"))
                                 {
                                     builder.AddAttribute(seq++, attr.Name, attr.Value);
                                 }
                                 if(el.HasAttribute("href"))
                                 {
+                                    var href = el.GetAttribute("href");
+                                    if(!Regex.IsMatch(href, "^[a-zA-Z0-9]+://"))
+                                    {
+                                        href = localUrl(href);
+                                    }
                                     var ec = EventCallback.Factory.Create(el, () => {
-                                        NM.NavigateTo(el.GetAttribute("href"), true);
+                                        NM.NavigateTo(href, true);
                                     });
                                     builder.AddAttribute(seq++, "href", "javascript: void(0);");
                                     builder.AddAttribute(seq++, "onclick", ec);
@@ -186,5 +191,27 @@ namespace ALMS.App.Models.Contents
             return source.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
         }
 
+        private string localUrl(string page_path)
+        {
+            string path;
+            if (page_path[0] == '/')
+            {
+                path = page_path.Substring(1);
+            }
+            else
+            {
+                var xs = Path.Split("/").Where(x => !string.IsNullOrWhiteSpace(x));
+                if (xs.Count() <= 1)
+                {
+                    path = page_path;
+                }
+                else
+                {
+                    path = string.Join("/", xs.Take(xs.Count() - 1)) + "/" + page_path;
+                }
+            }
+
+            return $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{path}";
+        }
     }
 }

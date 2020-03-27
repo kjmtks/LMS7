@@ -7,5 +7,5 @@
   <Description>ACT1</Description>
 </script>
 
-
-[dir/@@page2.md](@Model.To("dir/@page2.md")) | [/@@index.md](@Model.To("/@index.md"))
+[dir/@@page2.md](dir/@@page2.md)
+| [/@@index.md](/@@index.md)

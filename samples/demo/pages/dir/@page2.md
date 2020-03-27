@@ -6,7 +6,7 @@
   <Description>ACT2</Description>
 </script>
 
-<a href="@Model.To("@page2.md")">@@page2</a>
-| <a href="@Model.To("./@page2.md")">@@page2</a>
-| <a href="@Model.To("../@index.md")">@@index</a>
-| <a href="@Model.To("/@index.md")">@@index</a>
+<a href="@@page2.md">@@page2</a>
+| <a href="./@@page2.md">@@page2</a>
+| <a href="../@@index.md">@@index</a>
+| <a href="/@@index.md">@@index</a>
