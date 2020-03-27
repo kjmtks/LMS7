@@ -86,6 +86,31 @@ namespace ALMS.App.Controllers
             return File(ms, contentType);
         }
 
+        [HttpGet("/lecture/{owner_account}/{lecture_name}/rawdata/{user_account}/{branch}/{**path}")]
+        public IActionResult UserFiles(string owner_account, string lecture_name, string user_account, string branch, string path)
+        {
+            var login_user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.LectureUsers).Where(x => x.Account == HttpContext.User.Identity.Name).FirstOrDefault();
+            if (login_user == null)
+            {
+                return new UnauthorizedResult();
+            }
+            var lecture_user = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
+                .Where(x => x.Lecture.Name == lecture_name && x.Lecture.Owner.Account == owner_account && x.User.Account == user_account).FirstOrDefault();
+            if (lecture_user == null)
+            {
+                return new NotFoundResult();
+            }
+
+            var ms = lecture_user.RepositoryPair.ReadFileWithoutTypeCheck(path, branch);
+
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(path, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+            return File(ms, contentType);
+        }
+
         [HttpGet("/myfiles/{**path}")]
         public IActionResult UserFiles(string path)
         {

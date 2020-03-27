@@ -1,0 +1,54 @@
+﻿@page "/lecture/{OwnerAccount}/{LectureName}/data/{UserAccount}";
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Models.Entities;
+@using ALMS.App.Components;
+@inject DatabaseService DB;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+<AuthorizeView>
+    <Authorized>
+        <h2 class="ui header">
+            <i class="database icon"></i>
+            <div class="content">
+                @(LectureUser.User.DisplayName)'s @LectureUser.Lecture.Name Data Repository
+                <div class="sub header">Explore lecture data repository</div>
+            </div>
+        </h2>
+        <RepositoryViewer CssClass="ui content"
+                          Subject="Submissions"
+                          User="@LectureUser.User"
+                          RepositoryPair="@LectureUser.RepositoryPair"
+                          GetRawFileUrl='(branch, path) => $"/lecture/{OwnerAccount}/{LectureName}/rawdata/{UserAccount}/{branch}/{path}"'
+                          @ref="RepositoryViewer" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code{
+
+    [Parameter] public string OwnerAccount { get; set; }
+    [Parameter] public string LectureName { get; set; }
+    [Parameter] public string UserAccount { get; set; }
+
+    protected RepositoryViewer RepositoryViewer;
+    protected LectureUser LectureUser { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Notifier.Notify += OnNotify;
+        LectureUser = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
+                .Where(x => x.Lecture.Name == LectureName && x.Lecture.Owner.Account == OwnerAccount && x.User.Account == UserAccount).FirstOrDefault();
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        await RepositoryViewer.UpdateAsync();
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+}
