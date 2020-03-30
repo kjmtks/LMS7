@@ -44,9 +44,13 @@ namespace ALMS.App
                 options.Secure = CookieSecurePolicy.Always;
                 options.HttpOnly = HttpOnlyPolicy.Always;
             });
+
+            var subdir = Environment.GetEnvironmentVariable("SUB_DIR") ?? "";
+            services.ConfigureApplicationCookie(options => { options.Cookie.Path = subdir; });
+
             services
                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-               .AddCookie(options => { options.LoginPath = "/login"; options.LogoutPath = "/logout"; });
+               .AddCookie(options => { options.LoginPath = $"{subdir}/login"; options.LogoutPath = $"{subdir}/logout"; });
             services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(@"/data/DataProtectionKey"));
 
@@ -70,6 +74,9 @@ namespace ALMS.App
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            var subdir = Environment.GetEnvironmentVariable("SUB_DIR") ?? "";
+            if (!string.IsNullOrWhiteSpace(subdir)) { app.UsePathBase(subdir); }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -104,6 +111,8 @@ namespace ALMS.App
                     pattern: "{controller}/{action=Index}/{id?}");
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            app.UseCookiePolicy();
         }
     }
 }

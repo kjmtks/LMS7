@@ -29,23 +29,25 @@ namespace ALMS.App.Controllers
             Config = config;
         }
 
-        [HttpGet("/logout", Name = "Logout")]
+        [HttpGet("logout", Name = "Logout")]
         public async Task<ActionResult> Logout()
         {
+            var pathBase = HttpContext.Request.PathBase.HasValue ? HttpContext.Request.PathBase.Value : "";
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return LocalRedirect("/Login");
+            return LocalRedirect($"{pathBase}/Login");
         }
 
-        [HttpGet("/login", Name = "Login")]
+        [HttpGet("login", Name = "Login")]
         public ActionResult Login()
         {
             return View(new LoginViewModel());
         }
 
 
-        [HttpPost("/login")]
+        [HttpPost("login")]
         public async Task<ActionResult> Login([FromQuery]string ReturnUrl, LoginViewModel m)
         {
+            var pathBase = HttpContext.Request.PathBase.HasValue ? HttpContext.Request.PathBase.Value : "";
             if (!ModelState.IsValid)
             {
                 return View(m);
@@ -55,13 +57,13 @@ namespace ALMS.App.Controllers
             if (user == null)
             {
                 ViewBag.Notice = "The user is not exist.";
-                return LocalRedirect("/login");
+                return LocalRedirect($"{pathBase}/login");
             }
             var isSuccess = user.Authenticate(m.Password, Config);
             if (!isSuccess)
             {
                 ViewBag.Notice = "Failed.";
-                return LocalRedirect("/login");
+                return LocalRedirect($"{pathBase}/login");
             }
 
             var claims = new List<Claim>();
@@ -86,7 +88,7 @@ namespace ALMS.App.Controllers
                   IsPersistent = m.RememberMe
               });
 
-            return LocalRedirect(ReturnUrl ?? "~/");
+            return LocalRedirect(ReturnUrl ?? $"{pathBase}/");
         }
     }
 }

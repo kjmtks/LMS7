@@ -75,7 +75,15 @@ namespace ALMS.App
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>().UseUrls("http://*:80");
+                    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    if (env == "Production")
+                    {
+                        webBuilder.UseStartup<Startup>().UseUrls("https://*:8080");
+                    }
+                    else
+                    {
+                        webBuilder.UseStartup<Startup>().UseUrls("http://*:8080");
+                    }
                 });
     }
 }

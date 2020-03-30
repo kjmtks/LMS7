@@ -26,7 +26,8 @@ namespace ALMS.App.Controllers
 
         protected IActionResult BasicAuthFiltered(Func<User, bool> auth, Func<User, IActionResult> callback)
         {
-            var realm = "localhost:8080";
+            var appUrl = Environment.GetEnvironmentVariable("APP_URL") ?? "";
+            var realm = appUrl;
             string authHeader = HttpContext.Request.Headers["Authorization"];
             if (authHeader != null && authHeader.StartsWith("Basic ", StringComparison.CurrentCulture))
             {

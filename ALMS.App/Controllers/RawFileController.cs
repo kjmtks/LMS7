@@ -20,7 +20,7 @@ namespace ALMS.App.Controllers
             DB = db;
         }
 
-        [HttpGet("/lecture/{owner_account}/{lecture_name}/contents/{branch}/{**path}")]
+        [HttpGet("lecture/{owner_account}/{lecture_name}/contents/{branch}/{**path}")]
         public IActionResult LectureContentsRawFile(string owner_account, string lecture_name, string branch, string path)
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).Where(x => x.Owner.Account == owner_account && x.Name == lecture_name).FirstOrDefault();
@@ -61,7 +61,7 @@ namespace ALMS.App.Controllers
             return File(ms, contentType);
         }
 
-        [HttpGet("/lecture/{owner_account}/{lecture_name}/submissions/{branch}/{**path}")]
+        [HttpGet("lecture/{owner_account}/{lecture_name}/submissions/{branch}/{**path}")]
         public IActionResult LectureSubmissionsRawFile(string owner_account, string lecture_name, string branch, string path)
         {
             var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).Where(x => x.Owner.Account == owner_account && x.Name == lecture_name).FirstOrDefault();
@@ -86,7 +86,7 @@ namespace ALMS.App.Controllers
             return File(ms, contentType);
         }
 
-        [HttpGet("/lecture/{owner_account}/{lecture_name}/rawdata/{user_account}/{branch}/{**path}")]
+        [HttpGet("lecture/{owner_account}/{lecture_name}/rawdata/{user_account}/{branch}/{**path}")]
         public IActionResult UserFiles(string owner_account, string lecture_name, string user_account, string branch, string path)
         {
             var login_user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.LectureUsers).Where(x => x.Account == HttpContext.User.Identity.Name).FirstOrDefault();
@@ -111,7 +111,7 @@ namespace ALMS.App.Controllers
             return File(ms, contentType);
         }
 
-        [HttpGet("/myfiles/{**path}")]
+        [HttpGet("myfiles/{**path}")]
         public IActionResult UserFiles(string path)
         {
             var user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.LectureUsers).Where(x => x.Account == HttpContext.User.Identity.Name).FirstOrDefault();
