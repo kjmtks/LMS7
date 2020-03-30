@@ -12,7 +12,7 @@ services:
             TZ: Asia/Tokyo
             ASPNETCORE_ENVIRONMENT: Development
             APP_URL: http://localhost:8080
-            SUB_DIR: 
+            SUB_DIR: /lms 
             # LDAP
             LDAP_HOST: "***********"
             LDAP_PORT: "***"

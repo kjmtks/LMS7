@@ -142,7 +142,7 @@ namespace ALMS.App.Models.Contents
                                     var href = el.GetAttribute("href");
                                     if(!Regex.IsMatch(href, "^[a-zA-Z0-9]+://"))
                                     {
-                                        href = $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{localPath(href)}";
+                                        href = $"lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{localPath(href)}";
                                     }
                                     var ec = EventCallback.Factory.Create(el, () => {
                                         NM.NavigateTo(href, true);
@@ -162,7 +162,7 @@ namespace ALMS.App.Models.Contents
                                     var src = el.GetAttribute("src");
                                     if (!Regex.IsMatch(src, "^[a-zA-Z0-9]+://"))
                                     {
-                                        src = $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/contents/{Branch}/pages/{localPath(src)}";
+                                        src = $"lecture/{Lecture.Owner.Account}/{Lecture.Name}/contents/{Branch}/pages/{localPath(src)}";
                                     }
                                     builder.AddAttribute(seq++, "src", src);
                                 }

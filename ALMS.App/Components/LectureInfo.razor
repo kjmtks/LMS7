@@ -6,7 +6,7 @@
             <div class="row">
                 <div class="ui three wide column">
                     <div class="ui breadcrumb">
-                        <a class="section" href="/users/@Lecture.Owner.Account"><i class="user icon"></i> @Lecture.Owner.Account</a>
+                        <a class="section" href="users/@Lecture.Owner.Account"><i class="user icon"></i> @Lecture.Owner.Account</a>
                         <i class="right chevron icon divider"></i>
                         <span class="active section"><i class="pen square icon"></i> @Lecture.Name</span>
 
@@ -16,7 +16,7 @@
                     <div class="ui small labels">
                         @foreach (var b in Lecture.LectureContentsRepositoryPair.GetBranches())
                         {
-                            <a href="/lecture/@Lecture.Owner.Account/@Lecture.Name/page/@b/" class="ui label">@b</a>
+                            <a href="lecture/@Lecture.Owner.Account/@Lecture.Name/page/@b/" class="ui label">@b</a>
                         }
                     </div>
                 </div>
