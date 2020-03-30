@@ -13,7 +13,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace ALMS.App.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class GitController : BasicAuthenticatableController
     {
