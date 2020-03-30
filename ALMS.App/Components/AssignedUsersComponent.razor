@@ -1,0 +1,63 @@
+﻿@using ALMS.App.Models.Entities;
+@using ALMS.App.Components.Utils;
+@using Microsoft.EntityFrameworkCore;
+@inject DatabaseService DB;
+<div class="@CssClass">
+
+    <div class="ui menu top attached">
+        <div class="header left item"><i class="pencil icon"></i> @(string.IsNullOrEmpty(Subject) ? "Assigned Users" : Subject)</div>
+    </div>
+    <ALMS.App.Components.Utils.Paginated Collection="@Collection" @ref="Pagination" EntriesPerPage="10" CssClass="bottom attached">
+        <table class="ui table attached">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Repos.</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Pagination.ShowedModels)
+                {
+                <tr>
+                    <td><a href="users/@user.Account">@user.Account</a></td>
+                    <td>@user.DisplayName</td>
+                    <td>@user.EmailAddress</td>
+                    <td><a href="/lecture/@Lecture.Owner.Account/@Lecture.Name/data/@user.Account"><i class="database icon"></i></a></td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </ALMS.App.Components.Utils.Paginated>
+</div>
+
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public string Subject { get; set; }
+    [Parameter]
+    public Lecture Lecture { get; set; }
+    [Parameter]
+    public User User { get; set; }
+
+    public IEnumerable<User> Collection { get; set; }
+
+    protected Paginated<User> Pagination;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Collection = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.LectureId == Lecture.Id).AsNoTracking().Select(x => x.User);
+    }
+
+    public async Task UpdateAsync()
+    {
+        Collection = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.LectureId == Lecture.Id).AsNoTracking().Select(x => x.User);
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+}

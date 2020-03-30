@@ -85,6 +85,16 @@
                     </div>
                 </h2>
                 <ActivityActionHistoryComponent CssClass="ui content" Lecture="Lecture" User="User" @ref="ActivityActionHistoryComponent" />
+
+
+                <h2 class="ui header">
+                    <i class="user icon"></i>
+                    <div class="content">
+                        Assigned Users
+                        <div class="sub header">Explore assigned users</div>
+                    </div>
+                </h2>
+                <AssignedUsersComponent CssClass="ui content" Lecture="Lecture" User="User" @ref="AssignedUsersComponent" />
             }
         }
         else
@@ -109,6 +119,7 @@
     protected RepositoryViewer ContentsRepositoryViewer;
     protected RepositoryViewer SubmissionsRepositoryViewer;
     protected ActivityActionHistoryComponent ActivityActionHistoryComponent;
+    protected AssignedUsersComponent AssignedUsersComponent;
 
     protected override void OnInitialized()
     {
@@ -132,6 +143,7 @@
         await SubmissionsRepositoryViewer.UpdateAsync();
         await DirectoryViewer.UpdateAsync();
         await ActivityActionHistoryComponent.UpdateAsync();
+        await AssignedUsersComponent.UpdateAsync();
     }
     public void Dispose()
     {
