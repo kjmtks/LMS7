@@ -4,8 +4,8 @@
 This system is the novel learning management system (LMS) with the following features:
 
 * This system can build sandbox environments, and provide programming exercises executing in them environments.
-* In this system, educational contents can be described in the markdown format and uploaded / downloaded via Git interface.
-* 
+* Educational contents can be described in the markdown format, and uploaded / downloaded via Git interface.
+* Submitted programs can be automatically verified for suitability using test cases.
 
 
 <script language="activity" ref="ruby.xml">
