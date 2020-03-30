@@ -6,20 +6,11 @@ services:
             dockerfile: Dockerfile
         ports:
             - 8080:8080
-            # - 443:8080
         environment:
             LANG: ja_JP.UTF-8
             TZ: Asia/Tokyo
             ASPNETCORE_ENVIRONMENT: Development
             APP_URL: http://localhost:8080
-            SUB_DIR: /lms 
-            # LDAP
-            LDAP_HOST: "***********"
-            LDAP_PORT: "***"
-            LDAP_BASE: "***************"
-            LDAP_ID_ATTR: "***"
-            LDAP_MAIL_ATTR: "*****"
-            LDAP_NAME_ATTR: "***********"
 
         volumes:
             - app-data:/data
@@ -34,11 +25,11 @@ services:
         ports:
             - '5432:5432'
         volumes:
-            - postgres-data:/path/to/data
+            - db-data:/var/lib/postgresql/data
         environment:
             POSTGRES_USER: alms
             POSTGRES_PASSWORD: password
-            POSTGRES_DB: alms_development
+            POSTGRES_DB: alms
             TZ: Asia/Tokyo
         networks:
             - almsnw
@@ -50,5 +41,5 @@ networks:
 volumes:
     app-data:
         driver: local
-    postgres-data:
+    db-data:
         driver: local
