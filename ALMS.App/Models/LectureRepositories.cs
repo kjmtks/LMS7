@@ -27,7 +27,7 @@ namespace ALMS.App.Models
 
         public override LectureContentsClonedRepository ClonedRepository => lectureContentsClonedRepository;
 
-        public override string ApiUrl => $"/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.contents.git";
+        public override string ApiUrl => $"{Environment.GetEnvironmentVariable("APP_URL")}/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.contents.git";
 
         public override bool CanPull(User user)
         {
@@ -84,7 +84,7 @@ namespace ALMS.App.Models
 
         public override LectureSubmissionsClonedRepository ClonedRepository => lectureSubmissionsClonedRepository;
 
-        public override string ApiUrl => $"/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.submissions.git";
+        public override string ApiUrl => $"{Environment.GetEnvironmentVariable("APP_URL")}/api/git/lecture/{lecture.Owner.Account}/{lecture.Name}.submissions.git";
 
         public override bool CanPull(User user)
         {
