@@ -215,6 +215,12 @@ namespace ALMS.App.Migrations
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsLdapInitialized")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLdapUser")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsSenior")
                         .HasColumnType("boolean");
 

@@ -31,6 +31,9 @@ namespace ALMS.App.Models.Entities
         public bool IsAdmin { get; set; }
         public bool IsSenior { get; set; }
 
+        public bool IsLdapUser { get; set; }
+        public bool IsLdapInitialized { get; set; }
+
         [NotMapped]
         public string Password { get; set; }
 
@@ -153,7 +156,41 @@ namespace ALMS.App.Models.Entities
 
         public bool Authenticate(string password, IConfiguration config)
         {
-            return this.EncryptedPassword == Encrypt(password, config);
+            if (IsLdapUser)
+            {
+                var ldap_host = Environment.GetEnvironmentVariable("LDAP_HOST");
+                var ldap_port = int.Parse(Environment.GetEnvironmentVariable("LDAP_PORT"));
+                var ldap_base = Environment.GetEnvironmentVariable("LDAP_BASE");
+                var ldap_id_attr = Environment.GetEnvironmentVariable("LDAP_ID_ATTR");
+                var ldap_mail_attr = Environment.GetEnvironmentVariable("LDAP_MAIL_ATTR");
+                var ldap_name_attr = Environment.GetEnvironmentVariable("LDAP_NAME_ATTR");
+                var authenticator = new LdapAuthenticator(ldap_host, ldap_port, ldap_base, ldap_id_attr, entry => {
+                    var attrs = entry.getAttributeSet();
+                    var email = attrs.getAttribute(ldap_mail_attr).StringValue;
+                    var xs = ldap_name_attr.Split(";");
+                    string name = null;
+                    if (xs.Length == 1)
+                    {
+                        name = attrs.getAttribute(xs[0]).StringValue;
+                    }
+                    else
+                    {
+                        name = attrs.getAttribute(xs[0], xs[1]).StringValue;
+                    }
+                    return (name, email);
+                });
+                var (result, name, email) = authenticator.Authenticate(Account, password);
+                if(result && !IsLdapInitialized)
+                {
+                    DisplayName = name;
+                    EmailAddress = email;
+                }
+                return result;
+            }
+            else
+            {
+                return EncryptedPassword == Encrypt(password, config);
+            }
         }
 
         public bool IsTeacher(Lecture lecture)
@@ -204,5 +241,4 @@ namespace ALMS.App.Models.Entities
         public User GetEntityAsNoTracking(DatabaseContext context, IConfiguration config) => context.Users.Where(x => x.Id == Id).Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).AsNoTracking().FirstOrDefault();
 
     }
-
 }

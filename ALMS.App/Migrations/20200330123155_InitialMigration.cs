@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ALMS.App.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -35,7 +35,9 @@ namespace ALMS.App.Migrations
                     EmailAddress = table.Column<string>(nullable: false),
                     EncryptedPassword = table.Column<string>(nullable: true),
                     IsAdmin = table.Column<bool>(nullable: false),
-                    IsSenior = table.Column<bool>(nullable: false)
+                    IsSenior = table.Column<bool>(nullable: false),
+                    IsLdapUser = table.Column<bool>(nullable: false),
+                    IsLdapInitialized = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {

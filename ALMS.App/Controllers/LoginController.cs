@@ -65,6 +65,12 @@ namespace ALMS.App.Controllers
                 ViewBag.Notice = "Failed.";
                 return LocalRedirect($"{pathBase}/login");
             }
+            if(user.IsLdapUser && !user.IsLdapInitialized)
+            {
+                user.IsLdapInitialized = true;
+                DB.Context.Update(user);
+                DB.Context.SaveChanges();
+            }
 
             var claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.Name, user.Account));

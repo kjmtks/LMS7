@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ALMS.App.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20200313005300_Initial")]
-    partial class Initial
+    [Migration("20200330123155_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -215,6 +215,12 @@ namespace ALMS.App.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsAdmin")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLdapInitialized")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLdapUser")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsSenior")
