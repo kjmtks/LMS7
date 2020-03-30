@@ -17,188 +17,186 @@ else if (Activity == null)
 }
 else
 {
-    <div class="ui segment" id="activity-@ComponentId">
-        @if (!string.IsNullOrWhiteSpace(Activity?.Subject))
-        {
-            <h3 class="ui header">@Activity.Subject</h3>
-        }
-        @if (!string.IsNullOrWhiteSpace(Activity?.Description))
-        {
-            <div class="ui basic segment">
-                @((MarkupString)Activity.Description)
-            </div>
-        }
-
-        <div class="ui top attached mini bordered menu">
-            @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
-            {
-                <a class="@(i == SelectedTabIndex ? "active" : "") item" @onclick='() => ShowTab(i)'>
-                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesText)
-                    {
-                        <i class="file alternate outline icon"></i>
-                    }
-                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesCode)
-                    {
-                        <i class="code icon"></i>
-                    }
-                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesString)
-                    {
-                        <i class="terminal icon"></i>
-                    }
-                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesUpload)
-                    {
-                        <i class="upload icon"></i>
-                    }
-                    @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesForm)
-                    {
-                        <i class="edit outline icon"></i>
-                    }
-                    @(string.IsNullOrWhiteSpace(tab.Item1.Label) ? tab.Item1.Name : tab.Item1.Label)
-                </a>
-            }
-
-
-            <div class="right labeled icon borderless menu">
-
-                @if (Activity?.Deadline != null)
-                {
-                    <span class="borderless item">
-                        <i class="clock outline icon"></i> @ALMS.App.Models.Contents.Utility.DateTimeToString(Activity.Deadline)
-                    </span>
-                }
-
-                <span class="borderless item">
-                    <i style="visibility: @(Processing ? "visible" : "hidden")" class="spinner loading icon"></i>
-                </span>
-
-                @if (Activity.UseSave())
-                {
-                    <span data-tooltip="Save" data-variation="basic">
-                        <a class="@(Processing ? "disabled" : "") item" @onclick="SaveAsync"><i class="save outline icon"></i></a>
-                    </span>
-                }
-                @if (Activity.UseRun())
-                {
-                    <span data-tooltip="Run" data-variation="basic">
-                        <a class="@(Processing ? "disabled" : "") item" @onclick="RunAsync"><i class="play circle outline icon"></i></a>
-                    </span>
-                }
-                @if (Activity.UseSubmit())
-                {
-                    <span data-tooltip="Submit" data-variation="basic">
-                        <a class="@(Processing || (!Accepted && !Activity.Flags.CanSubmitBeforeAccept) || (DateTime.Now > Activity.Deadline && !Activity.Flags.CanSubmitAfterDeadline) ? "disabled" : "") item" @onclick="SubmitAsync">
-                            <i class="icons">
-                                <i class="cloud upload icon"></i>
-                                @if (SubmittedActionHistory != null)
-                                {
-                                    <i class="corner green check icon"></i>
-                                }
-                            </i>
-                        </a>
-                    </span>
-                }
-                @if (Activity.UseValidate())
-                {
-                    <span data-tooltip="Validate" data-variation="basic">
-                        <a class="@(Processing ? "disabled" : "") item" @onclick="ValidateAsync">
-                            <i class="icons">
-                                <i class="bug icon"></i>
-                                @if (Accepted)
-                                {
-                                    <i class="corner green check icon"></i>
-                                }
-                            </i>
-                        </a>
-                    </span>
-                }
-                @if (Activity.UseReset())
-                {
-                    <span data-tooltip="Reset" data-variation="basic">
-                        <a class="@(Processing ? "disabled" : "") item" @onclick="ResetAsync"><i class="trash alternate outline icon"></i></a>
-                    </span>
-                }
-                @if (User.IsTeacher(Lecture))
-                {
-                    <span data-tooltip="Answer" data-variation="basic">
-                        <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
-                    </span>
-                }
-                @if (TabSize == Size.Normal)
-                {
-                    <span data-tooltip="Expand" data-variation="basic">
-                        <a class="item" @onclick="() => { TabSize = Size.Large; }">
-                            <i class="icons">
-                                <i class="window maximize outline icon"></i>
-                                <i class="inverted corner plus icon"></i>
-                            </i>
-                        </a>
-                    </span>
-                }
-                @if (TabSize == Size.Large)
-                {
-                    <span data-tooltip="Shrink" data-variation="basic">
-                        <a class="item" @onclick="() => { TabSize = Size.Normal; }">
-                            <i class="icons">
-                                <i class="window maximize outline icon"></i>
-                                <i class="inverted corner minus icon"></i>
-                            </i>
-                        </a>
-                    </span>
-                }
-            </div>
+<div class="ui segment" id="activity-@ComponentId">
+    @if (!string.IsNullOrWhiteSpace(Activity?.Subject))
+    {
+        <h3 class="ui header">@Activity.Subject</h3>
+    }
+    @if (!string.IsNullOrWhiteSpace(Activity?.Description))
+    {
+        <div class="ui basic segment">
+            @((MarkupString)Activity.Description)
         </div>
+    }
 
+    <div class="ui top attached mini bordered menu">
         @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
         {
-            <div class="ui bottom attached segment" style="padding: 0; height: @((int)TabSize)em; display: @(i==SelectedTabIndex ? "block" : "none")">
-                @tab.Item2
-            </div>
+            <a class="@(i == SelectedTabIndex ? "active" : "") item" @onclick='() => ShowTab(i)'>
+                @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesText)
+                {
+                    <i class="file alternate outline icon"></i>
+                }
+                @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesCode)
+                {
+                    <i class="code icon"></i>
+                }
+                @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesString)
+                {
+                    <i class="terminal icon"></i>
+                }
+                @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesUpload)
+                {
+                    <i class="upload icon"></i>
+                }
+                @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesForm)
+                {
+                    <i class="edit outline icon"></i>
+                }
+                @(string.IsNullOrWhiteSpace(tab.Item1.Label) ? tab.Item1.Name : tab.Item1.Label)
+            </a>
         }
-
-        @if (!string.IsNullOrWhiteSpace(Message))
-        {
-            <div class="ui top attached mini icon menu">
-                <span class="borderless item"><i class="exclamation icon"></i>&nbsp;&nbsp;Message</span>
-                <a class="right item" @onclick='() => { Message = ""; }'><i class="times icon"></i></a>
-            </div>
-            <pre class="ui green segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@Message</pre>
-        }
-        @if (!string.IsNullOrWhiteSpace(@StandardOutput))
-        {
-            <div class="ui top attached mini icon menu">
-                <span class="borderless item"><i class="desktop icon"></i>&nbsp;&nbsp;Satndard Output</span>
-                <a class="right item" @onclick='() => { StandardOutput = ""; }'><i class="times icon"></i></a>
-            </div>
-            <pre class="ui green segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardOutput</pre>
-        }
-        @if (!string.IsNullOrWhiteSpace(@StandardError))
-        {
-            <div class="ui top attached mini icon menu">
-                <span class="borderless item"><i class="desktop icon"></i>&nbsp;&nbsp;Satndard Error</span>
-                <a class="right item" @onclick='() => { StandardError = ""; }'><i class="times icon"></i></a>
-            </div>
-            <pre class="ui red segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardError</pre>
-        }
-        @if(Images.Count() > 0)
-        {
-            foreach(var imgs in Images)
-            {
-                <div class="ui top attached mini icon menu">
-                    <span class="borderless item"><i class="image icon"></i>&nbsp;&nbsp;@imgs.Item1</span>
-                    <a class="right item" @onclick='() => { Images.Remove(imgs); }'><i class="times icon"></i></a>
-                </div>
-                <div class="ui yellow segment bottom attached">
-                    @foreach(var img in imgs.Item2)
-                    {
-                        var hash = Guid.NewGuid().ToString("N").Substring(0, 16);
-                        var url = $"myfiles/lecture_data/{Lecture.Owner.Account}/{Lecture.Name}/home/{Activity.Directory}/{img}";
-                        <a href="@url" target="_blank"><img width="300" src="@(url)?hash=@(hash)" /></a>
-                    }
-                </div>
-            }
-        }
-
     </div>
+
+    @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
+    {
+        <div class="ui attached segment" style="padding: 0; height: @((int)TabSize)em; display: @(i==SelectedTabIndex ? "block" : "none")">
+            @tab.Item2
+        </div>
+    }
+
+    <div class="ui bottom attached mini icon borderless menu">
+        @if (Activity?.Deadline != null)
+        {
+            <span class="borderless item">
+                <i class="clock outline icon"></i> @ALMS.App.Models.Contents.Utility.DateTimeToString(Activity.Deadline)
+            </span>
+        }
+
+        <span class="borderless item">
+            <i style="visibility: @(Processing ? "visible" : "hidden")" class="spinner loading icon"></i>
+        </span>
+
+        @if (Activity.UseSave())
+        {
+            <span data-tooltip="Save" data-variation="basic">
+                <a class="@(Processing ? "disabled" : "") item" @onclick="SaveAsync"><i class="save outline icon"></i></a>
+            </span>
+        }
+        @if (Activity.UseRun())
+        {
+            <span data-tooltip="Run" data-variation="basic">
+                <a class="@(Processing ? "disabled" : "") item" @onclick="RunAsync"><i class="play circle outline icon"></i></a>
+            </span>
+        }
+        @if (Activity.UseSubmit())
+        {
+            <span data-tooltip="Submit" data-variation="basic">
+                <a class="@(Processing || (!Accepted && !Activity.Flags.CanSubmitBeforeAccept) || (DateTime.Now > Activity.Deadline && !Activity.Flags.CanSubmitAfterDeadline) ? "disabled" : "") item" @onclick="SubmitAsync">
+                    <i class="icons">
+                        <i class="cloud upload icon"></i>
+                        @if (SubmittedActionHistory != null)
+                        {
+                            <i class="corner green check icon"></i>
+                        }
+                    </i>
+                </a>
+            </span>
+        }
+        @if (Activity.UseValidate())
+        {
+            <span data-tooltip="Validate" data-variation="basic">
+                <a class="@(Processing ? "disabled" : "") item" @onclick="ValidateAsync">
+                    <i class="icons">
+                        <i class="bug icon"></i>
+                        @if (Accepted)
+                        {
+                            <i class="corner green check icon"></i>
+                        }
+                    </i>
+                </a>
+            </span>
+        }
+        @if (Activity.UseReset())
+        {
+            <span data-tooltip="Reset" data-variation="basic">
+                <a class="@(Processing ? "disabled" : "") item" @onclick="ResetAsync"><i class="trash alternate outline icon"></i></a>
+            </span>
+        }
+        @if (User.IsTeacher(Lecture))
+        {
+            <span data-tooltip="Answer" data-variation="basic">
+                <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
+            </span>
+        }
+        @if (TabSize == Size.Normal)
+        {
+            <span data-tooltip="Expand" data-variation="basic">
+                <a class="item" @onclick="() => { TabSize = Size.Large; }">
+                    <i class="icons">
+                        <i class="window maximize outline icon"></i>
+                        <i class="inverted corner plus icon"></i>
+                    </i>
+                </a>
+            </span>
+        }
+        @if (TabSize == Size.Large)
+        {
+            <span data-tooltip="Shrink" data-variation="basic">
+                <a class="item" @onclick="() => { TabSize = Size.Normal; }">
+                    <i class="icons">
+                        <i class="window maximize outline icon"></i>
+                        <i class="inverted corner minus icon"></i>
+                    </i>
+                </a>
+            </span>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="ui top attached mini icon menu">
+            <span class="borderless item"><i class="exclamation icon"></i>&nbsp;&nbsp;Message</span>
+            <a class="right item" @onclick='() => { Message = ""; }'><i class="times icon"></i></a>
+        </div>
+        <pre class="ui green segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@Message</pre>
+    }
+    @if (!string.IsNullOrWhiteSpace(@StandardOutput))
+    {
+        <div class="ui top attached mini icon menu">
+            <span class="borderless item"><i class="desktop icon"></i>&nbsp;&nbsp;Satndard Output</span>
+            <a class="right item" @onclick='() => { StandardOutput = ""; }'><i class="times icon"></i></a>
+        </div>
+        <pre class="ui green segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardOutput</pre>
+    }
+    @if (!string.IsNullOrWhiteSpace(@StandardError))
+    {
+        <div class="ui top attached mini icon menu">
+            <span class="borderless item"><i class="desktop icon"></i>&nbsp;&nbsp;Satndard Error</span>
+            <a class="right item" @onclick='() => { StandardError = ""; }'><i class="times icon"></i></a>
+        </div>
+        <pre class="ui red segment bottom attached tt" id="activity-stdout-@ComponentId" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; height:10em;">@StandardError</pre>
+    }
+    @if (Images.Count() > 0)
+    {
+        foreach (var imgs in Images)
+        {
+            <div class="ui top attached mini icon menu">
+                <span class="borderless item"><i class="image icon"></i>&nbsp;&nbsp;@imgs.Item1</span>
+                <a class="right item" @onclick='() => { Images.Remove(imgs); }'><i class="times icon"></i></a>
+            </div>
+            <div class="ui yellow segment bottom attached">
+                @foreach (var img in imgs.Item2)
+                {
+                    var hash = Guid.NewGuid().ToString("N").Substring(0, 16);
+                    var url = $"myfiles/lecture_data/{Lecture.Owner.Account}/{Lecture.Name}/home/{Activity.Directory}/{img}";
+                    <a href="@url" target="_blank"><img width="300" src="@(url)?hash=@(hash)" /></a>
+                }
+            </div>
+        }
+    }
+
+</div>
 }
 
 

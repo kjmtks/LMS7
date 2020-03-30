@@ -25,7 +25,7 @@ namespace ALMS.App.Models
 
         public override LectureUserHomeClonedRepository ClonedRepository => lectureUserHomeClonedRepository;
 
-        public override string ApiUrl => $"/api/git/user/lecture_data/{lectureUser.User.Account}/{lectureUser.Lecture.Owner.Account}/{lectureUser.Lecture.Name}.home.git";
+        public override string ApiUrl => $"{Environment.GetEnvironmentVariable("APP_URL")}/api/git/user/lecture_data/{lectureUser.User.Account}/{lectureUser.Lecture.Owner.Account}/{lectureUser.Lecture.Name}.home.git";
 
         public override bool CanPull(User user)
         {
