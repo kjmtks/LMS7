@@ -43,5 +43,11 @@ then, open `https://localhost` (or `https://yourhost`) in your browser.
 ### Stop
 
 ```
+$ make production-down
+```
+
+### Uninstall
+
+```
 $ make production-remove
 ```

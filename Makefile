@@ -33,6 +33,15 @@ else
 endif
 	docker volume rm lms7_db-data lms7_app-data
 
+production-down:
+ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
+else
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
+endif
+
 production-remove:
 ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
@@ -41,6 +50,9 @@ else
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
 endif
+	docker volume rm lms7_db-data lms7_app-data
+
+
 
 pfx:
 	openssl pkcs12 -export -out ./keys/server.pfx -inkey ${KEY} -in ${CER}
