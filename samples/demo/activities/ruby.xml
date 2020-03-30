@@ -18,8 +18,8 @@
 
   <Files>
     <Code Name="program.rb" Label="Ruby Code" Language="ruby" ContentType="text/plain" Maxlength="10000" Submit="true">
-      <Default>puts "??????"</Default>
-      <Answer>puts "Hello, World!!"</Answer>
+      <Default>@ViewBag.Default</Default>
+      <Answer>@ViewBag.Answer</Answer>
     </Code>
 </Files>
 
