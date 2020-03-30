@@ -326,7 +326,7 @@ else
     protected async Task SubmitAsync()
     {
         if (Processing || (!Accepted && !Activity.Flags.CanSubmitBeforeAccept) || (DateTime.Now > Activity.Deadline && !Activity.Flags.CanSubmitAfterDeadline)) { return; }
-        if (!Activity.UseRun()) { return; }
+        if (!Activity.UseSubmit()) { return; }
 
         Processing = true;
         ExitCode = null;
@@ -352,7 +352,7 @@ else
     protected async Task ValidateAsync()
     {
         if (Processing) { return; }
-        if (!Activity.UseRun()) { return; }
+        if (!Activity.UseValidate()) { return; }
         var sandbox = DB.Context.LectureSandboxes.Where(x => x.Name == Activity.Sandbox).FirstOrDefault();
         if (sandbox == null)
         {
