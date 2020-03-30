@@ -13,6 +13,7 @@ This system is the novel learning management system (LMS) with the following fea
   <Subject>Hello, World!!</Subject>
   <Deadline>@Model.DateTimeToString(ViewBag.week1start)</Deadline>
   <Description>Create a Ruby program that outputs `Hello, World!!`.</Description>
+  <Default>puts "??????"</Default>
   <Answer>puts "Hello, World!!"</Answer>
   <ExpectedStdout>Hello, World!!</ExpectedStdout>
 </script>
@@ -22,6 +23,7 @@ This system is the novel learning management system (LMS) with the following fea
   <Subject>Bye, World!!</Subject>
   <Deadline>@Model.DateTimeToString(ViewBag.week1start)</Deadline>
   <Description>Create a Ruby program that outputs `Bye, World!!`.</Description>
+  <Default>puts "??????"</Default>
   <Answer>puts "Bye, World!!"</Answer>
   <ExpectedStdout>Bye, World!!</ExpectedStdout>
 </script>
