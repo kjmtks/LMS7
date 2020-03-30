@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Activity Version="1.0">
+  <Name>@ViewBag.Name</Name>
+  <Subject>@ViewBag.Subject</Subject>
+  <Description>@ViewBag.Description</Description>
+  <Deadline>@ViewBag.Deadline</Deadline>
+  <Directory>@ViewBag.Name</Directory>
+  <Flags>
+    <UseStdout>false</UseStdout>
+    <UseStderr>false</UseStderr>
+    <UseCommand>false</UseCommand>
+    <UseSave>false</UseSave>
+    <UseReset>false</UseReset>
+    <CanSubmitAfterDeadline>false</CanSubmitAfterDeadline>
+    <CanSubmitBeforeAccept>true</CanSubmitBeforeAccept>
+  </Flags>
+
+  <Files>
+    <Upload Name="@ViewBag.FileName" Label="@ViewBag.Label" Maxsize="@ViewBag.MaxSize" Submit="true" AllowedContentTypes="@ViewBag.ContentTypes"/>
+  </Files>
+
+</Activity>

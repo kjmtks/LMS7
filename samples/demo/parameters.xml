@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--   -->
+<!-- 
+  The variables defined here will be available in the pages and the activities.
+-->
 <Parameters>
-  <DateTime Name="week1start" Description="Start datetime of week1">3020-10-31T09:30:00+09:00</DateTime>
-  <DateTime Name="week1deadline" Description="Deadline of activities of week1">3020-11-07T09:30:00+09:00</DateTime>
+  <DateTime Name="week1start" Description="Start datetime of week1">2120-10-31T09:30:00+09:00</DateTime>
+  <DateTime Name="week1deadline" Description="Deadline of activities of week1">2120-11-07T09:30:00+09:00</DateTime>
   <String Name="string1" Description="test">test</String>
   <Boolean Name="boolean1" Description="test">true</Boolean>
   <Integer Name="integer1" Description="test">1</Integer>

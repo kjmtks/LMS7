@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Activity Version="1.0">
+  <Sandbox>ruby</Sandbox>
+  <Name>@ViewBag.Name</Name>
+  <Subject>@ViewBag.Subject</Subject>
+  <Description>@ViewBag.Description</Description>
+  <Deadline>@ViewBag.Deadline</Deadline>
+  <Directory>@ViewBag.Name</Directory>
+  <Flags>
+    <UseStdout>false</UseStdout>
+    <UseStderr>false</UseStderr>
+    <UseCommand>false</UseCommand>
+    <UseSave>true</UseSave>
+    <UseReset>true</UseReset>
+    <CanSubmitAfterDeadline>false</CanSubmitAfterDeadline>
+    <CanSubmitBeforeAccept>false</CanSubmitBeforeAccept>
+  </Flags>
+
+  <Files>
+    <Form Name="form.json" Submit="true">
+    <Text Block="true">Q.1</Text>
+    <Text>1 + 1 =</Text>
+    <Select Name="q1" Block="true">
+      <Option Value="1" Default="true">1</Option>
+      <Option Value="2" Answer="true">2</Option>
+      <Option Value="3">3</Option>
+    </Select>
+
+    <Text Block="true">Q.2</Text>
+    <Text>1 - 1 =</Text>
+    <Radio Name="q2" Block="true">
+      <Option Value="0" Answer="true">0</Option>
+      <Option Value="1" Default="true">1</Option>
+      <Option Value="2">2</Option>
+    </Radio>
+
+    <Text Block="true">Q.3</Text>
+    <Text>Is `2 - 1 = 1` is correct?  </Text>
+    <Checkbox Name="q3" True="Yes" False="No" Default="true" Answer="true">Yes</Checkbox>
+
+    <Text Block="true">Q.4</Text>
+    <Text Block="true">Fill blanks.</Text>
+    <Text>Software quality evaluation has the following two concepts.</Text>
+    <Text>Taking the detailed design process as an example,</Text>
+    <String Name="q4" Size="normal">
+      <Default></Default>
+      <Answer>Verification</Answer>           
+    </String>
+    <Text>confirms that the result of the detailed design conforms to the basic design and development rules that are the inputs to the detailed design.</Text>
+    <Text>On the other hand,</Text>
+    <String Name="q5" Size="normal">
+      <Default></Default>
+      <Answer>Validation</Answer>           
+    </String>
+    <Text>confirms that the software realized as a result of the detailed design satisfies user needs.</Text>
+
+    <Text Block="true">Write your profile</Text>
+    <Textarea Name="profile" Rows="6">
+      <Default></Default>
+      <Answer></Answer>
+    </Textarea>
+    </Form>
+  </Files>
+
+  <Limits>
+    <CpuTime>10</CpuTime>
+    <Memory>100M</Memory>
+    <StdoutLength>50000</StdoutLength>
+    <StderrLength>50000</StderrLength>
+    <Pids>10</Pids>
+  </Limits>
+  
+  <Validations>
+    <Conjunction>
+
+      <Validation Name="testcase01" Type="Equals">
+        <Command>
+ruby &lt;&lt;EOM
+require 'json'
+open("form.json"){|jf| hash = JSON.load(jf); puts hash["q1"].to_i == 2 }
+EOM
+        </Command>
+        <Answer>true</Answer>
+      </Validation>
+
+      <Validation Name="testcase2" Type="Equals">
+        <Command>
+ruby &lt;&lt;EOM
+require 'json'
+open("form.json"){|jf| hash = JSON.load(jf); puts hash["q2"].to_i == 0 }
+EOM
+        </Command>
+        <Answer>true</Answer>
+      </Validation>
+
+      <Validation Name="testcase3" Type="Equals">
+        <Command>
+ruby &lt;&lt;EOM
+require 'json'
+open("form.json"){|jf| hash = JSON.load(jf); puts hash["q3"] == "Yes" }
+EOM
+        </Command>
+        <Answer>true</Answer>
+      </Validation>
+
+      <Validation Name="testcase4" Type="Equals">
+        <Command>
+ruby &lt;&lt;EOM
+require 'json'
+open("form.json"){|jf| hash = JSON.load(jf); puts hash["q4"].downcase == "verification" }
+EOM
+        </Command>
+        <Answer>true</Answer>
+      </Validation>
+
+      <Validation Name="testcase5" Type="Equals">
+        <Command>
+ruby &lt;&lt;EOM
+require 'json'
+open("form.json"){|jf| hash = JSON.load(jf); puts hash["q5"].downcase == "validation" }
+EOM
+        </Command>
+        <Answer>true</Answer>
+      </Validation>
+
+    </Conjunction>
+  </Validations>
+
+</Activity>

@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Activity Version="1.0">
+  <Sandbox>ruby</Sandbox>
+  <Name>@ViewBag.Name</Name>
+  <Subject>@ViewBag.Subject</Subject>
+  <Description>@ViewBag.Description</Description>
+  <Deadline>@ViewBag.Deadline</Deadline>
+  <Directory>@ViewBag.Name</Directory>
+  <Flags>
+    <UseStdout>true</UseStdout>
+    <UseStderr>true</UseStderr>
+    <UseCommand>true</UseCommand>
+    <UseSave>true</UseSave>
+    <UseReset>true</UseReset>
+    <CanSubmitAfterDeadline>false</CanSubmitAfterDeadline>
+    <CanSubmitBeforeAccept>false</CanSubmitBeforeAccept>
+  </Flags>
+
+  <Files>
+    <Code Name="program.rb" Label="program" Language="ruby" ContentType="text/plain" Maxlength="10000" Submit="true">
+      <Default>puts "Hello, World!!"</Default>
+      <Answer>puts "#{STDIN.gets.chomp}, #{ARGV[0]}"</Answer>
+    </Code>
+    <Text Name="stdin" Label="標準入力" ContentType="text/plain" Maxlength="10000" ReadOnly="true" Submit="false">
+      <Default>Hello</Default>
+      <Answer>Hello</Answer>
+    </Text>
+    <String Name="arguments" Label="コマンドライン引数" ContentType="text/plain" Maxlength="255" Submit="false">
+      <Default>World!!</Default>
+      <Answer>World!!</Answer>
+    </String>
+    <Upload Name="report.png" Label="レポート" Maxsize="@(1024*1024*1024)" Submit="true" AllowedContentTypes="application/pdf; application/vnd.openxmlformats-officedocument.presentationml.presentation; image/png"/>
+    <Form Name="form.json" Submit="true">
+      <Select Name="select" Label="SEL" Block="true">
+        <Option Value="1" Answer="true">One</Option>
+        <Option Value="2" Default="true">Two</Option>
+        <Option Value="3">Three</Option>
+      </Select>
+      <Radio Name="radio" Label="RAD" Block="true">
+        <Option Value="1" Answer="true">One</Option>
+        <Option Value="2" Default="true">Two</Option>
+        <Option Value="3">Three</Option>
+      </Radio>
+      <Checkbox Name="chk" True="On" False="Off" Default="true" Answer="true">CHECK</Checkbox>
+      <Textarea Name="greetings" Rows="6">
+       <Default>Hello</Default>
+       <Answer>Hello</Answer>
+      </Textarea>
+      <Text Block="true">フォームでは次のように穴埋め問題を作ることが可能です:</Text>
+      <Text>ソフトウェア品質評価には，次の2つの概念がある．</Text>
+      <Text>詳細設計工程を例にすると，</Text>
+      <String Name="Q1" Size="small">
+        <Default></Default>
+        <Answer>検証</Answer>           
+      </String>
+      <Text>では，詳細設計結果が詳細設計への入力である基本設計や開発規約などに適合することを確認する．</Text>
+      <Select Name="select2" Label="SEL2">
+        <Option Value="1" Answer="true">One</Option>
+        <Option Value="2" Default="true">Two</Option>
+        <Option Value="3">Three</Option>
+      </Select>
+      <Text>一方，</Text>
+      <String Name="Q2" Size="small">
+        <Default></Default>
+        <Answer>妥当性確認</Answer>           
+      </String>
+      <Text>では，詳細設計結果通りに実現されたソフトウェアがユーザーニーズを満たすことを確認する．</Text>
+    </Form>
+</Files>
+
+  <Run>
+    cat stdin | ruby program.rb `cat arguments`
+    rm stdin arguments
+    echo "image report report.png" > $CMD
+  </Run>
+
+  <Limits>
+    <CpuTime>10</CpuTime>
+    <Memory>100M</Memory>
+    <StdoutLength>50000</StdoutLength>
+    <StderrLength>50000</StderrLength>
+    <Pids>10</Pids>
+  </Limits>
+  
+  <Validations>
+    <Conjunction>
+      <Validation Name="testcase01" Type="Equals">
+      <Command>
+        echo "Hello" | ruby program.rb "World!!"
+      </Command>
+      <Answer>Hello, World!!</Answer>
+      </Validation>
+      <Disjunction>
+        <Negation>
+          <Negation>
+            <Validation Name="testcase02" Type="Equals">
+            <Command>
+              echo "Bye" | ruby program.rb "Hell!!"
+            </Command>
+            <Answer>Bye, Hell!!</Answer>
+            </Validation>
+	  </Negation>
+	</Negation>
+      </Disjunction>
+    </Conjunction>
+  </Validations>
+
+</Activity>
