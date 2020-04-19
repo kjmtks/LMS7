@@ -45,7 +45,10 @@ namespace ALMS.App.Models.Contents
 
                 if (file.Extension == ".md")
                 {
-                    source = Markdig.Markdown.ToHtml(source);
+                    source = Markdig.Markdown.ToHtml(source
+                        .Replace("\\[", "\\\\[").Replace("\\]", "\\\\]")
+                        .Replace("\\(", "\\\\(").Replace("\\)", "\\\\)")
+                        .Replace("\\{", "\\\\{").Replace("\\}", "\\\\}"));
                 }
 
                 if (file.Name[0] == '@')

@@ -32,6 +32,9 @@ else
 
 
 @code {
+    
+    [Inject]
+    protected IJSRuntime JS { get; set; }
 
     [Parameter]
     public ALMS.App.Models.Entities.Lecture Lecture { get; set; }
@@ -48,6 +51,7 @@ else
     protected string ErrorSubject;
 
     protected bool Building = true;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -68,6 +72,7 @@ else
             }
             Building = false;
             StateHasChanged();
+            await JS.InvokeVoidAsync("typesetMathJax");
         }
     }
 
