@@ -27,7 +27,7 @@ namespace ALMS.App.Models.Contents
             if (string.IsNullOrWhiteSpace(Path))
             {
                 // TODO
-                Path = "@index.md";
+                Path = "index.md";
             }
             else
             {
@@ -51,7 +51,7 @@ namespace ALMS.App.Models.Contents
                         .Replace("\\{", "\\\\{").Replace("\\}", "\\\\}"));
                 }
 
-                if (file.Name[0] == '@')
+                if (file.Extension == ".md" || file.Extension == ".html" || file.Extension == ".htm")
                 {
                     return (builder) =>
                     {
@@ -62,8 +62,10 @@ namespace ALMS.App.Models.Contents
                         builder.AddContent(0, content);
                     };
                 }
-
-                return (builder) => builder.AddMarkupContent(0, source);
+                else
+                {
+                    return (builder) => builder.AddMarkupContent(0, $"Not found page `{Path}'");
+                }
             }
             catch(FileNotFoundException e)
             {
@@ -145,7 +147,15 @@ namespace ALMS.App.Models.Contents
                                     var href = el.GetAttribute("href");
                                     if(!Regex.IsMatch(href, "^[a-zA-Z0-9]+://"))
                                     {
-                                        href = $"lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{localPath(href)}";
+                                        var file = new System.IO.FileInfo(href);
+                                        if(file.Extension == ".md" || file.Extension == ".html" || file.Extension == ".htm")
+                                        {
+                                            href = $"lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{localPath(href)}";
+                                        }
+                                        else
+                                        {
+                                            href = $"lecture/{Lecture.Owner.Account}/{Lecture.Name}/contents/{Branch}/pages/{localPath(href)}";
+                                        }
                                     }
                                     var ec = EventCallback.Factory.Create(el, () => {
                                         NM.NavigateTo(href, true);

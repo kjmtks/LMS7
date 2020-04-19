@@ -46,4 +46,4 @@ This system is the novel learning management system (LMS) with the following fea
   <Description>Answer following questions.</Description>
 </script>
 
-[dir/@@page2.md](dir/@@page2.md)
+[dir/page2.md](dir/page2.md)
