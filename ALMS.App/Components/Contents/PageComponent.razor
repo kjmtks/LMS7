@@ -2,11 +2,7 @@
 
 @if (string.IsNullOrWhiteSpace(ErrorMessage))
 {
-    if (!Building)
-    {
-        @renderer
-    }
-    else
+    if (!initialized)
     {
         <br />
         <br />
@@ -14,7 +10,7 @@
         <br />
         <div class="ui basic segment">
             <div class="ui active inverted dimmer">
-                <div class="ui medium text loader">Page building...</div>
+                <div class="ui medium text loader">Initializing...</div>
             </div>
             <br />
             <br />
@@ -24,6 +20,28 @@
             <br />
         </div>
     }
+    else if (Building)
+    {
+        <br />
+        <br />
+        <br />
+        <br />
+        <div class="ui basic segment">
+            <div class="ui active inverted dimmer">
+                <div class="ui medium text loader">@progress</div>
+            </div>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+        </div>
+    }
+    else
+    {
+        @renderer
+    }
 }
 else
 {
@@ -32,7 +50,7 @@ else
 
 
 @code {
-    
+
     [Inject]
     protected IJSRuntime JS { get; set; }
 
@@ -50,19 +68,28 @@ else
     protected string ErrorMessage;
     protected string ErrorSubject;
 
-    protected bool Building = true;
+    protected bool initialized = false;
+    protected bool Building;
+    protected string progress;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        initialized = true;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnAfterRenderAsync(firstRender);
-        if(firstRender)
+        //await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
         {
             Building = true;
+            progress = "Building a page"; 
             StateHasChanged();
             try
             {
                 Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
+                progress = "Rendering a page";
                 renderer = await Page.RenderAsync(NM, User);
             }
             catch (Exception e)
