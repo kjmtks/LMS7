@@ -17,10 +17,10 @@ endif
 production-up:
 ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} build
-	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} up
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} up -d
 else
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} build
-	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} up
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} up -d
 endif
 
 development-remove:
