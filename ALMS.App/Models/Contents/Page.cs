@@ -148,7 +148,7 @@ namespace ALMS.App.Models.Contents
                                     if(!Regex.IsMatch(href, "^[a-zA-Z0-9]+://"))
                                     {
                                         var file = new System.IO.FileInfo(href);
-                                        if(file.Extension == ".md" || file.Extension == ".html" || file.Extension == ".htm")
+                                        if(file.Extension == ".md" || file.Extension == ".html" || file.Extension == ".htm" || file.FullName.EndsWith("/"))
                                         {
                                             href = $"lecture/{Lecture.Owner.Account}/{Lecture.Name}/page/{Branch}/{localPath(href)}";
                                         }
