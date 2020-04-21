@@ -189,6 +189,7 @@ git push origin master</pre>
     protected IEnumerable<string> GetChildren(string path)
     {
         return Files.Where(x => x.Length >= path.Length && x.Substring(0, path.Length) == path)
+            .Where(x => string.IsNullOrWhiteSpace(path) ? true : (!(x.Length >= path.Length + 1) || x[path.Length] == '/'))
             .Select(x => x.Substring(path.Length).Split("/")?.Where(x => !string.IsNullOrWhiteSpace(x))?.FirstOrDefault())
             .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct();
     }

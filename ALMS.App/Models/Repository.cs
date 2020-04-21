@@ -165,11 +165,12 @@ namespace ALMS.App.Models
                 "ddd MMM d HH:mm:ss yyyy K",
                 System.Globalization.CultureInfo.InvariantCulture,
                 System.Globalization.DateTimeStyles.None, out date);
+            var shortHash = hashes.Count() >= 2 ? hashes[1] : "";
             return new CommitInfo()
             {
                 Message = message,
                 Hash = hashes[0],
-                ShortHash = hashes[1],
+                ShortHash = shortHash,
                 AuthorName = authorName,
                 AuthorEmail = authorEmail,
                 Date = date
