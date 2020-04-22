@@ -9,8 +9,8 @@
         <br />
         <br />
         <div class="ui basic segment">
-            <div class="ui active inverted dimmer">
-                <div class="ui medium text loader">Initializing...</div>
+            <div class="ui active inverted icon">
+                <div class="ui medium text">Please reload the page</div>
             </div>
             <br />
             <br />
@@ -81,7 +81,6 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        initialized = true;
         if (firstRender)
         {
             await RenderAsync();
