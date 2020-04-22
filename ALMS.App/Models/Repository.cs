@@ -147,7 +147,7 @@ namespace ALMS.App.Models
         public IEnumerable<string> ReadFileList(string path, string branch = "master")
         {
             if (!string.IsNullOrWhiteSpace(path)) path = $"-- \"{path}\"";
-            return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"ls-tree --full-tree -r --name-only \"{branch}\" {path}")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
+            return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute($"ls-tree --full-tree -r -z --name-only \"{branch}\" {path}")).Split('\0').Select(x => x.Trim('"')).Where(x => !string.IsNullOrWhiteSpace(x));
         }
 
         public CommitInfo ReadCommitInfo(string path, string branch = "master")
