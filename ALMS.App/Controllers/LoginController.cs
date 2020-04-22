@@ -56,14 +56,16 @@ namespace ALMS.App.Controllers
             var user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.Sandboxes).Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).Where(x => x.Account == m.Name).FirstOrDefault();
             if (user == null)
             {
-                ViewBag.Notice = "The user is not exist.";
-                return LocalRedirect($"{pathBase}/login");
+                ViewData["ErrorMessage"] = "The user is not exist.";
+                return View(m);
+                //return LocalRedirect($"{pathBase}/login");
             }
             var isSuccess = user.Authenticate(m.Password, Config);
             if (!isSuccess)
             {
-                ViewBag.Notice = "Failed.";
-                return LocalRedirect($"{pathBase}/login");
+                ViewData["ErrorMessage"] = "Authentication failed.";
+                return View(m);
+                // return LocalRedirect($"{pathBase}/login");
             }
             if(user.IsLdapUser && !user.IsLdapInitialized)
             {

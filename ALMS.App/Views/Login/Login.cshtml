@@ -30,7 +30,7 @@
 
     <div class="ui fixed inverted menu">
         <div class="ui container">
-            <a class="header item" href="">
+            <a class="header item" href="~/">
                 <i class="home icon"></i>
                 Home
             </a>
@@ -41,9 +41,14 @@
     <div class="ui main">
         <div class="ui compact segment">
 
-            <h1 class="header">Login ALMS</h1>
+            <h1 class="header">Login</h1>
 
-            <ALMS.App.Components.Utils.ErrorMessageComponent Subject="Error" ErrorMessage="@ViewBag.Notice" />
+            @if (!string.IsNullOrWhiteSpace(ViewData["ErrorMessage"].ToString()))
+            {
+                <div class="ui negative message">
+                    <p>@ViewData["ErrorMessage"]</p>
+                </div>
+            }
 
             @using (Html.BeginForm())
             {
@@ -53,22 +58,37 @@
                         <div class="ui big left icon input">
                             @Html.TextBoxFor(h => h.Name, new { @class = "uk-input", @placeholder = "account" })
                             <i class="user icon"></i>
-                            @Html.ValidationMessageFor(h => h.Name)
                         </div>
+                        @if (ViewData.ModelState["Name"] != null && ViewData.ModelState["Name"].Errors.Any())
+                        {
+                            <div class="ui pointing red basic label">
+                                @Html.ValidationMessageFor(h => h.Name)
+                            </div>
+                        }
                     </div>
                     <div class="field">
                         <div class="ui big left icon input">
                             @Html.PasswordFor(h => h.Password, new { @class = "uk-input", @placeholder = "password" })
                             <i class="key icon"></i>
                         </div>
-                        @Html.ValidationMessageFor(h => h.Name)
+                        @if (ViewData.ModelState["Password"] != null && ViewData.ModelState["Password"].Errors.Any())
+                        {
+                            <div class="ui pointing red basic label">
+                                @Html.ValidationMessageFor(h => h.Password)
+                            </div>
+                        }
                     </div>
                     <div class="field">
                         <div class="ui toggle checkbox">
                             @Html.CheckBoxFor(h => h.RememberMe, new { @class = "hidden" })
-                            <label>Remenmber me</label>
+                            <label>Remember me</label>
                         </div>
-                        @Html.ValidationMessageFor(h => h.RememberMe)
+                        @if (ViewData.ModelState["RememberMe"] != null && ViewData.ModelState["RememberMe"].Errors.Any())
+                        {
+                            <div class="ui pointing red basic label">
+                                @Html.ValidationMessageFor(h => h.RememberMe)
+                            </div>
+                        }
                     </div>
                 </div>
 
