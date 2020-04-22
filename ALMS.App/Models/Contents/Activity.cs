@@ -436,6 +436,10 @@ namespace ALMS.App.Models.Contents
             }
         }
 
+        public bool UseMarkdown()
+        {
+            return this.Flags.UseMarkdown;
+        }
         public bool UseSave()
         {
             return this.Flags.UseSave;
@@ -456,11 +460,16 @@ namespace ALMS.App.Models.Contents
         {
             return this.Files.Children.Any(f => f.Submit);
         }
+        public bool UseAnswer()
+        {
+            return this.Files.Children.Any(f => f.HasAnswer());
+        }
     }
 
     [Serializable]
     public partial class ActivityFlags
     {
+        public bool UseMarkdown { get; set; } = false;
         public bool UseStdout { get; set; } = false;
         public bool UseStderr { get; set; } = false;
         public bool UseSave { get; set; } = false;
@@ -486,6 +495,7 @@ namespace ALMS.App.Models.Contents
         string Name { get; }
         string Label { get; }
         bool Submit { get; }
+        bool HasAnswer();
     }
 
     [Serializable]
@@ -506,6 +516,8 @@ namespace ALMS.App.Models.Contents
         public string Default { get; set; }
 
         public string Answer { get; set; }
+
+        public bool HasAnswer() { return !string.IsNullOrWhiteSpace(Answer); }
 
         [XmlAttribute]
         public string Name { get; set; }
@@ -528,6 +540,7 @@ namespace ALMS.App.Models.Contents
     {
         public string Default { get; set; }
         public string Answer { get; set; }
+        public bool HasAnswer() { return !string.IsNullOrWhiteSpace(Answer); }
 
         [XmlAttribute]
         public string Name { get; set; }
@@ -548,6 +561,8 @@ namespace ALMS.App.Models.Contents
     {
         public string Default { get; set; }
         public string Answer { get; set; }
+        public bool HasAnswer() { return !string.IsNullOrWhiteSpace(Answer); }
+
         [XmlAttribute]
         public string Name { get; set; }
         [XmlAttribute]
@@ -565,6 +580,8 @@ namespace ALMS.App.Models.Contents
     [Serializable]
     public partial class ActivityFilesUpload : IActivityFile
     {
+        public bool HasAnswer() { return false; }
+
         [XmlAttribute]
         public string Name { get; set; }
         [XmlAttribute]
@@ -599,6 +616,7 @@ namespace ALMS.App.Models.Contents
         public object[] Forms { get; set; }
         public IEnumerable<IActivityFilesFormInput> Children { get { return this.Forms.Cast<IActivityFilesFormInput>(); } }
 
+        public bool HasAnswer() { return Children.Any(x => !string.IsNullOrWhiteSpace(x.GetAnswer())); }
 
     }
 

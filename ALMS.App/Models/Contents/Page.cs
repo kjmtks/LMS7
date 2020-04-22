@@ -45,10 +45,11 @@ namespace ALMS.App.Models.Contents
 
                 if (file.Extension == ".md")
                 {
+                    var p = Markdig.MarkdownExtensions.UsePipeTables(new Markdig.MarkdownPipelineBuilder()).Build();
                     source = Markdig.Markdown.ToHtml(source
                         .Replace("\\[", "\\\\[").Replace("\\]", "\\\\]")
                         .Replace("\\(", "\\\\(").Replace("\\)", "\\\\)")
-                        .Replace("\\{", "\\\\{").Replace("\\}", "\\\\}"));
+                        .Replace("\\{", "\\\\{").Replace("\\}", "\\\\}"), p);
                 }
 
                 if (file.Extension == ".md" || file.Extension == ".html" || file.Extension == ".htm")

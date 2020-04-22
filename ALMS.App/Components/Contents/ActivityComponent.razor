@@ -25,7 +25,7 @@ else
     @if (!string.IsNullOrWhiteSpace(Activity?.Description))
     {
         <div class="ui basic segment">
-            @((MarkupString)Activity.Description)
+            @((MarkupString)Description)
         </div>
     }
 
@@ -123,7 +123,7 @@ else
                 <a class="@(Processing ? "disabled" : "") item" @onclick="ResetAsync"><i class="trash alternate outline icon"></i></a>
             </span>
         }
-        @if (User.IsTeacher(Lecture))
+        @if (User.IsTeacher(Lecture) && Activity.UseAnswer())
         {
             <span data-tooltip="Answer" data-variation="basic">
                 <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
@@ -221,6 +221,7 @@ else
     [Parameter]
     public string ErrorMessage { get; set; }
 
+    protected string Description;
     protected string Message;
     protected string StandardOutput;
     protected string StandardError;
@@ -241,9 +242,20 @@ else
     {
         if (firstRender && string.IsNullOrWhiteSpace(ErrorMessage) && Activity != null)
         {
+            Description = Activity.Description;
+            if(Activity.UseMarkdown())
+            {
+                var p = Markdig.MarkdownExtensions.UsePipeTables(new Markdig.MarkdownPipelineBuilder()).Build();
+                Description = Markdig.Markdown.ToHtml(Description
+                    .Replace("\\[", "\\\\[").Replace("\\]", "\\\\]")
+                    .Replace("\\(", "\\\\(").Replace("\\)", "\\\\)")
+                    .Replace("\\{", "\\\\{").Replace("\\}", "\\\\}"), p);
+            }
+
             SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActivityName == Activity.Name && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
             await Activity.SetInitialValueAsync(Lecture, User);
             StateHasChanged();
+            await JS.InvokeVoidAsync("typesetMathJax");
         }
     }
 

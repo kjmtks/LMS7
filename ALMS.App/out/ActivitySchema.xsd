@@ -238,6 +238,7 @@
         <xs:element name="Flags">
           <xs:complexType>
             <xs:sequence>
+              <xs:element name="UseMarkdown" type="xs:boolean" />
               <xs:element name="UseStdout" type="xs:boolean" />
               <xs:element name="UseStderr" type="xs:boolean" />
               <xs:element name="UseSave" type="xs:boolean" />
