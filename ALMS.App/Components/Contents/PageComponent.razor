@@ -76,31 +76,38 @@ else
     {
         base.OnInitialized();
         initialized = false;
+
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        initialized = true;
         if (firstRender)
         {
-            initialized = true;
-            Building = true;
-            progress = "Building a page";
-            StateHasChanged();
-            try
-            {
-                Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
-                progress = "Rendering a page";
-                renderer = await Page.RenderAsync(NM, User);
-            }
-            catch (Exception e)
-            {
-                ErrorSubject = e.Message;
-                ErrorMessage = e.StackTrace;
-            }
-            Building = false;
-            StateHasChanged();
-            await JS.InvokeVoidAsync("typesetMathJax");
+            await RenderAsync();
         }
+    }
+
+    protected async Task RenderAsync()
+    {
+        initialized = true;
+        Building = true;
+        progress = "Building a page";
+        StateHasChanged();
+        try
+        {
+            Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
+            progress = "Rendering a page";
+            renderer = await Page.RenderAsync(NM, User);
+        }
+        catch (Exception e)
+        {
+            ErrorSubject = e.Message;
+            ErrorMessage = e.StackTrace;
+        }
+        Building = false;
+        StateHasChanged();
+        await JS.InvokeVoidAsync("typesetMathJax");
     }
 
 }
