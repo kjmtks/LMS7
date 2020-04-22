@@ -43,7 +43,7 @@
 
             <h1 class="header">Login</h1>
 
-            @if (!string.IsNullOrWhiteSpace(ViewData["ErrorMessage"].ToString()))
+            @if (!string.IsNullOrWhiteSpace(ViewData["ErrorMessage"]?.ToString()))
             {
                 <div class="ui negative message">
                     <p>@ViewData["ErrorMessage"]</p>

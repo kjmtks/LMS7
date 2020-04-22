@@ -75,16 +75,16 @@ else
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        initialized = true;
+        initialized = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        //await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
+            initialized = true;
             Building = true;
-            progress = "Building a page"; 
+            progress = "Building a page";
             StateHasChanged();
             try
             {
