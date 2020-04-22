@@ -178,6 +178,20 @@ git push origin master</pre>
         await UpdateAsync();
     }
 
+    public async Task SetPath(string path)
+    {
+        try
+        {
+            CurrentPath = path;
+            await UpdateAsync();
+        }
+        catch
+        { 
+            CurrentPath = "";
+            await UpdateAsync();
+        }
+    }
+
     public async Task UpdateAsync()
     {
         Files = RepositoryPair.ReadFileList("", Branch);

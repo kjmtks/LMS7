@@ -27,6 +27,7 @@ namespace ALMS.App.Models.Entities
         public virtual Lecture Lecture { get; set; }
         public ActivityActionType ActionType { get; set; }
         public string ActivityName { get; set; }
+        public string Directory { get; set; }
         public DateTime DateTime { get; set; }
     }
 }

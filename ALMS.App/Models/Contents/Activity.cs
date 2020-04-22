@@ -80,6 +80,7 @@ namespace ALMS.App.Models.Contents
                     User = user,
                     Lecture = lecture,
                     ActivityName = Name,
+                    Directory = Directory,
                     ActionType = Entities.ActivityActionType.Save,
                     DateTime = time
                 });
@@ -155,6 +156,7 @@ namespace ALMS.App.Models.Contents
                             User = user,
                             Lecture = lecture,
                             ActivityName = Name,
+                            Directory = Directory,
                             ActionType = Entities.ActivityActionType.SaveAndRun,
                             DateTime = time
                         });
@@ -195,6 +197,7 @@ namespace ALMS.App.Models.Contents
                                 {
                                     w.Write(uac.Data, 0, uac.Data.Length);
                                 }
+                                uac.SetSavedFileInfo(fileInfo);
                             }
                         }
                         else
@@ -229,6 +232,7 @@ namespace ALMS.App.Models.Contents
                                 {
                                     w.Write(uac.Data, 0, uac.Data.Length);
                                 }
+                                uac.SetSubmittedFileInfo(fileInfo);
                             }
                         }
                         else
@@ -248,6 +252,7 @@ namespace ALMS.App.Models.Contents
                     User = user,
                     Lecture = lecture,
                     ActivityName = Name,
+                    Directory = Directory,
                     ActionType = Entities.ActivityActionType.SaveAndSubmit,
                     DateTime = time
                 });
@@ -333,6 +338,7 @@ namespace ALMS.App.Models.Contents
                         User = user,
                         Lecture = lecture,
                         ActivityName = Name,
+                        Directory = Directory,
                         ActionType = accept ? Entities.ActivityActionType.SaveAndValidateAccept : Entities.ActivityActionType.SaveAndValidateReject,
                         DateTime = time
                     });
@@ -354,14 +360,30 @@ namespace ALMS.App.Models.Contents
                 var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/{f.Name}");
                 if (fileInfo.Exists && fileComponents.ContainsKey(f.Name))
                 {
-                    using (var t = new StreamReader(fileInfo.FullName))
+                    if(fileComponents[f.Name] is UploadActivityComponent u)
                     {
-                        await fileComponents[f.Name].SetValueAsync(t.ReadToEnd());
+                        u.SetSavedFileInfo(fileInfo);
+                    }
+                    else
+                    {
+                        using (var t = new StreamReader(fileInfo.FullName))
+                        {
+                            await fileComponents[f.Name].SetValueAsync(t.ReadToEnd());
+                        }
                     }
                 }
                 else
                 {
                     await fileComponents[f.Name].SetDefaultValueAsync();
+                }
+
+                var submittedFileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/{f.Name}");
+                if (submittedFileInfo.Exists)
+                {
+                    if (fileComponents[f.Name] is UploadActivityComponent u)
+                    {
+                        u.SetSubmittedFileInfo(fileInfo);
+                    }
                 }
             }
         }

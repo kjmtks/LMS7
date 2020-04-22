@@ -2,39 +2,58 @@
 @inject IFileUploadService UPLOAD;
 @using BlazorInputFile;
 
-<div class="ui form" style="margin-left: 1em; margin-right: 1em; padding-top: 1em">
-    <div class="field">
-        @if (Loading)
+    <div class="ui form" style="margin-left: 1em; margin-right: 1em; padding-top: 1em">
+
+        @if (SavedFileInfo != null)
         {
-            <div class="ui basic segment">
-                <div class="ui active inverted dimmer">
-                    <div class="ui text loader">Loading... @Progress</div>
-                </div>
-                <br />
-                <br />
-                <br />
+            <div class="ui label">
+                <i class="file icon"></i>
+                Saved file: @SavedFileInfo.Length bytes
             </div>
         }
-        else
+        @if (SubmittedFileInfo != null)
         {
-            <InputFile OnChange="OnFileSelectedAsync" MaxBufferSize="@(1024*1024*1024)"/>
-            @if (!string.IsNullOrWhiteSpace(FileName))
-            {
-                <span class="ui teal label" style="margin-top: 1em; padding: 1em">
-                    <i class="file icon"></i>
-                    @FileName
-                    <div class="detail">@FileSize bytes, @FileType</div>
-                </span>
-            }
+            <div class="ui blue label">
+                <i class="file icon"></i>
+                Submitted file: @SubmittedFileInfo.Length bytes
+            </div>
         }
-        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        <br />
+        <br />
+        <div class="field">
+            @if (Loading)
+            {
+                <div class="ui basic segment">
+                    <div class="ui active inverted dimmer">
+                        <div class="ui text loader">Loading... @Progress</div>
+                    </div>
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                </div>
+            }
+            else
+            {
+                <InputFile OnChange="OnFileSelectedAsync" MaxBufferSize="@(1024*1024*1024)" />
+            }
+            @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+            {
+                <div class="ui negative message" style="padding: 1em">
+                    <p>@ErrorMessage</p>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(FileName))
         {
-            <div class="ui negative message" style="padding: 1em">
-                <p>@ErrorMessage</p>
+            <div class="ui teal label">
+                <i class="caret right icon"></i>
+                Prepared: @FileName
+                <div class="detail">@FileSize bytes, @FileType</div>
             </div>
         }
     </div>
-</div>
 
 
 @code
@@ -47,6 +66,9 @@
     protected long FileSize;
     protected string FileType;
     protected string Progress;
+
+    protected System.IO.FileInfo SavedFileInfo;
+    protected System.IO.FileInfo SubmittedFileInfo;
 
     protected async Task OnFileSelectedAsync(IFileListEntry[] entries)
     {
@@ -96,6 +118,15 @@
         };
     }
 
+
+    public void SetSavedFileInfo(System.IO.FileInfo file)
+    {
+        SavedFileInfo = file;
+    }
+    public void SetSubmittedFileInfo(System.IO.FileInfo file)
+    {
+        SubmittedFileInfo = file;
+    }
 
     public override Task<string> GetValueAsync()
     {

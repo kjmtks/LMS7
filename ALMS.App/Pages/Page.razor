@@ -61,5 +61,6 @@
         base.OnInitialized();
         var names = new string[] { Name1, Name2, Name3, Name4, Name5, Name6, Name7, Name8, Name9, Name10, Name11, Name12, Name13, Name14, Name15, Name16 }.Distinct();
         Path = string.Join("/", names);
+        StateHasChanged();
     }
 }

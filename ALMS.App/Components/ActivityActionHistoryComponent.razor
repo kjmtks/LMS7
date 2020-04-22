@@ -28,44 +28,53 @@
                 @foreach (var history in Pagination.ShowedModels)
                 {
                     var action = "";
-                <tr>
-                    <td>
-                        @switch (history.ActionType)
-                        {
-                            case ActivityActionType.Save:
-                                <i class="large save outline middle aligned icon"></i>
-                                action = "save";
-                                break;
-                            case ActivityActionType.SaveAndRun:
-                                <i class="large play circle outline middle aligned icon"></i>
-                                action = "run";
-                                break;
-                            case ActivityActionType.SaveAndSubmit:
-                                <i class="large cloud upload middle aligned icon"></i>
-                                action = "submit";
-                                break;
-                            case ActivityActionType.SaveAndValidateAccept:
-                                <i class="large icons middle aligned icon">
-                                    <i class="bug icon"></i>
-                                    <i class="corner green check icon"></i>
-                                </i>
-                                action = "validate, accept";
-                                break;
-                            case ActivityActionType.SaveAndValidateReject:
-                                <i class="large icons middle aligned icon">
-                                    <i class="bug icon"></i>
-                                    <i class="corner red times icon"></i>
-                                </i>
-                                action = "validate, reject";
-                                break;
-                        }
-                    </td>
-                    <td>@history.ActivityName</td>
-                    <td>@action</td>
-                    <td><a href="users/@history.User.Account">@history.User.DisplayName</a></td>
-                    <td><a href="users/@history.User.Account">@history.User.Account</a></td>
-                    <td>@history.DateTime.ToString("yyyy-MM-ddTHH:mm:sszzz")</td>
-                </tr>
+                    <tr>
+                        <td>
+                            @switch (history.ActionType)
+                            {
+                                case ActivityActionType.Save:
+                                    <i class="large save outline middle aligned icon"></i>
+                                    action = "save";
+                                    break;
+                                case ActivityActionType.SaveAndRun:
+                                    <i class="large play circle outline middle aligned icon"></i>
+                                    action = "run";
+                                    break;
+                                case ActivityActionType.SaveAndSubmit:
+                                    if (OnSetSubmittedActivityAsync != null && !string.IsNullOrWhiteSpace(history.Directory))
+                                    {
+                                        <a href="javascript: void(0);" @onclick="async () => { await SetSubmittedActivityAsync(history); }">
+                                            <i class="large cloud upload middle aligned icon"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <i class="large cloud upload middle aligned icon"></i>
+                                    }
+                                    action = "submit";
+                                    break;
+                                case ActivityActionType.SaveAndValidateAccept:
+                                    <i class="large icons middle aligned icon">
+                                        <i class="bug icon"></i>
+                                        <i class="corner green check icon"></i>
+                                    </i>
+                                    action = "validate, accept";
+                                    break;
+                                case ActivityActionType.SaveAndValidateReject:
+                                    <i class="large icons middle aligned icon">
+                                        <i class="bug icon"></i>
+                                        <i class="corner red times icon"></i>
+                                    </i>
+                                    action = "validate, reject";
+                                    break;
+                            }
+                        </td>
+                        <td>@history.ActivityName</td>
+                        <td>@action</td>
+                        <td><a href="users/@history.User.Account">@history.User.DisplayName</a></td>
+                        <td><a href="users/@history.User.Account">@history.User.Account</a></td>
+                        <td>@history.DateTime.ToString("yyyy-MM-ddTHH:mm:sszzz")</td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -84,6 +93,9 @@
     [Parameter]
     public User User { get; set; }
 
+    [Parameter]
+    public Func<User, string, Task> OnSetSubmittedActivityAsync { get; set; }
+
     public Func<IEnumerable<ActivityActionHistory>, IEnumerable<ActivityActionHistory>> Filter = (x) => x;
     public IEnumerable<ActivityActionHistory> Collection { get; set; }
 
@@ -101,6 +113,11 @@
         await InvokeAsync(() => StateHasChanged());
     }
 
+    protected async Task SetSubmittedActivityAsync(ActivityActionHistory history)
+    {
+        await OnSetSubmittedActivityAsync(history.User, history.Directory);
+    }
+
     public void OnChangeSearch(ChangeEventArgs e)
     {
         var str = e.Value.ToString();
@@ -110,7 +127,7 @@
         Filter = (collection) =>
         {
             var fs1 = splitted_commands.Where(x => x.Item1 == "user").Select(x => x.Item2);
-            if(fs1.Count() > 0)
+            if (fs1.Count() > 0)
             {
                 collection = collection.Where(x => fs1.Any(y => x.User.Account == y));
             }

@@ -55,6 +55,17 @@
                 <h2 class="ui header">
                     <i class="box icon"></i>
                     <div class="content">
+                        Activity Action History
+                        <div class="sub header">Observe activity action histories</div>
+                    </div>
+                </h2>
+                <ActivityActionHistoryComponent CssClass="ui content" Lecture="Lecture" User="User"
+                                                OnSetSubmittedActivityAsync='async (user, dir) => { await SubmissionsRepositoryViewer.SetPath($"{user.Account}/{dir}"); }'
+                                                @ref="ActivityActionHistoryComponent" />
+
+                <h2 class="ui header">
+                    <i class="box icon"></i>
+                    <div class="content">
                         Sandbox Settings
                         <div class="sub header">Manage lecture's sandboxes</div>
                     </div>
@@ -76,15 +87,6 @@
                                  RootPath="@Lecture.DirectoryPath"
                                  RootString="/"
                                  @ref="DirectoryViewer" />
-
-                <h2 class="ui header">
-                    <i class="box icon"></i>
-                    <div class="content">
-                        Activity Action History
-                        <div class="sub header">Observe activity action histories</div>
-                    </div>
-                </h2>
-                <ActivityActionHistoryComponent CssClass="ui content" Lecture="Lecture" User="User" @ref="ActivityActionHistoryComponent" />
 
 
                 <h2 class="ui header">
