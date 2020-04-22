@@ -18,7 +18,8 @@ namespace ALMS.App.Models
         public abstract ENTITY Entity { get; }
         public abstract string DirectoryPath { get; }
 
-        public (byte[], int) ExecuteWithExitCode(string arguments, byte[] input = null, string program = "git", string working_dir = null)
+        public (byte[], int) ExecuteWithExitCode(string arguments, byte[] input = 
+            , string program = "git", string working_dir = null)
         {
             var psinfo = new ProcessStartInfo();
             psinfo.FileName = program;

@@ -37,9 +37,9 @@
   
   <Validations>
     <Validation Name="testcase01" Type="Equals">
-      <Command>
+      <Run>
         ruby program.rb
-      </Command>
+      </Run>
       <Answer>@ViewBag.ExpectedStdout</Answer>
     </Validation>
   </Validations>

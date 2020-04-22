@@ -316,8 +316,8 @@ namespace ALMS.App.Models.Contents
                 {
                     var accept = await (Validations.Child as ALMS.App.Models.Contents.IValidatable).ValidateAsync(async validation =>
                     {
-                        if (string.IsNullOrWhiteSpace(validation.Command)) { return false; }
-                        var command = $"cd ~/{Directory}; {validation.Command}";
+                        if (string.IsNullOrWhiteSpace(validation.Run)) { return false; }
+                        var command = $"cd ~/{Directory}; {validation.Run}";
                         var stdout = new System.Text.StringBuilder();
                         var stderr = new System.Text.StringBuilder();
                         await sandbox.DoOnSandboxAsync(user.Account, command,
@@ -845,7 +845,7 @@ namespace ALMS.App.Models.Contents
     [Serializable]
     public partial class Validation : IValidatable
     {
-        public string Command { get; set; }
+        public string Run { get; set; }
         public string Answer { get; set; }
         [XmlAttribute]
         public string Name { get; set; }
