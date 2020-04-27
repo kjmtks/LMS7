@@ -78,9 +78,9 @@
                                     else
                                     {
                                         <td>
-                                            @foreach (var name in GetChildren($"{a.User.Account}/{ActivityName}"))
+                                            @foreach (var name in GetChildren($"{a.User.Account}/{action.Directory}"))
                                             {
-                                                var isDir = GetChildren($"{a.User.Account}/{ActivityName}/{name}").Count() > 0;
+                                                var isDir = GetChildren($"{a.User.Account}/{action.Directory}/{name}").Count() > 0;
                                                 <p>
                                                     @if(isDir)
                                                     {
@@ -90,7 +90,7 @@
                                                     else
                                                     {
                                                         <i class="file outline icon"></i>
-                                                        <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@ActivityName/@name">@name</a>
+                                                        <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.Directory/@name">@name</a>
                                                     }
                                                 </p>
                                             }
