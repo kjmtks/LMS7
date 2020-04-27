@@ -115,7 +115,14 @@
 
     protected async Task SetSubmittedActivityAsync(ActivityActionHistory history)
     {
-        await OnSetSubmittedActivityAsync(history.User, history.Directory);
+        try
+        {
+            await OnSetSubmittedActivityAsync(history.User, history.Directory);
+        }
+        catch
+        {
+
+        }
     }
 
     public void OnChangeSearch(ChangeEventArgs e)

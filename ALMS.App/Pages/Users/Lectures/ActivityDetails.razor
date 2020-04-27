@@ -1,0 +1,183 @@
+﻿@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{dir10}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{dir10}/{dir11}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{dir10}/{dir11}/{dir12}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{dir10}/{dir11}/{dir12}/{dir13}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{dir10}/{dir11}/{dir12}/{dir13}/{dir14}/{ActivityName}";
+@page "/users/{UserAccount}/lectures/{LectureName}/activities/{Branch}/{dir1}/{dir2}/{dir3}/{dir4}/{dir5}/{dir6}/{dir7}/{dir8}/{dir9}/{dir10}/{dir11}/{dir12}/{dir13}/{dir14}/{dir15}/{ActivityName}";
+
+
+@inject DatabaseService DB;
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Components;
+@using ALMS.App.Components.Utils;
+@using ALMS.App.Models.Entities;
+@inject NotifierService Notifier;
+@implements IDisposable;
+
+
+
+<AuthorizeView>
+    <Authorized Context="AuthorizedContext">
+        @if (Lecture != null)
+        {
+            var LoginUser = DB.Context.Users.Where(x => x.Account == AuthorizedContext.User.Identity.Name)
+                .Include(x => x.Lectures)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            @if (LoginUser.IsTeacher(Lecture))
+            {
+                var p = LoginUser.IsSenior || LoginUser.IsAdmin ? EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove : EntityManagementPermision.DenyAll;
+
+                var submits = DB.Context.ActivityActionHistories.Where(x => x.LectureId == Lecture.Id && x.ActivityName == ActivityName && x.ActionType == ActivityActionType.SaveAndSubmit);
+
+                <div class="ui content">
+
+                    <div class="ui menu top attached">
+                        <div class="header left item"><i class="pen square icon"></i> @ActivityName</div>
+                    </div>
+                    <table class="ui padded table bottom attached">
+                        <thead>
+                            <tr>
+                                <th class="single line" colspan="2">User</th>
+                                <th class="single line">Files</th>
+                                <th class="single line">Submitted at</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in Lecture.LectureUsers.OrderBy(x => x.User.Account))
+                            {
+                                var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
+                                <tr>
+                                    <td>
+                                        @if (a.Role == LectureUserRole.Teacher)
+                                        {
+                                            <i class="chess king icon"></i>
+                                        }
+                                        @if (a.Role == LectureUserRole.Student)
+                                        {
+                                            <i class="chess pawn icon"></i>
+                                        }
+                                        @a.User.Account
+                                    </td>
+                                    <td>@a.User.DisplayName</td>
+                                    @if (action == null)
+                                    {
+                                        <td colspan="2"> --- </td>
+                                    }
+                                    else
+                                    {
+                                        <td>
+                                            @foreach (var name in GetChildren($"{a.User.Account}/{ActivityName}"))
+                                            {
+                                                var isDir = GetChildren($"{a.User.Account}/{ActivityName}/{name}").Count() > 0;
+                                                <p>
+                                                    <i class="@(isDir ? "folder" : "file") outline icon"></i>
+                                                    <a href="javascript: void(0)">@name</a>
+                                                </p>
+                                            }
+                                        </td>
+                                        <td>@action.DateTime.ToString()</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            }
+        }
+        else
+        {
+            <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+@code{
+
+    [Parameter]
+    public string UserAccount { get; set; }
+    [Parameter]
+    public string LectureName { get; set; }
+    [Parameter]
+    public string ActivityName { get; set; }
+    [Parameter]
+    public string Branch { get; set; }
+
+
+    [Parameter] public string Dir1 { get; set; }
+    [Parameter] public string Dir2 { get; set; }
+    [Parameter] public string Dir3 { get; set; }
+    [Parameter] public string Dir4 { get; set; }
+    [Parameter] public string Dir5 { get; set; }
+    [Parameter] public string Dir6 { get; set; }
+    [Parameter] public string Dir7 { get; set; }
+    [Parameter] public string Dir8 { get; set; }
+    [Parameter] public string Dir9 { get; set; }
+    [Parameter] public string Dir10 { get; set; }
+    [Parameter] public string Dir11 { get; set; }
+    [Parameter] public string Dir12 { get; set; }
+    [Parameter] public string Dir13 { get; set; }
+    [Parameter] public string Dir14 { get; set; }
+    [Parameter] public string Dir15 { get; set; }
+
+
+    public IRepositoryPair RepositoryPair { get; set; }
+
+    protected User User { get; set; }
+    protected Lecture Lecture { get; set; }
+
+    protected IEnumerable<string> Files { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        var names = new string[] { Dir1, Dir2, Dir3, Dir4, Dir5, Dir6, Dir7, Dir8, Dir9, Dir10, Dir11, Dir12, Dir13, Dir14, Dir15, ActivityName }.Where(x => !string.IsNullOrEmpty(x));
+        ActivityName = string.Join("/", names);
+
+        Notifier.Notify += OnNotify;
+        User = DB.Context.Users.Where(x => x.Account == UserAccount)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+        Lecture = DB.Context.Lectures
+            .Include(x => x.Owner)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+            .Where(x => x.Name == LectureName && x.Owner.Account == UserAccount).FirstOrDefault();
+        RepositoryPair = Lecture.LectureSubmissionsRepositoryPair;
+        Files = RepositoryPair.ReadFileList("", Branch);
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        Files = RepositoryPair.ReadFileList("", Branch);
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+
+    protected IEnumerable<string> GetChildren(string path)
+    {
+        return Files.Where(x => x.Length >= path.Length && x.Substring(0, path.Length) == path)
+            .Where(x => string.IsNullOrWhiteSpace(path) ? true : (!(x.Length >= path.Length + 1) || x[path.Length] == '/'))
+            .Select(x => x.Substring(path.Length).Split("/")?.Where(x => !string.IsNullOrWhiteSpace(x))?.FirstOrDefault())
+            .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct();
+    }
+}
+
