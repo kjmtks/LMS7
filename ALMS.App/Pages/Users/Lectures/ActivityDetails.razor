@@ -82,8 +82,16 @@
                                             {
                                                 var isDir = GetChildren($"{a.User.Account}/{ActivityName}/{name}").Count() > 0;
                                                 <p>
-                                                    <i class="@(isDir ? "folder" : "file") outline icon"></i>
-                                                    <a href="javascript: void(0)">@name</a>
+                                                    @if(isDir)
+                                                    {
+                                                        <i class="folder outline icon"></i>
+                                                        @name
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="file outline icon"></i>
+                                                        <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@ActivityName/@name">@name</a>
+                                                    }
                                                 </p>
                                             }
                                         </td>
