@@ -4,6 +4,33 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+
+code {
+    box-sizing: inherit;
+    background: #fff;
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
+    margin: 1rem 0;
+    padding: 1em 1em;
+    border-radius: .28571429rem;
+    border: 1px solid rgba(34,36,38,.15);
+    font-size: 1rem;
+    margin-top: 0em;
+
+    line-height: 1.4285em;
+    -webkit-box-direction: normal;
+    white-space: pre-wrap;
+    text-align: left;
+    box-sizing: inherit;
+    vertical-align: baseline;
+    font-size: 1em;
+    display: block;
+    overflow-x: auto;
+    transition: 0.5s color ease;
+    color: black;
+    font-weight: normal;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
 a, .btn-link {
     color: #0366d6;
 }
