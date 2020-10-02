@@ -171,7 +171,7 @@ namespace ALMS.App.Models.Contents
                         }
 
                     }, Limits);
-                });
+                }, user.IsTeacher(lecture) );
             }
             catch (Exception e)
             {
@@ -359,7 +359,7 @@ namespace ALMS.App.Models.Contents
                     {
                         doneCallback(null, false, e.Message);
                     }
-                });
+                }, user.IsTeacher(lecture));
             }
             catch (Exception e)
             {
