@@ -309,7 +309,14 @@ namespace ALMS.App.Models
                     proc.StandardInput.Close();
                     if (stdoutCallback != null) { proc.BeginOutputReadLine(); }
                     if (stderrCallback != null) { proc.BeginErrorReadLine(); }
-                    proc.WaitForExit();
+                    if(limit != null)
+                    {
+                        proc.WaitForExit((int)(limit.CpuTime + 5) * 1000);
+                    }
+                    else
+                    {
+                        proc.WaitForExit();
+                    }
                     doneCallback?.Invoke(proc.ExitCode); proc.Close();
                 });
                 var tokenSource = new CancellationTokenSource();

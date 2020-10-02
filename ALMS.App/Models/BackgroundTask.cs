@@ -75,7 +75,7 @@ namespace ALMS.App.Models
             }
             else
             {
-                var queue = queues.OrderBy(q => q.Count).First();
+                var queue = queues.OrderBy(q => q.Count + (q.IsRunning ? 1 : 0)).First();
                 queue.QueueBackgroundWorkItem(workItem);
             }
         }
