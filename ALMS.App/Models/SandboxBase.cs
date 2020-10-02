@@ -303,7 +303,6 @@ namespace ALMS.App.Models
                         }
                     }
 
-
                     proc.Start();
                     proc.StandardInput.WriteLine(commands);
                     proc.StandardInput.Close();

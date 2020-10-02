@@ -148,20 +148,28 @@ namespace ALMS.App.Models.Contents
                 {
                     await sandbox.DoOnSandboxWithCmdAsync(user, command, stdoutCallback, stderrCallback, cmdCallback, (code) =>
                     {
-                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                        assign.RepositoryPair.ClonedRepository.Push();
 
-                        context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
+                        try
                         {
-                            User = user,
-                            Lecture = lecture,
-                            ActivityName = Name,
-                            Directory = Directory,
-                            ActionType = Entities.ActivityActionType.SaveAndRun,
-                            DateTime = time
-                        });
-                        context.SaveChanges();
-                        doneCallback(code, true, "Run successfully");
+                            context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
+                            {
+                                User = user,
+                                Lecture = lecture,
+                                ActivityName = Name,
+                                Directory = Directory,
+                                ActionType = Entities.ActivityActionType.SaveAndRun,
+                                DateTime = time
+                            });
+                            context.SaveChanges();
+                            assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                            assign.RepositoryPair.ClonedRepository.Push();
+                            doneCallback(code, true, "Run successfully");
+                        }
+                        catch(Exception e)
+                        {
+                            Console.Error.WriteLine(e);
+                        }
+
                     }, Limits);
                 });
             }
@@ -330,21 +338,27 @@ namespace ALMS.App.Models.Contents
                         return false;
                     });
 
-                    assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                    assign.RepositoryPair.ClonedRepository.Push();
-
-                    context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
+                    try
                     {
-                        User = user,
-                        Lecture = lecture,
-                        ActivityName = Name,
-                        Directory = Directory,
-                        ActionType = accept ? Entities.ActivityActionType.SaveAndValidateAccept : Entities.ActivityActionType.SaveAndValidateReject,
-                        DateTime = time
-                    });
-                    context.SaveChanges();
+                        context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
+                        {
+                            User = user,
+                            Lecture = lecture,
+                            ActivityName = Name,
+                            Directory = Directory,
+                            ActionType = accept ? Entities.ActivityActionType.SaveAndValidateAccept : Entities.ActivityActionType.SaveAndValidateReject,
+                            DateTime = time
+                        });
+                        context.SaveChanges();
+                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                        assign.RepositoryPair.ClonedRepository.Push();
 
-                    doneCallback(accept, true, "Validate successfully");
+                        doneCallback(accept, true, "Validate successfully");
+                    }
+                    catch (Exception e)
+                    {
+                        doneCallback(null, false, e.Message);
+                    }
                 });
             }
             catch (Exception e)

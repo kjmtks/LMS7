@@ -321,7 +321,8 @@ else
                 Images.Add((terms[1], terms.Skip(2)));
             }
 
-            InvokeAsync(() => { StateHasChanged(); });
+            // try { InvokeAsync(() => { StateHasChanged(); }); } catch { }
+            StateHasChanged();
         }, (code, isSuccess, message) =>
         {
             if (isSuccess)
@@ -333,6 +334,8 @@ else
                 StandardError = message;
             }
             Processing = false;
+            // try { InvokeAsync(() => { StateHasChanged(); }); } catch { }
+            // try { InvokeAsync(async () => { await Notifier.Update(); }); } catch { }
             InvokeAsync(() => StateHasChanged());
             InvokeAsync(() => Notifier.Update());
         });
