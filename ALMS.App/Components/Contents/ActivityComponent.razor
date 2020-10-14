@@ -433,7 +433,7 @@ else
         {
             StandardOutput += data + Environment.NewLine;
             //JS.InvokeVoidAsync("scrollToBottom", $"activity-stdout-{ComponentId}");
-            InvokeAsync(() => { StateHasChanged(); });
+            InvokeAsync(() => { StateHasChanged(); }).Wait();
         }
     }
     public void SendError(string data)
@@ -442,7 +442,7 @@ else
         {
             StandardError += data + Environment.NewLine;
             //JS.InvokeVoidAsync("scrollToBottom", $"activity-stderr-{ComponentId}");
-            InvokeAsync(() => { StateHasChanged(); });
+            InvokeAsync(() => { StateHasChanged(); }).Wait();
         }
     }
 }

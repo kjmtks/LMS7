@@ -163,6 +163,7 @@ namespace ALMS.App.Models.Contents
                             context.SaveChanges();
                             assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                             assign.RepositoryPair.ClonedRepository.Push();
+                            Console.WriteLine("Done");
                             doneCallback(code, true, "Run successfully");
                         }
                         catch(Exception e)

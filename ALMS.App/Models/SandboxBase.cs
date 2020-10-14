@@ -236,6 +236,102 @@ namespace ALMS.App.Models
                 var fifoname = Guid.NewGuid().ToString("N").Substring(0, 32);
                 Process.Start("mkfifo", $"{DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
                 Process.Start("chown", $"{user.Id + 1000} {DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
+
+var mainProc = Task.Run(async () => {
+                    var proc = new Process();
+                    proc.StartInfo.FileName = program;
+                    proc.StartInfo.Arguments = args;
+                    proc.StartInfo.Environment["CMD"] = $"/var/tmp/{fifoname}";
+
+                    proc.StartInfo.RedirectStandardInput = true;
+                    proc.StartInfo.RedirectStandardOutput = true;
+                    proc.StartInfo.RedirectStandardError = true;
+                    proc.StartInfo.CreateNoWindow = true;
+                    proc.StartInfo.UseShellExecute = false;
+
+                    var errorClosed = new ManualResetEvent(false);
+                    var outputClosed = new ManualResetEvent(false);
+                    ManualResetEvent[] waits = { outputClosed, errorClosed };
+                    errorClosed.Reset();
+                    outputClosed.Reset();
+
+                    if (stdoutCallback != null)
+                    {
+                        if (limit?.StdoutLength != null && limit.StdoutLength > 0)
+                        {
+                            var remaind = limit.StdoutLength;
+                            proc.OutputDataReceived += (o, e) =>
+                            {
+                                if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                                {
+                                    if (e.Data.Length <= remaind)
+                                    {
+                                        stdoutCallback(e.Data);
+                                        remaind -= (uint)e.Data.Length;
+                                    }
+                                    else
+                                    {
+                                        stdoutCallback(e.Data.Substring(0, (int)remaind));
+                                        remaind = 0;
+                                    }
+                                }
+                                outputClosed.Set();
+                            };
+                        }
+                        else
+                        {
+                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                        }
+                    }
+                    if (stderrCallback != null)
+                    {
+                        if (limit?.StderrLength != null && limit.StderrLength > 0)
+                        {
+                            var remaind = limit.StderrLength;
+                            proc.ErrorDataReceived += (o, e) =>
+                            {
+                                if (remaind > 0 && !string.IsNullOrEmpty(e.Data))
+                                {
+                                    if (e.Data.Length <= remaind)
+                                    {
+                                        stderrCallback(e.Data);
+                                        remaind -= (uint)e.Data.Length;
+                                    }
+                                    else
+                                    {
+                                        stderrCallback(e.Data.Substring(0, (int)remaind));
+                                        remaind = 0;
+                                    }
+                                }
+                                errorClosed.Set();
+                            };
+                        }
+                        else
+                        {
+                            proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
+                        }
+                    }
+
+                    proc.Start();
+                    proc.StandardInput.WriteLine(commands);
+                    proc.StandardInput.Close();
+                    if (stdoutCallback != null) { proc.BeginOutputReadLine(); }
+                    if (stderrCallback != null) { proc.BeginErrorReadLine(); }
+                    if(limit != null)
+                    {
+                        proc.WaitForExit((int)(limit.CpuTime + 5) * 1000);
+                    }
+                    else
+                    {
+                        proc.WaitForExit();
+                    }
+                    if (!ManualResetEvent.WaitAll(waits, 10000))
+                    {
+                        Console.Error.WriteLine($"ERROR: STDOUT/ERR wait timeout");
+                    }
+                    doneCallback?.Invoke(proc.ExitCode); proc.Close();
+                });
+/*
                 var mainProc = Task.Run(() => {
                     var proc = new Process();
                     proc.StartInfo.FileName = program;
@@ -259,11 +355,13 @@ namespace ALMS.App.Models
                                 {
                                     if (e.Data.Length <= remaind)
                                     {
+                                        // Console.WriteLine($"OUT: {e.Data}");
                                         stdoutCallback(e.Data);
                                         remaind -= (uint)e.Data.Length;
                                     }
                                     else
                                     {
+                                        // Console.WriteLine($"OUT: {e.Data.Substring(0, (int)remaind)}");
                                         stdoutCallback(e.Data.Substring(0, (int)remaind));
                                         remaind = 0;
                                     }
@@ -272,7 +370,10 @@ namespace ALMS.App.Models
                         }
                         else
                         {
-                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                            proc.OutputDataReceived += (o, e) => {
+                              // Console.WriteLine($"OUT: {e.Data}");
+                              stdoutCallback(e.Data);
+                            };
                         }
                     }
                     if (stderrCallback != null)
@@ -318,6 +419,7 @@ namespace ALMS.App.Models
                     }
                     doneCallback?.Invoke(proc.ExitCode); proc.Close();
                 });
+*/
                 var tokenSource = new CancellationTokenSource();
                 var token = tokenSource.Token;
                 var observer = Task.Run(() => {
