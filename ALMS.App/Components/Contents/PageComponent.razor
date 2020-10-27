@@ -81,6 +81,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await JS.InvokeVoidAsync("consoleLog", "# OnAfterRenderAsync");
         if (firstRender)
         {
             await RenderAsync();
@@ -89,24 +90,31 @@ else
 
     protected async Task RenderAsync()
     {
+        await JS.InvokeVoidAsync("consoleLog", "# START");
         initialized = true;
         Building = true;
         progress = "Building a page";
         StateHasChanged();
         try
         {
+            await JS.InvokeVoidAsync("consoleLog", "# 01");
             Page = new ALMS.App.Models.Contents.Page(Lecture, Path, Branch);
             progress = "Rendering a page";
+            await JS.InvokeVoidAsync("consoleLog", "# 02");
             renderer = await Page.RenderAsync(NM, User);
         }
         catch (Exception e)
         {
+            await JS.InvokeVoidAsync("consoleLog", "# ERR 01");
             ErrorSubject = e.Message;
             ErrorMessage = e.StackTrace;
         }
+        await JS.InvokeVoidAsync("consoleLog", "# 03");
         Building = false;
         StateHasChanged();
+        await JS.InvokeVoidAsync("consoleLog", "# 04");
         await JS.InvokeVoidAsync("typesetMathJax");
+        await JS.InvokeVoidAsync("consoleLog", "# 05");
     }
 
 }
