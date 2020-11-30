@@ -88,7 +88,7 @@ namespace ALMS.App.Controllers
 
 
 
-        [HttpGet("api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/info/refs")]
+        [HttpGet("api/git/user/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/info/refs")]
         public IActionResult lecture_data_info_refs(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
         {
             var lectureUser = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
@@ -100,7 +100,7 @@ namespace ALMS.App.Controllers
                 return info_refs(lectureUser.RepositoryPair, service, user);
             });
         }
-        [HttpPost("api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/git-upload-pack")]
+        [HttpPost("api/git/user/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/git-upload-pack")]
         [RequestSizeLimit(120_000_000)]
         public IActionResult lecture_data_git_upload_pack(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
         {
@@ -113,7 +113,7 @@ namespace ALMS.App.Controllers
                 return await git_upload_pack(lectureUser.RepositoryPair, user);
             });
         }
-        [HttpPost("api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.git/git-receive-pack")]
+        [HttpPost("api/git/user/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/git-upload-pack")]
         [RequestSizeLimit(120_000_000)]
         public IActionResult lecture_data_git_receive_pack(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
         {
