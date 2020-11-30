@@ -275,6 +275,103 @@ namespace ALMS.App.Models.Contents
             }
         }
 
+        public async Task<(bool, string)> ForceAllSubmitAsync(Entities.Lecture lecture, DatabaseContext context)
+        {
+            try
+            {
+                foreach (var assign in context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.LectureId == lecture.Id))
+                {
+                    var user = assign.User;
+                    var time = DateTime.Now;
+                    foreach (var f in childRenderFragments.Select(x => x.Item1))
+                    {
+                        var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/{f.Name}");
+                        if (!fileInfo.Directory.Exists)
+                        {
+                            fileInfo.Directory.Create();
+                            Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
+                        }
+
+                        if (fileComponents.ContainsKey(f.Name))
+                        {
+                            if (fileComponents[f.Name] is UploadActivityComponent uac)
+                            {
+                                if (uac.Data != null)
+                                {
+                                    using (var w = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
+                                    {
+                                        w.Write(uac.Data, 0, uac.Data.Length);
+                                    }
+                                    uac.SetSavedFileInfo(fileInfo);
+                                }
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(fileInfo.FullName))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
+                            Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        }
+                    }
+                    assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"ForceSubmit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                    assign.RepositoryPair.ClonedRepository.Push();
+
+
+                    foreach (var f in childRenderFragments.Select(x => x.Item1))
+                    {
+                        var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/{f.Name}");
+                        if (!fileInfo.Directory.Exists)
+                        {
+                            fileInfo.Directory.Create();
+                        }
+
+                        if (fileComponents.ContainsKey(f.Name))
+                        {
+                            if (fileComponents[f.Name] is UploadActivityComponent uac)
+                            {
+                                if (uac.Data != null)
+                                {
+                                    using (var w = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
+                                    {
+                                        w.Write(uac.Data, 0, uac.Data.Length);
+                                    }
+                                    uac.SetSubmittedFileInfo(fileInfo);
+                                }
+                            }
+                            else
+                            {
+                                using (var w = new StreamWriter(fileInfo.FullName))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
+                            }
+                        }
+                    }
+                    lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"ForceSubmit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                    lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
+
+                    context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
+                    {
+                        User = user,
+                        Lecture = lecture,
+                        ActivityName = Name,
+                        Directory = Directory,
+                        ActionType = Entities.ActivityActionType.SaveAndForceSubmit,
+                        DateTime = time
+                    });
+                    context.SaveChanges();
+                }
+
+                return (true, "Everyone files were force submitted successfully");
+
+            }
+            catch (Exception e)
+            {
+                return (false, e.Message);
+            }
+        }
 
         public async Task ValidateAsync(Entities.Lecture lecture, Entities.User user, DatabaseContext context,
                 IBackgroundTaskQueueSet queue,

@@ -12,7 +12,8 @@ namespace ALMS.App.Models.Entities
         SaveAndRun = 1,
         SaveAndSubmit = 2,
         SaveAndValidateAccept = 3,
-        SaveAndValidateReject = 4
+        SaveAndValidateReject = 4,
+        SaveAndForceSubmit = 5
     }
     public class ActivityActionHistory
     {

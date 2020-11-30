@@ -67,6 +67,19 @@
                                     </i>
                                     action = "validate, reject";
                                     break;
+                                case ActivityActionType.SaveAndForceSubmit:
+                                    if (OnSetSubmittedActivityAsync != null && !string.IsNullOrWhiteSpace(history.Directory))
+                                    {
+                                        <a href="javascript: void(0);" @onclick="async () => { await SetSubmittedActivityAsync(history); }">
+                                            <i class="large inverted cloud upload middle aligned icon"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <i class="large inverted cloud upload middle aligned icon"></i>
+                                    }
+                                    action = "force submit";
+                                    break;
                             }
                         </td>
                         <td>@history.ActivityName</td>
@@ -159,6 +172,7 @@
         if (y == "save") return x.ActionType == ActivityActionType.Save;
         if (y == "run") return x.ActionType == ActivityActionType.SaveAndRun;
         if (y == "submit") return x.ActionType == ActivityActionType.SaveAndSubmit;
+        if (y == "forcesubmit") return x.ActionType == ActivityActionType.SaveAndForceSubmit;
         if (y == "validate") return x.ActionType == ActivityActionType.SaveAndValidateAccept || x.ActionType == ActivityActionType.SaveAndValidateReject;
         if (y == "accept") return x.ActionType == ActivityActionType.SaveAndValidateAccept;
         if (y == "reject") return x.ActionType == ActivityActionType.SaveAndValidateReject;

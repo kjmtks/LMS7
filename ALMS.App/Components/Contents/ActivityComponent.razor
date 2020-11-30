@@ -128,6 +128,17 @@ else
             <span data-tooltip="Answer" data-variation="basic">
                 <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
             </span>
+            
+            @if (Activity.UseSubmit())
+            {
+                <span data-tooltip="Force All Submit" data-variation="basic">
+                    <a class="@(Processing ? "disabled" : "") item" @onclick="ForceAllSubmitAsync">
+                        <i class="icons">
+                            <i class="inverted cloud upload icon"></i>
+                        </i>
+                    </a>
+                </span>
+            }
         }
         <span data-tooltip="Details" data-variation="basic">
             <a class="@(Processing ? "disabled" : "") item" href="/users/@Lecture.Owner.Account/lectures/@Lecture.Name/activities/master/@Activity.Name"><i class="info circle icon"></i></a>
@@ -363,6 +374,31 @@ else
         StandardOutput = "Files were submitted successfully";
         Processing = false;
         SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
+        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(() => Notifier.Update());
+    }
+
+    protected async Task ForceAllSubmitAsync()
+    {
+        if (Processing) { return; }
+        if (!Activity.UseSubmit()) { return; }
+
+        Processing = true;
+        ExitCode = null;
+        StandardOutput = "";
+        StandardError = "";
+        Images.Clear();
+        StateHasChanged();
+
+        var time = DateTime.Now;
+        var (saveSuccessfully, message) = await Activity.ForceAllSubmitAsync(Lecture, DB.Context);
+        if (!saveSuccessfully)
+        {
+            StandardError = message;
+            return;
+        }
+        StandardOutput = "Everyone files were force submitted successfully";
+        Processing = false;
         await InvokeAsync(() => StateHasChanged());
         await InvokeAsync(() => Notifier.Update());
     }
