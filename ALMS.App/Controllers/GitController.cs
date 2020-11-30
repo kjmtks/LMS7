@@ -88,7 +88,7 @@ namespace ALMS.App.Controllers
 
 
 
-        [HttpGet("api/git/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/info/refs")]
+        [HttpGet("api/git/user/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/info/refs")]
         public IActionResult lecture_data_info_refs(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
         {
             var lectureUser = DB.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner)
