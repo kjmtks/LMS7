@@ -129,16 +129,13 @@ else
                 <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
             </span>
             
-            @if (Activity.UseSubmit())
-            {
-                <span data-tooltip="Force All Submit" data-variation="basic">
-                    <a class="@(Processing ? "disabled" : "") item" @onclick="ForceAllSubmitAsync">
-                        <i class="icons">
-                            <i class="inverted cloud upload icon"></i>
-                        </i>
-                    </a>
-                </span>
-            }
+            <span data-tooltip="Force All Submit" data-variation="basic">
+                <a class="@(Processing ? "disabled" : "") item" @onclick="ForceAllSubmitAsync">
+                    <i class="icons">
+                        <i class="inverted cloud upload icon"></i>
+                    </i>
+                </a>
+            </span>
         }
         <span data-tooltip="Details" data-variation="basic">
             <a class="@(Processing ? "disabled" : "") item" href="/users/@Lecture.Owner.Account/lectures/@Lecture.Name/activities/master/@Activity.Name"><i class="info circle icon"></i></a>
@@ -381,7 +378,6 @@ else
     protected async Task ForceAllSubmitAsync()
     {
         if (Processing) { return; }
-        if (!Activity.UseSubmit()) { return; }
 
         Processing = true;
         ExitCode = null;
