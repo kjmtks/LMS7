@@ -131,6 +131,7 @@ else
                     <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
                 </span>
             }
+            <!-- # TODO
             <span data-tooltip="Force All Submit" data-variation="basic">
                 <a class="@(Processing ? "disabled" : "") item" @onclick="ForceAllSubmitAsync">
                     <i class="icons">
@@ -138,6 +139,7 @@ else
                     </i>
                 </a>
             </span>
+            -->
         }
         <span data-tooltip="Details" data-variation="basic">
             <a class="@(Processing ? "disabled" : "") item" href="/users/@Lecture.Owner.Account/lectures/@Lecture.Name/activities/master/@Activity.Name"><i class="info circle icon"></i></a>
