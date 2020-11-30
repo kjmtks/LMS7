@@ -23,6 +23,16 @@ else
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} up -d
 endif
 
+production-up-debug:
+ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} build
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} up 
+else
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} build
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} up 
+endif
+
+
 development-remove:
 ifeq (${DEVELOPMENT_OVERRIDE_FILE}, $(shell ls | grep ${DEVELOPMENT_OVERRIDE_FILE}))
 	docker-compose -f docker-compose.yaml -f ${DEVELOPMENT_OVERRIDE_FILE} down
