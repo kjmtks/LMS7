@@ -113,7 +113,7 @@ namespace ALMS.App.Controllers
                 return await git_upload_pack(lectureUser.RepositoryPair, user);
             });
         }
-        [HttpPost("api/git/user/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/git-upload-pack")]
+        [HttpPost("api/git/user/lecture_data/{user_account}/{owner_account}/{lecture_name}.home.git/git-receive-pack")]
         [RequestSizeLimit(120_000_000)]
         public IActionResult lecture_data_git_receive_pack(string lecture_name, string user_account, string owner_account, [FromQuery]string service)
         {
