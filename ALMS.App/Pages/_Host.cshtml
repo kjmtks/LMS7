@@ -45,8 +45,9 @@
         function modalControl(target, action) { $(target).modal(action); }
         function scrollToBottom(targetId) { $("#" + targetId).scrollTop($("#" + targetId)[0].scrollHeight); } // don't it work?
         function setTab(targetId) { $("#" + targetId + " .menu .item").tab(); console.log("#" + targetId + " .item"); }
-    
+
         function typesetMathJax() { MathJax.typeset(); }
+        function consoleLog(msg) { console.log(msg); }
     </script>
     <style type="text/css">
 
