@@ -123,12 +123,14 @@ else
                 <a class="@(Processing ? "disabled" : "") item" @onclick="ResetAsync"><i class="trash alternate outline icon"></i></a>
             </span>
         }
-        @if (User.IsTeacher(Lecture) && Activity.UseAnswer())
+        @if (User.IsTeacher(Lecture))
         {
-            <span data-tooltip="Answer" data-variation="basic">
-                <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
-            </span>
-            
+            @if(Activity.UseAnswer())
+            {
+                <span data-tooltip="Answer" data-variation="basic">
+                    <a class="@(Processing ? "disabled" : "") item" @onclick="AnswerAsync"><i class="font icon"></i></a>
+                </span>
+            }
             <span data-tooltip="Force All Submit" data-variation="basic">
                 <a class="@(Processing ? "disabled" : "") item" @onclick="ForceAllSubmitAsync">
                     <i class="icons">
