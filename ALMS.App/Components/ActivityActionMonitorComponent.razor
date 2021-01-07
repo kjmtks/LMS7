@@ -142,9 +142,9 @@ SELECT
   z.*
 FROM
 (
-  SELECT * FROM
+  SELECT *
+  FROM
   (
-    (
       SELECT
         t.*
       FROM (
@@ -157,15 +157,50 @@ FROM
           h.""Directory"" as ""Directory"",
           h.""DateTime"" as ""DateTime"",
           row_number() over(partition by h.""UserId"" order by h.""DateTime"" desc, h.""Id"" desc) as rn,
-          1 as ""Flag""
-        FROM (SELECT * FROM ""ActivityActionHistory"" WHERE ""LectureId"" = {Lecture.Id}) as h
+          h.""Flag""
+        FROM
+        (
+            (
+              SELECT
+                (SELECT COALESCE(max(""Id""), 0) FROM ""ActivityActionHistory"") + row_number() OVER () AS ""Id"",
+                u.""Id"" as ""UserId"",
+                {Lecture.Id} as ""LectureId"",
+                -1 as ""ActionType"",
+                '' as ""ActivityName"",
+                '' as ""Directory"",
+                (date '2020-01-01') as ""DateTime"",
+                0 as ""Flag""
+              FROM
+                (SELECT ""Id"" FROM ""User"" AS s INNER JOIN ""LectureUser"" AS a ON a.""UserId"" = s.""Id"" AND a.""LectureId"" = {Lecture.Id}) as u
+            )
+            UNION ALL
+            (
+                SELECT
+                  t.""Id"" AS ""Id"",
+                  t.""UserId"" as ""UserId"",
+                  t.""LectureId"" as ""LectureId"",
+                  t.""ActionType"" as ""ActionType"",
+                  t.""ActivityName"" as ""ActivityName"",
+                  t.""Directory"" as ""Directory"",
+                  t.""DateTime"" as ""DateTime"",
+                  1 as ""Flag""
+                FROM ""ActivityActionHistory"" as t
+                WHERE ""LectureId"" = {Lecture.Id}
+            )
+        ) as h
       ) as t
       WHERE t.""rn"" = 1
-    )
   ) as z
   ORDER BY z.""Flag"" desc, z.""DateTime"" desc
 ) as z
 ";
         Collection = DB.Context.ActivityActionHistories.FromSqlRaw(sql).Include(x => x.User).Include(x => x.Lecture).OrderBy(x => x.User.Account).AsNoTracking();
     }
+
+
+    /*
+
+
+*/
 }
+
