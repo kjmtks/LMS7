@@ -146,21 +146,6 @@ FROM
   (
     (
       SELECT
-        (SELECT COALESCE(max(""Id""), 0) FROM ""ActivityActionHistory"") + row_number() OVER () AS ""Id"",
-        u.""Id"" as ""UserId"",
-        {Lecture.Id} as ""LectureId"",
-        -1 as ""ActionType"",
-        '' as ""ActivityName"",
-        '' as ""Directory"",
-        (date '1970-01-01') as ""DateTime"",
-        1 as rn,
-        0 as ""Flag""
-      FROM
-        (SELECT ""Id"" FROM ""User"" AS s INNER JOIN ""LectureUser"" AS a ON a.""UserId"" = s.""Id"" AND a.""LectureId"" = {Lecture.Id}) as u
-    )
-    UNION ALL
-    (
-      SELECT
         t.*
       FROM (
         SELECT
