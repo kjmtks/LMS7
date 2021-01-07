@@ -152,7 +152,7 @@ FROM
         -1 as ""ActionType"",
         '' as ""ActivityName"",
         '' as ""Directory"",
-        (date '2020-01-01') as ""DateTime"",
+        (date '1970-01-01') as ""DateTime"",
         1 as rn,
         0 as ""Flag""
       FROM
@@ -174,12 +174,11 @@ FROM
           row_number() over(partition by h.""UserId"" order by h.""DateTime"" desc, h.""Id"" desc) as rn,
           1 as ""Flag""
         FROM (SELECT * FROM ""ActivityActionHistory"" WHERE ""LectureId"" = {Lecture.Id}) as h
-        ORDER BY h.""DateTime""
       ) as t
       WHERE t.""rn"" = 1
     )
   ) as z
-  ORDER BY z.""Flag"" desc
+  ORDER BY z.""Flag"" desc, z.""DateTime"" desc
 ) as z
 ";
         Collection = DB.Context.ActivityActionHistories.FromSqlRaw(sql).Include(x => x.User).Include(x => x.Lecture).OrderBy(x => x.User.Account).AsNoTracking();
