@@ -8,6 +8,7 @@ namespace ALMS.App.Models.Entities
 {
     public enum ActivityActionType
     {
+        Nothing = -1,
         Save = 0,
         SaveAndRun = 1,
         SaveAndSubmit = 2,

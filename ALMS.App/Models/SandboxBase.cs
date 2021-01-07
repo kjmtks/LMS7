@@ -48,7 +48,7 @@ namespace ALMS.App.Models
                 Action<string> stderrCallback = null,
                 Action<int> doneCallback = null)
         {
-            await DoAsync($@"debootstrap stretch {DirectoryPath} http://http.debian.net/debian;",
+            await DoAsync($@"rm -rf {DirectoryPath}; debootstrap stretch {DirectoryPath} http://http.debian.net/debian;",
                     stdoutCallback, stderrCallback);
             if (!string.IsNullOrWhiteSpace(buildCommands))
             {
@@ -149,8 +149,10 @@ namespace ALMS.App.Models
         {
             await Task.Run(() => {
                 var proc = new Process();
-                proc.StartInfo.FileName = program;
-                proc.StartInfo.Arguments = args;
+                //proc.StartInfo.FileName = program;
+                //proc.StartInfo.Arguments = args;
+                proc.StartInfo.FileName = "stdbuf";
+                proc.StartInfo.Arguments = $"-o0 -e0 -i0 {program} {args}";
 
                 proc.StartInfo.RedirectStandardInput = true;
                 proc.StartInfo.RedirectStandardOutput = true;
@@ -237,10 +239,13 @@ namespace ALMS.App.Models
                 Process.Start("mkfifo", $"{DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
                 Process.Start("chown", $"{user.Id + 1000} {DirectoryPath}/var/tmp/{fifoname}").WaitForExit();
 
-var mainProc = Task.Run(async () => {
+                var mainProc = Task.Run(async () => {
                     var proc = new Process();
-                    proc.StartInfo.FileName = program;
-                    proc.StartInfo.Arguments = args;
+                    //proc.StartInfo.FileName = program;
+                    //proc.StartInfo.Arguments = args;
+                    proc.StartInfo.FileName = "stdbuf";
+                    proc.StartInfo.Arguments = $"-o0 -e0 -i0 {program} {args}";
+
                     proc.StartInfo.Environment["CMD"] = $"/var/tmp/{fifoname}";
 
                     proc.StartInfo.RedirectStandardInput = true;
