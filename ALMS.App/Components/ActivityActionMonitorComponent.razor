@@ -173,8 +173,7 @@ FROM
           h.""DateTime"" as ""DateTime"",
           row_number() over(partition by h.""UserId"" order by h.""DateTime"" desc, h.""Id"" desc) as rn,
           1 as ""Flag""
-        FROM ""ActivityActionHistory"" as h
-        WHERE h.""LectureId"" = {Lecture.Id}
+        FROM (SELECT * FROM ""ActivityActionHistory"" WHERE ""LectureId"" = {Lecture.Id}) as h
       ) as t
       WHERE t.""rn"" = 1
     )
