@@ -52,6 +52,7 @@
                                   GetRawFileUrl='(branch, path) => $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/submissions/{branch}/{path}"'
                                   @ref="SubmissionsRepositoryViewer" />
 
+                                  <!--
                 <h2 class="ui header">
                     <i class="box icon"></i>
                     <div class="content">
@@ -62,6 +63,18 @@
                 <ActivityActionHistoryComponent CssClass="ui content" Lecture="Lecture" User="User"
                                                 OnSetSubmittedActivityAsync='async (user, dir) => { await SubmissionsRepositoryViewer.SetPath($"{user.Account}/{dir}"); }'
                                                 @ref="ActivityActionHistoryComponent" />
+-->
+
+                <h2 class="ui header">
+                    <i class="box icon"></i>
+                    <div class="content">
+                        Activity Action Monitor
+                        <div class="sub header">Observe activity action</div>
+                    </div>
+                </h2>
+                <ActivityActionMonitorComponent CssClass="ui content" Lecture="@Lecture"
+                                                @ref="ActivityActionMonitorComponent" />
+
 
                 <h2 class="ui header">
                     <i class="box icon"></i>
@@ -121,6 +134,7 @@
     protected RepositoryViewer ContentsRepositoryViewer;
     protected RepositoryViewer SubmissionsRepositoryViewer;
     protected ActivityActionHistoryComponent ActivityActionHistoryComponent;
+    protected ActivityActionMonitorComponent ActivityActionMonitorComponent;
     protected AssignedUsersComponent AssignedUsersComponent;
 
     protected override void OnInitialized()
@@ -144,8 +158,9 @@
         await ContentsRepositoryViewer.UpdateAsync();
         await SubmissionsRepositoryViewer.UpdateAsync();
         await DirectoryViewer.UpdateAsync();
-        await ActivityActionHistoryComponent.UpdateAsync();
         await AssignedUsersComponent.UpdateAsync();
+        // await ActivityActionHistoryComponent.UpdateAsync();
+        ActivityActionMonitorComponent.Update();
     }
     public void Dispose()
     {

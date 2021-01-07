@@ -1,0 +1,186 @@
+﻿@using ALMS.App.Models.Entities;
+@using ALMS.App.Components.Utils;
+@using Microsoft.EntityFrameworkCore;
+@inject DatabaseService DB;
+
+
+<div class="@CssClass">
+
+    <div class="ui menu top attached">
+        <div class="header item"><i class="pencil icon"></i> @(string.IsNullOrEmpty(Subject) ? "Activity Monitor" : Subject)</div>
+    </div>
+    <table class="ui very compact table bottom attached">
+        <thead>
+            <tr>
+                <th colspan="2">User</th>
+                <th>&nbsp;</th>
+                <th>Activity</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var history in Collection)
+            {
+                var action = "";
+            <tr>
+                <td><a href="users/@history.User.Account">@history.User.Account</a></td>
+                <td><a href="users/@history.User.Account">@history.User.DisplayName</a></td>
+                <td>@(history.ActionType == ActivityActionType.Nothing ? "" : ToDiffTime(history.DateTime, DateTime.Now) )</td>
+                <td>@history.ActivityName</td>
+                <td>
+                    @switch (history.ActionType)
+                    {
+                        case ActivityActionType.Nothing:
+                            <i class="large question circle outline middle aligned icon"></i>
+                            action = "nothing";
+                            break;
+                        case ActivityActionType.Save:
+                            <i class="large save outline middle aligned icon"></i>
+                            action = "save";
+                            break;
+                        case ActivityActionType.SaveAndRun:
+                            <i class="large play circle outline middle aligned icon"></i>
+                            action = "run";
+                            break;
+                        case ActivityActionType.SaveAndSubmit:
+                            <i class="large cloud upload middle aligned icon"></i>
+                            action = "submit";
+                            break;
+                        case ActivityActionType.SaveAndValidateAccept:
+                            <i class="large icons middle aligned icon">
+                                <i class="bug icon"></i>
+                                <i class="corner green check icon"></i>
+                            </i>
+                            action = "validate, accept";
+                            break;
+                        case ActivityActionType.SaveAndValidateReject:
+                            <i class="large icons middle aligned icon">
+                                <i class="bug icon"></i>
+                                <i class="corner red times icon"></i>
+                            </i>
+                            action = "validate, reject";
+                            break;
+                        case ActivityActionType.SaveAndForceSubmit:
+                            <i class="large inverted cloud upload middle aligned icon"></i>
+                            action = "force submit";
+                            break;
+                    }
+                    @action
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    [Parameter]
+    public string CssClass { get; set; }
+    [Parameter]
+    public string Subject { get; set; }
+    [Parameter]
+    public Lecture Lecture { get; set; }
+
+    public IEnumerable<ActivityActionHistory> Collection { get; set; }
+
+    private bool isTimerRunning = true;
+    protected System.Timers.Timer timer { get; set; } = new System.Timers.Timer(60 * 1000);
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        Update();
+        Task.Run(() =>
+        {
+            timer.Elapsed += (s, e) =>
+            {
+                Update();
+                InvokeAsync(() => { StateHasChanged(); });
+            };
+            timer.Start();
+        });
+    }
+
+    protected double Delay
+    {
+        get { return timer.Interval; }
+        set
+        {
+            timer.Stop();
+            if (value > 0)
+            {
+                timer.Interval = value;
+                isTimerRunning = true;
+                timer.Start();
+            }
+            else
+            {
+                isTimerRunning = false;
+            }
+
+        }
+    }
+
+
+    private string ToDiffTime(DateTime t1, DateTime t2)
+    {
+        var s = t2 - t1;
+        if (s.TotalSeconds <= 60) return "1分以内";
+        if (s.TotalSeconds > 60*60*24) return "日前";
+        return $"{(int)s.TotalSeconds / 60}分前";
+
+    }
+
+    public async Task Update()
+    {
+
+        var sql = $@"
+SELECT
+  DISTINCT on (z.""UserId"")
+  z.*
+FROM
+(
+  SELECT * FROM
+  (
+    (
+      SELECT
+        (SELECT COALESCE(max(""Id""), 0) FROM ""ActivityActionHistory"") + row_number() OVER () AS ""Id"",
+        u.""Id"" as ""UserId"",
+        {Lecture.Id} as ""LectureId"",
+        -1 as ""ActionType"",
+        '' as ""ActivityName"",
+        '' as ""Directory"",
+        (date '2020-01-01') as ""DateTime"",
+        1 as rn,
+        0 as ""Flag""
+      FROM
+        (SELECT ""Id"" FROM ""User"" AS s INNER JOIN ""LectureUser"" AS a ON a.""UserId"" = s.""Id"" AND a.""LectureId"" = {Lecture.Id}) as u
+    )
+    UNION ALL
+    (
+      SELECT
+        t.*
+      FROM (
+        SELECT
+          h.""Id"" AS ""Id"",
+          h.""UserId"" as ""UserId"",
+          h.""LectureId"" as ""LectureId"",
+          h.""ActionType"" as ""ActionType"",
+          h.""ActivityName"" as ""ActivityName"",
+          h.""Directory"" as ""Directory"",
+          h.""DateTime"" as ""DateTime"",
+          row_number() over(partition by h.""UserId"" order by h.""DateTime"" desc, h.""Id"" desc) as rn,
+          1 as ""Flag""
+        FROM ""ActivityActionHistory"" as h
+      ) as t
+      WHERE t.""rn"" = 1
+    )
+  ) as z
+  ORDER BY z.""Flag"" desc
+) as z
+";
+        Collection = DB.Context.ActivityActionHistories.FromSqlRaw(sql).Include(x => x.User).Include(x => x.Lecture).OrderBy(x => x.User.Account).AsNoTracking();
+    }
+}
