@@ -147,7 +147,7 @@ FROM
     (
       SELECT
         (SELECT COALESCE(max(""Id""), 0) FROM ""ActivityActionHistory"") + row_number() OVER () AS ""Id"",
-        u.""Id"" as ""UserId"",
+        u.""UserId"" as ""UserId"",
         {Lecture.Id} as ""LectureId"",
         -1 as ""ActionType"",
         '' as ""ActivityName"",
