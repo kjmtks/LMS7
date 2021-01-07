@@ -147,12 +147,13 @@ FROM
     (
       SELECT
         (SELECT COALESCE(max(""Id""), 0) FROM ""ActivityActionHistory"") + row_number() OVER () AS ""Id"",
-        u.""UserId"" as ""UserId"",
+        u.""Id"" as ""UserId"",
         {Lecture.Id} as ""LectureId"",
         -1 as ""ActionType"",
         '' as ""ActivityName"",
         '' as ""Directory"",
         (date '2020-01-01') as ""DateTime"",
+        1 as rn,
         0 as ""Flag""
       FROM
         (SELECT ""Id"" FROM ""User"" AS s INNER JOIN ""LectureUser"" AS a ON a.""UserId"" = s.""Id"" AND a.""LectureId"" = {Lecture.Id}) as u
@@ -170,9 +171,12 @@ FROM
           h.""ActivityName"" as ""ActivityName"",
           h.""Directory"" as ""Directory"",
           h.""DateTime"" as ""DateTime"",
+          row_number() over(partition by h.""UserId"" order by h.""DateTime"" desc, h.""Id"" desc) as rn,
           1 as ""Flag""
         FROM (SELECT * FROM ""ActivityActionHistory"" WHERE ""LectureId"" = {Lecture.Id}) as h
+        ORDER BY h.""DateTime""
       ) as t
+      WHERE t.""rn"" = 1
     )
   ) as z
   ORDER BY z.""Flag"" desc
