@@ -7,7 +7,13 @@
 <div class="@CssClass">
 
     <div class="ui menu top attached">
-        <div class="header item"><i class="pencil icon"></i> @(string.IsNullOrEmpty(Subject) ? "Activity Monitor" : Subject)</div>
+        <div class="header left item"><i class="pencil icon"></i> @(string.IsNullOrEmpty(Subject) ? "Activity Monitor" : Subject)</div>
+        <div class="item">
+            <div class="ui transparent icon input">
+                <i class="clock outline icon"></i>
+                <input type="text" placeholder="time span (minutes)" @bind="timespan">
+            </div>
+        </div>
     </div>
     <table class="ui very compact table bottom attached">
         <thead>
@@ -22,7 +28,7 @@
             @foreach (var history in Collection)
             {
                 var action = "";
-            <tr>
+            <tr style="background-color: @ToColorCode(history.DateTime)">
                 <td><a href="users/@history.User.Account">@history.User.Account</a></td>
                 <td><a href="users/@history.User.Account">@history.User.DisplayName</a></td>
                 <td>@(history.ActionType == ActivityActionType.Nothing ? "" : ToDiffTime(history.DateTime, DateTime.Now) )</td>
@@ -83,6 +89,27 @@
     public Lecture Lecture { get; set; }
 
     public IEnumerable<ActivityActionHistory> Collection { get; set; }
+
+    private string timespan = "60m";
+    private string ToColorCode(DateTime dt)
+    {
+        var md = System.Text.RegularExpressions.Regex.Match(timespan, "(?<d>[0-9.]*)(?<u>[smhd]+)");
+        if (!md.Success) return "#ffffff";
+        var d = !md.Groups.ContainsKey("d") || !md.Groups["d"].Success || string.IsNullOrWhiteSpace(md.Groups["d"].Value) ? 0.0 : double.Parse(md.Groups["d"].Value);
+        var u = !md.Groups.ContainsKey("u") || !md.Groups["u"].Success || string.IsNullOrWhiteSpace(md.Groups["u"].Value) ? "m" : md.Groups["u"].Value;
+        var t = d * u switch
+        {
+            "s" => 1,
+            "m" => 60,
+            "h" => 60 * 60,
+            "d" => 60 * 6 * 24,
+            _ => 1
+        };
+        if (t <= 0.0) return $"#ffffff";
+        var ts = Math.Min((DateTime.Now - dt).TotalSeconds, t);
+        var cc = ((255 - 64) + (int)((ts / t) * 64)).ToString("x2");
+        return $"#{cc}ff{cc}";
+    }
 
     private bool isTimerRunning = true;
     protected System.Timers.Timer timer { get; set; } = new System.Timers.Timer(60 * 1000);
