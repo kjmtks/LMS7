@@ -366,7 +366,7 @@ else
         StateHasChanged();
 
         var time = DateTime.Now;
-        var (saveSuccessfully, message) = await Activity.SubmitAsync(Lecture, User, DB.Context);
+        var (saveSuccessfully, message) = await Activity.SubmitAsync(Lecture, User, DB.Context, queue);
         if (!saveSuccessfully)
         {
             StandardError = message;

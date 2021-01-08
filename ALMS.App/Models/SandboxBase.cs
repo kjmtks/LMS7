@@ -285,8 +285,12 @@ namespace ALMS.App.Models
                         }
                         else
                         {
-                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); };
+                            proc.OutputDataReceived += (o, e) => { stdoutCallback(e.Data); outputClosed.Set(); };
                         }
+                    }
+                    else
+                    {
+                        outputClosed.Set();
                     }
                     if (stderrCallback != null)
                     {
@@ -313,8 +317,12 @@ namespace ALMS.App.Models
                         }
                         else
                         {
-                            proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); };
+                            proc.ErrorDataReceived += (o, e) => { stderrCallback(e.Data); errorClosed.Set(); };
                         }
+                    }
+                    else
+                    {
+                        errorClosed.Set();
                     }
 
                     proc.Start();
@@ -332,7 +340,7 @@ namespace ALMS.App.Models
                     }
                     if (!ManualResetEvent.WaitAll(waits, 10000))
                     {
-                        Console.Error.WriteLine($"ERROR: STDOUT/ERR wait timeout");
+                        Console.Error.WriteLine($"ERROR: STDOUT/ERR wait timeout ({commands})");
                     }
                     doneCallback?.Invoke(proc.ExitCode); proc.Close();
                 });
