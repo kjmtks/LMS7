@@ -30,6 +30,7 @@ namespace ALMS.App.Models.Contents
         public ActivityFlags Flags { get; set; }
         public ActivityFiles Files { get; set; }
         public string Run { get; set; }
+        public string Submit { get; set; }
         public ActivityLimits Limits { get; set; }
         public ActivityValidations Validations { get; set; }
 
@@ -180,13 +181,14 @@ namespace ALMS.App.Models.Contents
             }
         }
 
-        public async Task<(bool, string)> SubmitAsync(Entities.Lecture lecture, Entities.User user, DatabaseContext context)
+        public async Task<(bool, string)> SubmitAsync(Entities.Lecture lecture, Entities.User user, DatabaseContext context, IBackgroundTaskQueueSet queue)
         {
             try
             {
                 var assign = context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.UserId == user.Id && x.LectureId == lecture.Id).FirstOrDefault();
                 if (assign == null) return (false, "The user is not assigned");
                 var time = DateTime.Now;
+
                 foreach (var f in childRenderFragments.Select(x => x.Item1))
                 {
                     var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/{f.Name}");
@@ -219,6 +221,27 @@ namespace ALMS.App.Models.Contents
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
                 }
+
+                if (!string.IsNullOrWhiteSpace(Submit))
+                {
+                    var sandbox = context.LectureSandboxes.Where(x => x.Name == Sandbox).FirstOrDefault();
+                    if (sandbox == null) return (false, "Not found sandbox");
+
+                    var submit_file = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/SUBMIT");
+                    var command = $"cd ~/{Directory}; {Submit}";
+                    queue.QueueBackgroundWorkItem(async token =>
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        await sandbox.DoOnSandboxWithCmdAsync(user, command, (stdout) => { sb.AppendLine(stdout); }, null, null, (code) =>
+                        {
+                            using (var w = new StreamWriter(submit_file.FullName))
+                            {
+                                w.Write(sb.ToString());
+                            }
+                        });
+                    }, user.IsTeacher(lecture));
+                }
+
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
 
@@ -253,6 +276,15 @@ namespace ALMS.App.Models.Contents
                         }
                     }
                 }
+
+                if (!string.IsNullOrWhiteSpace(Submit))
+                {
+                    var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/SUBMIT");
+                    var target = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/SUBMIT");
+                    File.Copy(source.FullName, target.FullName, true);
+                }
+
+
                 lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
 
@@ -621,7 +653,6 @@ namespace ALMS.App.Models.Contents
         public uint StderrLength { get; set; }
         public uint Pids { get; set; }
     }
-
 
 
     public interface IActivityFile

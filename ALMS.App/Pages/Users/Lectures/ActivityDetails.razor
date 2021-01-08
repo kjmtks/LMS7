@@ -49,7 +49,8 @@
                     <table class="ui padded table bottom attached">
                         <thead>
                             <tr>
-                                <th class="single line" colspan="2">User</th>
+                                <th class="single line">User</th>
+                                <th class="single line">Summary</th>
                                 <th class="single line">Files</th>
                                 <th class="single line">Submitted at</th>
                             </tr>
@@ -69,8 +70,19 @@
                                             <i class="chess pawn icon"></i>
                                         }
                                         @a.User.Account
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        @a.User.DisplayName
                                     </td>
-                                    <td>@a.User.DisplayName</td>
+                                    <td>
+                                        @{
+                                            var t = GetSummary(action);
+                                        }
+                                        @if(!string.IsNullOrWhiteSpace(t))
+                                        {
+                                            <pre class="tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;">@t</pre>
+                                        }
+                                        
+                                    </td>
                                     @if (action == null)
                                     {
                                         <td colspan="2"> --- </td>
@@ -186,6 +198,23 @@
             .Where(x => string.IsNullOrWhiteSpace(path) ? true : (!(x.Length >= path.Length + 1) || x[path.Length] == '/'))
             .Select(x => x.Substring(path.Length).Split("/")?.Where(x => !string.IsNullOrWhiteSpace(x))?.FirstOrDefault())
             .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct();
+    }
+
+    protected string GetSummary(ActivityActionHistory action)
+    {
+        if (action == null) return null;
+        var target = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.Directory}/SUBMIT");
+        if(target.Exists)
+        {
+            using (var fs = target.OpenText())
+            {
+                return fs.ReadToEnd().Trim();
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
 }
 
