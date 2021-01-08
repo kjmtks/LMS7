@@ -106,10 +106,10 @@ namespace ALMS.App.Models.Contents
             try
             {
                 var assign = context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.UserId == user.Id && x.LectureId == lecture.Id).FirstOrDefault();
-                if (assign == null) doneCallback(null, false, "The user is not assigned");
+                if (assign == null) { doneCallback(null, false, "The user is not assigned"); return; }
 
                 var sandbox = context.LectureSandboxes.Where(x => x.Name == Sandbox).FirstOrDefault();
-                if (sandbox == null) doneCallback(null, false, "Not found sandbox");
+                if (sandbox == null) { doneCallback(null, false, "Not found sandbox"); return; }
 
                 var time = DateTime.Now;
                 foreach (var f in childRenderFragments.Select(x => x.Item1))
@@ -181,12 +181,13 @@ namespace ALMS.App.Models.Contents
             }
         }
 
-        public async Task<(bool, string)> SubmitAsync(Entities.Lecture lecture, Entities.User user, DatabaseContext context, IBackgroundTaskQueueSet queue)
+        public async Task SubmitAsync(Entities.Lecture lecture, Entities.User user, DatabaseContext context, IBackgroundTaskQueueSet queue,
+                Action<int?, bool, string> doneCallback = null)
         {
             try
             {
                 var assign = context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.UserId == user.Id && x.LectureId == lecture.Id).FirstOrDefault();
-                if (assign == null) return (false, "The user is not assigned");
+                if (assign == null) { doneCallback(null, false, "The user is not assigned"); return; }
                 var time = DateTime.Now;
 
                 foreach (var f in childRenderFragments.Select(x => x.Item1))
@@ -222,15 +223,18 @@ namespace ALMS.App.Models.Contents
                     }
                 }
 
-                if (!string.IsNullOrWhiteSpace(Submit))
-                {
-                    var sandbox = context.LectureSandboxes.Where(x => x.Name == Sandbox).FirstOrDefault();
-                    if (sandbox == null) return (false, "Not found sandbox");
+                
 
-                    var submit_file = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/SUBMIT");
-                    var command = $"cd ~/{Directory}; {Submit}";
-                    queue.QueueBackgroundWorkItem(async token =>
+                var submit_file = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/SUBMIT");
+                var command = $"cd ~/{Directory}; {Submit}";
+                queue.QueueBackgroundWorkItem(async token =>
+                {
+
+                    if (!string.IsNullOrWhiteSpace(Submit))
                     {
+                        var sandbox = context.LectureSandboxes.Where(x => x.Name == Sandbox).FirstOrDefault();
+                        if (sandbox == null) { doneCallback(null, false, "Not found sandbox"); return; }
+
                         var sb = new System.Text.StringBuilder();
                         await sandbox.DoOnSandboxWithCmdAsync(user, command, (stdout) => { sb.AppendLine(stdout); }, null, null, (code) =>
                         {
@@ -239,71 +243,75 @@ namespace ALMS.App.Models.Contents
                                 w.Write(sb.ToString());
                             }
                         });
-                    }, user.IsTeacher(lecture));
-                }
-
-                assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                assign.RepositoryPair.ClonedRepository.Push();
-
-
-                foreach (var f in childRenderFragments.Select(x => x.Item1))
-                {
-                    var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/{f.Name}");
-                    if (!fileInfo.Directory.Exists)
-                    {
-                        fileInfo.Directory.Create();
                     }
 
-                    if (fileComponents.ContainsKey(f.Name))
+
+                    assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                    assign.RepositoryPair.ClonedRepository.Push();
+
+
+                    foreach (var f in childRenderFragments.Select(x => x.Item1))
                     {
-                        if (fileComponents[f.Name] is UploadActivityComponent uac)
+                        var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/{f.Name}");
+                        if (!fileInfo.Directory.Exists)
                         {
-                            if (uac.Data != null)
+                            fileInfo.Directory.Create();
+                        }
+
+                        if (fileComponents.ContainsKey(f.Name))
+                        {
+                            if (fileComponents[f.Name] is UploadActivityComponent uac)
                             {
-                                using (var w = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
+                                if (uac.Data != null)
                                 {
-                                    w.Write(uac.Data, 0, uac.Data.Length);
+                                    using (var w = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
+                                    {
+                                        w.Write(uac.Data, 0, uac.Data.Length);
+                                    }
+                                    uac.SetSubmittedFileInfo(fileInfo);
                                 }
-                                uac.SetSubmittedFileInfo(fileInfo);
                             }
-                        }
-                        else
-                        {
-                            using (var w = new StreamWriter(fileInfo.FullName))
+                            else
                             {
-                                w.Write(await fileComponents[f.Name].GetValueAsync());
+                                using (var w = new StreamWriter(fileInfo.FullName))
+                                {
+                                    w.Write(await fileComponents[f.Name].GetValueAsync());
+                                }
                             }
                         }
                     }
-                }
 
-                if (!string.IsNullOrWhiteSpace(Submit))
-                {
-                    var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/SUBMIT");
-                    var target = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/SUBMIT");
-                    File.Copy(source.FullName, target.FullName, true);
-                }
+                    if (!string.IsNullOrWhiteSpace(Submit))
+                    {
+                        var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{Directory}/SUBMIT");
+                        var target = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{Directory}/SUBMIT");
+                        File.Copy(source.FullName, target.FullName, true);
+                    }
 
 
-                lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
+                    lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                    lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
 
-                context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
-                {
-                    User = user,
-                    Lecture = lecture,
-                    ActivityName = Name,
-                    Directory = Directory,
-                    ActionType = Entities.ActivityActionType.SaveAndSubmit,
-                    DateTime = time
-                });
-                context.SaveChanges();
+                    context.ActivityActionHistories.Add(new Entities.ActivityActionHistory()
+                    {
+                        User = user,
+                        Lecture = lecture,
+                        ActivityName = Name,
+                        Directory = Directory,
+                        ActionType = Entities.ActivityActionType.SaveAndSubmit,
+                        DateTime = time
+                    });
+                    context.SaveChanges();
+                    doneCallback(null, true, "Files were submitted successfully");
 
-                return (true, "Files were submitted successfully");
+                }, user.IsTeacher(lecture));
+                
+
+
             }
             catch (Exception e)
             {
-                return (false, e.Message);
+                doneCallback(null, false, e.Message);
             }
         }
 

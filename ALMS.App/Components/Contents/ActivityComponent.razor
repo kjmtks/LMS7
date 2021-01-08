@@ -366,17 +366,24 @@ else
         StateHasChanged();
 
         var time = DateTime.Now;
-        var (saveSuccessfully, message) = await Activity.SubmitAsync(Lecture, User, DB.Context, queue);
-        if (!saveSuccessfully)
+        await Activity.SubmitAsync(Lecture, User, DB.Context, queue, (code, isSuccess, message) =>
         {
-            StandardError = message;
-            return;
-        }
-        StandardOutput = "Files were submitted successfully";
-        Processing = false;
-        SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
-        await InvokeAsync(() => StateHasChanged());
-        await InvokeAsync(() => Notifier.Update());
+            if (isSuccess)
+            {
+                StandardOutput = "Files were submitted successfully";
+            }
+            else
+            {
+                StandardError = message;
+            }
+            Processing = false;
+
+            SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
+
+            InvokeAsync(() => StateHasChanged());
+            InvokeAsync(() => Notifier.Update());
+        });
+
     }
 
     protected async Task ForceAllSubmitAsync()
