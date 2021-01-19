@@ -23,6 +23,24 @@ else
 	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} up -d
 endif
 
+development-down:
+ifeq (${DEVELOPMENT_OVERRIDE_FILE}, $(shell ls | grep ${DEVELOPMENT_OVERRIDE_FILE}))
+	docker-compose -f docker-compose.yaml -f ${DEVELOPMENT_OVERRIDE_FILE} down
+	docker-compose -f docker-compose.yaml -f ${DEVELOPMENT_OVERRIDE_FILE} down
+else
+	docker-compose down
+	docker-compose down
+endif
+
+production-down:
+ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
+else
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
+	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
+endif
+
 development-remove:
 ifeq (${DEVELOPMENT_OVERRIDE_FILE}, $(shell ls | grep ${DEVELOPMENT_OVERRIDE_FILE}))
 	docker-compose -f docker-compose.yaml -f ${DEVELOPMENT_OVERRIDE_FILE} down
@@ -33,14 +51,6 @@ else
 endif
 	docker volume rm lms7_db-data lms7_app-data
 
-production-down:
-ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
-	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
-	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_OVERRIDE_FILE} down
-else
-	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
-	docker-compose -f docker-compose.production.yaml -f ${PRODUCTION_DEFAULT_FILE} down
-endif
 
 production-remove:
 ifeq (${PRODUCTION_OVERRIDE_FILE}, $(shell ls | grep ${PRODUCTION_OVERRIDE_FILE}))
