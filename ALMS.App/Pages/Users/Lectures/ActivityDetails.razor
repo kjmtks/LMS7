@@ -256,6 +256,11 @@
     {
         try
         {
+            var LoginUser = DB.Context.Users.Where(x => x.Account == AuthorizedContext.User.Identity.Name)
+                .Include(x => x.Lectures)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            var time = DateTime.Now;
             var submits = DB.Context.ActivityActionHistories.Where(x => x.LectureId == Lecture.Id && x.ActivityName == ActivityName && x.ActionType == ActivityActionType.SaveAndSubmit);
             foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
             {
@@ -274,6 +279,8 @@
                     {
                         w.Write(scores[i].ToString());
                     }
+                    Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{ActivityName}\" Action=\"Comment\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
+                    Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
                 }
             }
             Message = "Comments and scores were saved successfully";
