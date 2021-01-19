@@ -2,6 +2,10 @@
 @namespace ALMS.App.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
+@{
+    Response.Headers["Cache-Control"] = "no-store";
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,9 +39,16 @@
     <script async src="node_modules/mathjax/es5/tex-chtml.js"></script>
 
     <script src="node_modules/ace-min-noconflict/ace.js"></script>
-    <script>function setupAceEditor(id, mode) {
+    <script>
+        function setupAceEditor(id, mode) {
             var editor = ace.edit(id);
+
+            var resizer = function() {
+				editor.resize();
+			};
             editor.getSession().setMode("ace/mode/" + mode);
+            resizer();
+            editor.getSession().on('change', resizer);
         }
         function getTextFromAceEditor(id) { return ace.edit(id).getValue(); }
         function setTextToAceEditor(id, text) { ace.edit(id).setValue(text); }
