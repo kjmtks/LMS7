@@ -41,87 +41,113 @@
 
                 var submits = DB.Context.ActivityActionHistories.Where(x => x.LectureId == Lecture.Id && x.ActivityName == ActivityName && x.ActionType == ActivityActionType.SaveAndSubmit);
 
-                <div class="ui content">
+                <div class="ui">
 
-                    <div class="ui menu top attached">
-                        <div class="header left item"><i class="pen square icon"></i> @ActivityName</div>
-                    </div>
-                    <table class="ui padded table bottom attached">
-                        <thead>
-                            <tr>
-                                <th class="single line">User</th>
-                                <th class="single line">Summary</th>
-                                <th class="single line">Files</th>
-                                <th class="single line">Submitted at</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var a in Lecture.LectureUsers.OrderBy(x => x.User.Account))
-                            {
-                                var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
+                    @if (!string.IsNullOrWhiteSpace(Message))
+                    {
+                        <div class="ui top attached mini icon menu">
+                            <span class="borderless item">Message</span>
+                            <a class="right item" @onclick='() => { Message = ""; }'><i class="times icon"></i></a>
+                        </div>
+                        <pre class="ui green segment bottom attached tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;">@Message</pre>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+                    {
+                        <div class="ui top attached mini icon menu">
+                            <span class="borderless item">Error</span>
+                            <a class="right item" @onclick='() => { ErrorMessage = ""; }'><i class="times icon"></i></a>
+                        </div>
+                        <pre class="ui red segment bottom attached tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;">@ErrorMessage</pre>
+                    }
+
+                    <div class="ui content">
+
+                        <div class="ui menu top attached">
+                            <div class="header left item"><i class="pen square icon"></i> @ActivityName</div>
+
+                            <a class="right item" @onclick="() => SaveCommentsAndScores()"><i class="save icon"></i> Save all comments and scores</a>
+                        </div>
+                        <table class="ui padded table bottom attached">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        @if (a.Role == LectureUserRole.Teacher)
-                                        {
-                                            <i class="chess king icon"></i>
-                                        }
-                                        @if (a.Role == LectureUserRole.Student)
-                                        {
-                                            <i class="chess pawn icon"></i>
-                                        }
-                                        @a.User.Account
-                                        &nbsp;&nbsp;&nbsp;&nbsp;
-                                        @a.User.DisplayName
-                                    </td>
-                                    <td>
-                                        @{
-                                            var t = GetSummary(action);
-                                        }
-                                        @if(!string.IsNullOrWhiteSpace(t))
-                                        {
-                                            <pre class="tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;">@t</pre>
-                                        }
-                                        
-                                    </td>
-                                    @if (action == null)
-                                    {
-                                        <td colspan="2"> --- </td>
-                                    }
-                                    else
-                                    {
-                                        <td>
-                                            @foreach (var name in GetChildren($"{a.User.Account}/{action.Directory}"))
-                                            {
-                                                var isDir = GetChildren($"{a.User.Account}/{action.Directory}/{name}").Count() > 0;
-                                                <p>
-                                                    @if(isDir)
-                                                    {
-                                                        <i class="folder outline icon"></i>
-                                                        @name
-                                                    }
-                                                    else
-                                                    {
-                                                        <i class="file outline icon"></i>
-                                                        <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.Directory/@name">@name</a>
-                                                    }
-                                                </p>
-                                            }
-                                        </td>
-                                        <td>@action.DateTime.ToString()</td>
-                                    }
+                                    <th class="single line">User</th>
+                                    <th class="single line">Submitted at &amp; Files</th>
+                                    <th class="single line">Summary</th>
+                                    <th class="single line">Comment &amp; Score</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+                                {
+                                    var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
+                                    <tr>
+                                        <td>
+                                            @if (a.Role == LectureUserRole.Teacher)
+                                            {
+                                                <i class="chess king icon"></i>
+                                            }
+                                            @if (a.Role == LectureUserRole.Student)
+                                            {
+                                                <i class="chess pawn icon"></i>
+                                            }
+                                            @a.User.Account
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            @a.User.DisplayName
+                                        </td>
+                                        @if (action == null)
+                                        {
+                                            <td colspan="3">  </td>
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                <p><i class="clock outline icon"></i>@action.DateTime.ToString()</p>
+                                                @foreach (var name in GetChildren($"{a.User.Account}/{action.Directory}"))
+                                                {
+                                                    var isDir = GetChildren($"{a.User.Account}/{action.Directory}/{name}").Count() > 0;
+                                                    <p>
+                                                        @if (isDir)
+                                                        {
+                                                            <i class="folder outline icon"></i>
+                                                            @name
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="file outline icon"></i>
+                                                            <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.ActivityName/@name">@name</a>
+                                                        }
+                                                    </p>
+                                                }
+                                            </td>
 
+                                            <td>
+                                                @{
+                                                    var t = GetSummary(action);
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(t))
+                                                {
+                                                    <pre class="tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; background-color: white;">@t</pre>
+                                                }
+
+                                            </td>
+                                            <td>
+                                                <p>Score: <input type="number" class="tt" @bind="scores[i]" /><br /></p>
+                                                <p><textarea class="tt" rows="4" style="width: 250px" @bind="comments[i]" placeholder="comment"></textarea></p>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                }
             }
-        }
-        else
-        {
-            <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
-        }
-
+            else
+            {
+                <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
+            }
     </Authorized>
 </AuthorizeView>
 
@@ -161,6 +187,11 @@
 
     protected IEnumerable<string> Files { get; set; }
 
+    protected string[] comments;
+    protected int[] scores;
+    private string Message = "";
+    private string ErrorMessage = "";
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -180,6 +211,80 @@
             .Where(x => x.Name == LectureName && x.Owner.Account == UserAccount).FirstOrDefault();
         RepositoryPair = Lecture.LectureSubmissionsRepositoryPair;
         Files = RepositoryPair.ReadFileList("", Branch);
+
+        comments = new string[Lecture.LectureUsers.Count()];
+        scores = new int[Lecture.LectureUsers.Count()];
+        for (int i=0; i<comments.Length; i++)
+        {
+            comments[i] = $"";
+            scores[i] = 0;
+        }
+        ReadCommentsAndScores();
+    }
+
+
+    public void ReadCommentsAndScores()
+    {
+        var submits = DB.Context.ActivityActionHistories.Where(x => x.LectureId == Lecture.Id && x.ActivityName == ActivityName && x.ActionType == ActivityActionType.SaveAndSubmit);
+        foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+        {
+            var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
+            if(action != null)
+            {
+
+                var comment_file = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/COMMENT");
+                var score_file = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/SCORE");
+                if (comment_file.Exists)
+                {
+                    using (var fs = comment_file.OpenText())
+                    {
+                        comments[i] = fs.ReadToEnd().Trim();
+                    }
+                }
+                if (score_file.Exists)
+                {
+                    using (var fs = score_file.OpenText())
+                    {
+                        scores[i] = int.TryParse(fs.ReadToEnd().Trim(), out var score) ? score : 0;
+                    }
+                }
+            }
+        }
+    }
+
+    public void SaveCommentsAndScores()
+    {
+        try
+        {
+            var submits = DB.Context.ActivityActionHistories.Where(x => x.LectureId == Lecture.Id && x.ActivityName == ActivityName && x.ActionType == ActivityActionType.SaveAndSubmit);
+            foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+            {
+                var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
+                if (action != null)
+                {
+
+                    var comment_file = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/COMMENT");
+                    var score_file = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/SCORE");
+
+                    using (var w = new System.IO.StreamWriter(comment_file.FullName))
+                    {
+                        w.Write(comments[i]);
+                    }
+                    using (var w = new System.IO.StreamWriter(score_file.FullName))
+                    {
+                        w.Write(scores[i].ToString());
+                    }
+                }
+            }
+            Message = "Comments and scores were saved successfully";
+            ErrorMessage = "";
+        }
+        catch (Exception e)
+        {
+            Message = "";
+            ErrorMessage = e.Message;
+        }
+
     }
 
     public async Task OnNotify()
@@ -203,7 +308,7 @@
     protected string GetSummary(ActivityActionHistory action)
     {
         if (action == null) return null;
-        var target = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.Directory}/SUBMIT");
+        var target = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/SUBMIT");
         if(target.Exists)
         {
             using (var fs = target.OpenText())
@@ -216,5 +321,6 @@
             return null;
         }
     }
+
 }
 

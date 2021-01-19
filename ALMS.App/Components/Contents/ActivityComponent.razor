@@ -5,6 +5,7 @@
 @inject IJSRuntime JS;
 @inject DatabaseService DB;
 @inject NotifierService Notifier;
+@inject ActivityService ActivityService;
 
 
 @if (!string.IsNullOrWhiteSpace(ErrorMessage))
@@ -268,7 +269,7 @@ else
             }
 
             SubmittedActionHistory = DB.Context.ActivityActionHistories.Include(x => x.Lecture).Include(x => x.User).Where(x => x.LectureId == Lecture.Id && x.UserId == User.Id && x.ActivityName == Activity.Name && x.ActionType == ActivityActionType.SaveAndSubmit).OrderBy(x => x.DateTime).AsNoTracking().LastOrDefault();
-            await Activity.SetInitialValueAsync(Lecture, User);
+            await ActivityService.SetInitialValueAsync(Activity, Lecture, User);
             StateHasChanged();
             await JS.InvokeVoidAsync("typesetMathJax");
         }
@@ -294,7 +295,7 @@ else
 
 
         var time = DateTime.Now;
-        var (isSuccess, message) = await Activity.SaveAsync(Lecture, User, DB.Context);
+        var (isSuccess, message) = await ActivityService.SaveAsync(Activity, Lecture, User);
         if (isSuccess)
         {
             StandardOutput = message;
@@ -325,7 +326,7 @@ else
         Images.Clear();
         StateHasChanged();
 
-        await Activity.RunAsync(Lecture, User, DB.Context, queue, SendOutput, SendError, (cmd) =>
+        await ActivityService.RunAsync(Activity, Lecture, User, SendOutput, SendError, (cmd) =>
         {
             var terms = cmd.Split();
             if (terms.Count() >= 3 && terms[0] == "image")
@@ -366,7 +367,7 @@ else
         StateHasChanged();
 
         var time = DateTime.Now;
-        await Activity.SubmitAsync(Lecture, User, DB.Context, queue, (code, isSuccess, message) =>
+        await ActivityService.SubmitAsync(Activity, Lecture, User, (code, isSuccess, message) =>
         {
             if (isSuccess)
             {
@@ -384,30 +385,6 @@ else
             InvokeAsync(() => Notifier.Update());
         });
 
-    }
-
-    protected async Task ForceAllSubmitAsync()
-    {
-        if (Processing) { return; }
-
-        Processing = true;
-        ExitCode = null;
-        StandardOutput = "";
-        StandardError = "";
-        Images.Clear();
-        StateHasChanged();
-
-        var time = DateTime.Now;
-        var (saveSuccessfully, message) = await Activity.ForceAllSubmitAsync(Lecture, DB.Context);
-        if (!saveSuccessfully)
-        {
-            StandardError = message;
-            return;
-        }
-        StandardOutput = "Everyone files were force submitted successfully";
-        Processing = false;
-        await InvokeAsync(() => StateHasChanged());
-        await InvokeAsync(() => Notifier.Update());
     }
 
     protected async Task ValidateAsync()
@@ -428,7 +405,7 @@ else
         StateHasChanged();
 
 
-        await Activity.ValidateAsync(Lecture, User, DB.Context, queue, (result, isSuccess, message) =>
+        await ActivityService.ValidateAsync(Activity, Lecture, User, (result, isSuccess, message) =>
         {
             if (isSuccess)
             {
