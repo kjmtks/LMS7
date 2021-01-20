@@ -24,7 +24,7 @@
 @using ALMS.App.Models.Entities;
 @inject NotifierService Notifier;
 @implements IDisposable;
-
+@inject AuthenticationStateProvider AuthenticationStateProvider;
 
 
 <AuthorizeView>
@@ -65,7 +65,7 @@
                         <div class="ui menu top attached">
                             <div class="header left item"><i class="pen square icon"></i> @ActivityName</div>
 
-                            <a class="right item" @onclick="() => SaveCommentsAndScores()"><i class="save icon"></i> Save all comments and scores</a>
+                            <a class="right item" @onclick="async () => await SaveCommentsAndScoresAsync()"><i class="save icon"></i> Save all comments and scores</a>
                         </div>
                         <table class="ui padded table bottom attached">
                             <thead>
@@ -137,17 +137,17 @@
                                         }
                                     </tr>
                                 }
-                                </tbody>
-                            </table>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
 
-                }
             }
-            else
-            {
-                <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
-            }
+        }
+        else
+        {
+            <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
+        }
     </Authorized>
 </AuthorizeView>
 
@@ -214,7 +214,7 @@
 
         comments = new string[Lecture.LectureUsers.Count()];
         scores = new int[Lecture.LectureUsers.Count()];
-        for (int i=0; i<comments.Length; i++)
+        for (int i = 0; i < comments.Length; i++)
         {
             comments[i] = $"";
             scores[i] = 0;
@@ -229,7 +229,7 @@
         foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
         {
             var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
-            if(action != null)
+            if (action != null)
             {
 
                 var comment_file = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/COMMENT");
@@ -252,14 +252,16 @@
         }
     }
 
-    public void SaveCommentsAndScores()
+    public async Task SaveCommentsAndScoresAsync()
     {
         try
         {
-            var LoginUser = DB.Context.Users.Where(x => x.Account == AuthorizedContext.User.Identity.Name)
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var LoginUser = DB.Context.Users.Where(x => x.Account == authState.User.Identity.Name)
                 .Include(x => x.Lectures)
                 .Include(x => x.Sandboxes)
                 .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            Console.WriteLine(authState.User.Identity.Name);
             var time = DateTime.Now;
             var submits = DB.Context.ActivityActionHistories.Where(x => x.LectureId == Lecture.Id && x.ActivityName == ActivityName && x.ActionType == ActivityActionType.SaveAndSubmit);
             foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
@@ -316,7 +318,7 @@
     {
         if (action == null) return null;
         var target = new System.IO.FileInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/SUBMIT");
-        if(target.Exists)
+        if (target.Exists)
         {
             using (var fs = target.OpenText())
             {
