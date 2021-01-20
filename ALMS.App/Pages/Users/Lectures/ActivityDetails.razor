@@ -131,7 +131,7 @@
 
                                             </td>
                                             <td>
-                                                <p>Score: <input type="number" class="tt" @bind="scores[i]" /><br /></p>
+                                                <p>Score: <input type="text" class="tt" @bind="scores[i]" /><br /></p>
                                                 <p><textarea class="tt" rows="4" style="width: 250px" @bind="comments[i]" placeholder="comment"></textarea></p>
                                             </td>
                                         }
@@ -188,7 +188,7 @@
     protected IEnumerable<string> Files { get; set; }
 
     protected string[] comments;
-    protected int[] scores;
+    protected string[] scores;
     private string Message = "";
     private string ErrorMessage = "";
 
@@ -213,11 +213,11 @@
         Files = RepositoryPair.ReadFileList("", Branch);
 
         comments = new string[Lecture.LectureUsers.Count()];
-        scores = new int[Lecture.LectureUsers.Count()];
+        scores = new string[Lecture.LectureUsers.Count()];
         for (int i = 0; i < comments.Length; i++)
         {
             comments[i] = $"";
-            scores[i] = 0;
+            scores[i] = $"";
         }
         ReadCommentsAndScores();
     }
@@ -245,7 +245,7 @@
                 {
                     using (var fs = score_file.OpenText())
                     {
-                        scores[i] = int.TryParse(fs.ReadToEnd().Trim(), out var score) ? score : 0;
+                        scores[i] = fs.ReadToEnd().Trim();
                     }
                 }
             }
@@ -279,7 +279,7 @@
                     }
                     using (var w = new System.IO.StreamWriter(score_file.FullName))
                     {
-                        w.Write(scores[i].ToString());
+                        w.Write(scores[i]);
                     }
                     Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{ActivityName}\" Action=\"Comment\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
                     Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();

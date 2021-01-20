@@ -61,7 +61,7 @@ else
 
         @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
         {
-        <div class="ui attached segment" style="padding: 0; height: @((int)TabSize)em; display: @(i==SelectedTabIndex ? " block" : "none")">
+        <div class="ui attached segment" style="padding: 0; height: @($"{(int)TabSize}em;") display: @(i==SelectedTabIndex ? " block" : "none")">
             @tab.Item2
         </div>
         }
@@ -148,7 +148,7 @@ else
             @if (HasCommentOrScore())
             {
             <span data-tooltip="Comment & Score" data-variation="basic">
-                <a class="@(Processing ? " disabled" : "" ) item" @onclick="ShowCommentAndScore"><i class="thumbs up outline icon"></i></a>
+                <a class="@(Processing ? " disabled" : "" ) item" @onclick="() => { Comment = GetCommentAndScore(); }"><i class="thumbs up outline icon"></i></a>
             </span>
             }
             @if (TabSize == Size.Normal)
@@ -296,41 +296,38 @@ else
         StateHasChanged();
     }
 
-    protected void ShowCommentAndScore()
+    protected string GetCommentAndScore()
     {
         var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{User.Account}/{Activity.Name}/COMMENT");
         var score_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{User.Account}/{Activity.Name}/SCORE");
-        if (comment_file.Exists)
-        {
-            using (var fs = comment_file.OpenText())
-            {
-                Comment = fs.ReadToEnd().Trim();
-            }
-        }
+        var sb = new System.Text.StringBuilder();
         if (score_file.Exists)
         {
             using (var fs = score_file.OpenText())
             {
-                if(int.TryParse(fs.ReadToEnd().Trim(), out var score))
+                var score = fs.ReadToEnd().Trim();
+                if (!string.IsNullOrWhiteSpace(score))
                 {
-                    Comment = $"Score: {score}\n{Comment}";
+                    sb.AppendLine($"Score: {fs.ReadToEnd().Trim()}");
                 }
             }
         }
+        if (comment_file.Exists)
+        {
+            using (var fs = comment_file.OpenText())
+            {
+                var comment = fs.ReadToEnd().Trim();
+                if (!string.IsNullOrWhiteSpace(comment))
+                {
+                    sb.AppendLine(comment);
+                }
+            }
+        }
+        return sb.ToString();
     }
     protected bool HasCommentOrScore()
     {
-        var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{User.Account}/{Activity.Name}/COMMENT");
-        var score_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{User.Account}/{Activity.Name}/SCORE");
-        if (comment_file.Exists)
-        {
-            return true;
-        }
-        if (score_file.Exists)
-        {
-            return true;
-        }
-        return false;
+        return !string.IsNullOrWhiteSpace(GetCommentAndScore());
     }
 
     protected async Task SaveAsync()
