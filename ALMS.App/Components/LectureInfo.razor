@@ -78,7 +78,7 @@
         {
 
             var parameters = Lecture.GetParameters().GetValues();
-            @if (parameters.Count() > 0)
+            @if (parameters != null && parameters.Count() > 0)
             {
                 <h2 class="ui header">
                     <i class="dollar sign  icon"></i>
@@ -126,7 +126,7 @@
         @try
         {
             var scorings = Lecture.GetScorings().Children;
-            @if (scorings.Count() > 0)
+            @if (scorings != null && scorings.Count() > 0)
             {
 
                 <h2 class="ui header">
