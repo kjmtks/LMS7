@@ -113,13 +113,22 @@
                     </tbody>
                 </table>
             }
+        }
+        catch (Exception e)
+        {
+            <div class="ui negative message">
+                <div class="ui header">Parse parameters.xml Error</div>
+                <p>@e.GetBaseException().ToString()</p>
+            </div>
+        }
 
 
-
+        @try
+        {
             var scorings = Lecture.GetScorings().Children;
             @if (scorings.Count() > 0)
             {
-            
+
                 <h2 class="ui header">
                     <i class="thumbs up outline icon"></i>
                     <div class="content">
@@ -155,8 +164,8 @@
         catch (Exception e)
         {
             <div class="ui negative message">
-                <div class="ui header">Parse parameters.xml Error</div>
-                <p>@e.Message</p>
+                <div class="ui header">Parse scorings.xml Error</div>
+                <p>@e.GetBaseException().ToString()</p>
             </div>
         }
 
