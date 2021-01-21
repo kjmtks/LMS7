@@ -65,28 +65,18 @@ namespace ALMS.App.Models.Entities
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
-        public void MountLectureDirectory()
-        {
-            var h = new System.IO.DirectoryInfo($"{DirectoryPath}/lecture");
-            if (!h.Exists) { h.Create(); }
-            var f = new System.IO.DirectoryInfo($"{Lecture.LectureContentsRepositoryPair.ClonedRepository.DirectoryPath}/files");
-            if (!f.Exists) { f.Create(); }
-            Console.WriteLine($"mounting: {f.FullName} {h.FullName}");
-            System.Diagnostics.Process.Start("chmod", $"644 {f.FullName}").WaitForExit();
-            System.Diagnostics.Process.Start("mount", $"--bind {f.FullName} {h.FullName}").WaitForExit();
-        }
         public override void CreateNew(DatabaseContext context, IConfiguration config)
         {
             CreateDirectory(context, config);
 
             context.Add(this);
 
-            // mounting lecture direcotry
-            MountLectureDirectory();
-
             // copy /etc/passwd, /etc/group
             File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");
             File.Copy($"{DirectoryPath}/etc/group", $"{DirectoryPath}/etc/group.original");
+
+            // mounting lecture direcotry
+            MountLectureDirectory();
 
             // mounting user homes
             SetUsers();
@@ -168,8 +158,6 @@ namespace ALMS.App.Models.Entities
 
 
 
-
-
         public void SetUsers()
         {
             var users = Lecture.LectureUsers.Select(x => x.User).Distinct();
@@ -238,6 +226,17 @@ namespace ALMS.App.Models.Entities
                     System.Diagnostics.Process.Start("rm", $"-rf {DirectoryPath}/home/{account}").WaitForExit();
                 }
             }
+        }
+        public void MountLectureDirectory()
+        {
+            var h = new System.IO.DirectoryInfo($"{DirectoryPath}/lecture");
+            if (!h.Exists) { h.Create(); }
+            var f = new System.IO.DirectoryInfo($"{Lecture.LectureContentsRepositoryPair.ClonedRepository.DirectoryPath}/files");
+            if (!f.Exists) { f.Create(); }
+            Console.WriteLine($"mounting: {f.FullName} {h.FullName}");
+            System.Diagnostics.Process.Start("chmod", $"644 {f.FullName}").WaitForExit();
+            System.Diagnostics.Process.Start("chown", $"root:root {f.FullName}").WaitForExit();
+            System.Diagnostics.Process.Start("mount", $"--bind {f.FullName} {h.FullName}").WaitForExit();
         }
 
 
