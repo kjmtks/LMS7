@@ -25,7 +25,7 @@ namespace ALMS.App.Models
 
         public IEnumerable<ILectureParameter> GetValues()
         {
-            return Parameters.Cast<ILectureParameter>();
+            return Parameters != null ? Parameters.Cast<ILectureParameter>() : new ILectureParameter[] { };
         }
         public T GetValue<T>(string name) where T : ILectureParameter
         {
