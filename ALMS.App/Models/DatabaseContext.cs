@@ -51,14 +51,14 @@ namespace ALMS.App.Models
 
             modelBuilder.Entity<Lecture>().ToTable("Lecture");
             modelBuilder.Entity<Lecture>().HasKey(x => x.Id);
-            modelBuilder.Entity<Lecture>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Lecture>().HasIndex(x => new { x.Name, x.OwnerId } ).IsUnique();
             modelBuilder.Entity<Lecture>().HasOne(x => x.Owner);
             modelBuilder.Entity<Lecture>().HasMany(x => x.Sandboxes);
             modelBuilder.Entity<Lecture>().HasMany(x => x.LectureUsers).WithOne(x => x.Lecture).HasForeignKey(x => x.LectureId);
 
             modelBuilder.Entity<LectureSandbox>().ToTable("LectureSandboxes");
             modelBuilder.Entity<LectureSandbox>().HasKey(x => x.Id);
-            modelBuilder.Entity<LectureSandbox>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<LectureSandbox>().HasIndex(x => new { x.Name, x.LectureId} ).IsUnique();
             modelBuilder.Entity<LectureSandbox>().HasOne(x => x.Lecture);
 
             modelBuilder.Entity<LectureUser>().ToTable("LectureUser");
