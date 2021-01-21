@@ -73,77 +73,76 @@
                                     <th class="single line">User</th>
                                     <th class="single line">Submitted at &amp; Files</th>
                                     <th class="single line">Summary</th>
-                                    <th class="single line">Comment &amp; Score</th>
+                                    <th class="single line">Comment</th>
+                                    <th class="single line">Score</th>
+                                    <th class="single line"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td colspan="3">*</td>
-                                    <td>
-                                        <p>Score: <input type="text" class="tt" @bind="score_templ" /><br /></p>
-                                        <p><textarea class="tt" rows="4" style="width: 250px" @bind="comment_templ" placeholder="comment"></textarea></p>
-                                        <p><button class="ui primary button" @onclick="() => { CopyCommentAndScoreToBlanks(); }">copy to blanks</button></p>
-                                    </td>
+                                    <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" style="width: 250px" @bind="comment_templ" placeholder="comment"></textarea></div></div></td>
+                                    <td><div class="ui form"><div class="field"><input type="text" class="tt" @bind="score_templ" /></div></div></td>
+                                    <td><button class="ui primary button" @onclick="() => { CopyCommentAndScoreToBlanks(); }">copy to blanks</button></td>
                                 </tr>
                                 @foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
                                 {
                                     var action = submits.Where(x => x.UserId == a.UserId).OrderBy(x => x.DateTime).LastOrDefault();
-                                    <tr>
-                                        <td>
-                                            @if (a.Role == LectureUserRole.Teacher)
-                                            {
-                                                <i class="chess king icon"></i>
-                                            }
-                                            @if (a.Role == LectureUserRole.Student)
-                                            {
-                                                <i class="chess pawn icon"></i>
-                                            }
-                                            @a.User.Account
-                                            &nbsp;&nbsp;&nbsp;&nbsp;
-                                            @a.User.DisplayName
-                                        </td>
-                                        @if (action == null)
+                            <tr>
+                                <td>
+                                    @if (a.Role == LectureUserRole.Teacher)
+                                    {
+                                        <i class="chess king icon"></i>
+                                    }
+                                    @if (a.Role == LectureUserRole.Student)
+                                    {
+                                        <i class="chess pawn icon"></i>
+                                    }
+                                    @a.User.Account
+                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                    @a.User.DisplayName
+                                </td>
+                                @if (action == null)
+                                {
+                                    <td colspan="5">  </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <p><i class="clock outline icon"></i>@action.DateTime.ToString()</p>
+                                        @foreach (var name in GetChildren($"{a.User.Account}/{action.Directory}"))
                                         {
-                                            <td colspan="3">  </td>
+                                            var isDir = GetChildren($"{a.User.Account}/{action.Directory}/{name}").Count() > 0;
+                                            <p>
+                                                @if (isDir)
+                                                {
+                                                    <i class="folder outline icon"></i>
+                                                    @name
+                                                }
+                                                else
+                                                {
+                                                    <i class="file outline icon"></i>
+                                                    <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.ActivityName/@name">@name</a>
+                                                }
+                                            </p>
                                         }
-                                        else
+                                    </td>
+
+                                    <td>
+                                        @{
+                                            var t = GetSummary(action);
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(t))
                                         {
-                                            <td>
-                                                <p><i class="clock outline icon"></i>@action.DateTime.ToString()</p>
-                                                @foreach (var name in GetChildren($"{a.User.Account}/{action.Directory}"))
-                                                {
-                                                    var isDir = GetChildren($"{a.User.Account}/{action.Directory}/{name}").Count() > 0;
-                                                    <p>
-                                                        @if (isDir)
-                                                        {
-                                                            <i class="folder outline icon"></i>
-                                                            @name
-                                                        }
-                                                        else
-                                                        {
-                                                            <i class="file outline icon"></i>
-                                                            <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.ActivityName/@name">@name</a>
-                                                        }
-                                                    </p>
-                                                }
-                                            </td>
-
-                                            <td>
-                                                @{
-                                                    var t = GetSummary(action);
-                                                }
-                                                @if (!string.IsNullOrWhiteSpace(t))
-                                                {
-                                                    <pre class="tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; background-color: white;">@t</pre>
-                                                }
-
-                                            </td>
-                                            <td>
-                                                <p>Score: <input type="text" class="tt" @bind="scores[i]" /><br /></p>
-                                                <p><textarea class="tt" rows="4" style="width: 250px" @bind="comments[i]" placeholder="comment"></textarea></p>
-                                            </td>
+                                            <pre class="tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap; background-color: white;">@t</pre>
                                         }
-                                    </tr>
+
+                                    </td>
+                                    <td><div class="ui form"><div class="field"><input type="text" class="tt" @bind="scores[i]" /></div></div></td>
+                                    <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" style="width: 250px" @bind="comments[i]" placeholder="comment"></textarea></div></div></td>
+                                    <td></td>
+                                }
+                            </tr>
                                 }
                             </tbody>
                         </table>
