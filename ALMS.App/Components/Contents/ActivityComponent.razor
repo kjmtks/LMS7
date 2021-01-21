@@ -31,7 +31,7 @@ else
         }
 
         <div class="ui top attached mini bordered menu">
-            @foreach (var (tab, i) in Activity.GetChildRenderFragments().Where(x => !(x.Item1 is ALMS.App.Models.Contents.ActivityFilesHidden)).Select((tab, i) => (tab, i)))
+            @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
             {
             <a class="@(i == SelectedTabIndex ? " active" : "" ) item" @onclick='() => ShowTab(i)'>
                 @if (tab.Item1 is ALMS.App.Models.Contents.ActivityFilesText)
@@ -59,7 +59,7 @@ else
             }
         </div>
 
-        @foreach (var (tab, i) in Activity.GetChildRenderFragments().Where(x => !(x.Item1 is ALMS.App.Models.Contents.ActivityFilesHidden)).Select((tab, i) => (tab, i)))
+        @foreach (var (tab, i) in Activity.GetChildRenderFragments().Select((tab, i) => (tab, i)))
         {
         <div class="ui attached segment" style="padding: 0; height: @($"{(int)TabSize}em;") display: @(i == SelectedTabIndex ? " block" : "none")">
             @tab.Item2

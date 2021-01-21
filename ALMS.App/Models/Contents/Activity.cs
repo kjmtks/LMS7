@@ -47,17 +47,6 @@ namespace ALMS.App.Models.Contents
             fileComponents = new Dictionary<string, FileActivityComponentBase>();
             foreach (var file in Files.Children)
             {
-                if (file is ActivityFilesHidden fh)
-                {
-                    RenderFragment frg = (RenderTreeBuilder builder) =>
-                    {
-                        builder.OpenComponent(0, typeof(HiddenActivityComponent));
-                        builder.AddAttribute(1, "File", fh);
-                        builder.AddComponentReferenceCapture(2, e => { fileComponents[file.Name] = e as FileActivityComponentBase; });
-                        builder.CloseComponent();
-                    };
-                    frgs.Add((file, frg));
-                }
                 if (file is ActivityFilesText ft)
                 {
                     RenderFragment frg = (RenderTreeBuilder builder) =>
@@ -183,7 +172,6 @@ namespace ALMS.App.Models.Contents
     [Serializable]
     public partial class ActivityFiles
     {
-        [XmlElement("Hidden", typeof(ActivityFilesHidden))]
         [XmlElement("Code", typeof(ActivityFilesCode))]
         [XmlElement("Text", typeof(ActivityFilesText))]
         [XmlElement("String", typeof(ActivityFilesString))]
@@ -191,23 +179,6 @@ namespace ALMS.App.Models.Contents
         [XmlElement("Form", typeof(ActivityFilesForm))]
         public object[] Files { get; set; }
         public IEnumerable<IActivityFile> Children { get { return this.Files.Cast<IActivityFile>(); } }
-    }
-
-    [Serializable]
-    public partial class ActivityFilesHidden : IActivityFile
-    {
-        [XmlAttribute]
-        public string Name { get; set; }
-        public string Label { get { return ""; } }
-        [XmlAttribute]
-        public bool Submit { get; set; }
-
-        [XmlText]
-        public string Text { get; set; }
-        public bool HasAnswer()
-        {
-            return false;
-        }
     }
 
     [Serializable]

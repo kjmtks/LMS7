@@ -151,6 +151,7 @@
 
   <xs:group name="File">
     <xs:choice>
+      <!--
       <xs:element name="Hidden">
         <xs:complexType>
           <xs:simpleContent>
@@ -161,6 +162,7 @@
           </xs:simpleContent>
         </xs:complexType>
       </xs:element>
+      -->
       <xs:element name="Code">
         <xs:complexType>
           <xs:sequence>
