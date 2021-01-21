@@ -149,6 +149,7 @@ namespace ALMS.App.Models
             catch(Exception e)
             {
                 Console.Error.WriteLine(e.GetBaseException().ToString());
+                return new string[0];
             }
         }
         public IEnumerable<string> ReadFileList(string path, string branch = "master")
