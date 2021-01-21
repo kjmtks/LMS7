@@ -67,9 +67,15 @@ namespace ALMS.App.Models.Entities
         }
         public override void CreateNew(DatabaseContext context, IConfiguration config)
         {
+            try
+            {
+                context.Add(this);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.GetBaseException().ToString());
+            }
             CreateDirectory(context, config);
-
-            context.Add(this);
 
             // copy /etc/passwd, /etc/group
             File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");

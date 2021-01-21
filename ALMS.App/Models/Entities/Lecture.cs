@@ -98,6 +98,8 @@ namespace ALMS.App.Models.Entities
 
         public void CreateNew(DatabaseContext context, IConfiguration config)
         {
+            context.Add(this);
+
             CreateDirectory(context, config);
 
             // parse teachers and students
@@ -146,8 +148,6 @@ namespace ALMS.App.Models.Entities
             }
             LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges("Initial Commit", Owner.DisplayName, Owner.EmailAddress);
             LectureSubmissionsRepositoryPair.ClonedRepository.Push();
-
-            context.Add(this);
         }
 
         public void Update(DatabaseContext context, IConfiguration config, Lecture previous)
