@@ -3,14 +3,20 @@
 
 <div class="ui fixed inverted menu">
     <div class="ui container">
-        <a class="header item" href="">
-            <i class="home icon"></i>
-            Home
-        </a>
-
-        <div class="right menu">
-            <AuthorizeView>
-                <Authorized>
+        <AuthorizeView>
+            <Authorized>
+                <a class="header item" href="">
+                    <i class="home icon"></i>
+                    Home
+                </a>
+                @if(!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
+                {
+                    <a class="header item" href="">
+                        <i class="pencil icon"></i>
+                        <a href="/lecture/@OwnerAccount/@LectureName">Lecture Home</a>
+                    </a>
+                }
+                <div class="right menu">
                     <AuthorizeView Roles="Admin" Context="AdminContext">
                         <a class="item" href="admin">
                             <i class="key icon"></i>
@@ -27,15 +33,21 @@
                             Logout
                         </a>
                     </div>
-                </Authorized>
-                <NotAuthorized>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <a class="header item" href="">
+                    <i class="home icon"></i>
+                    Home
+                </a>
+                <div class="right menu">
                     <a class="item" href="login">
                         <i class="sign-in icon"></i>
                         Login
                     </a>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -43,4 +55,20 @@
 <div class="ui main">
     @Body
 </div>
+
+@code {
+    private string LectureName { get; set; } = null;
+    private string OwnerAccount { get; set; } = null;
+
+    protected override void OnParametersSet()
+    {
+        object ownerAccount = null;
+        object lectureName = null;
+        (this.Body.Target as RouteView)?.RouteData.RouteValues?.TryGetValue("OwnerAccount", out ownerAccount);
+        OwnerAccount = ownerAccount?.ToString();
+
+        (this.Body.Target as RouteView)?.RouteData.RouteValues?.TryGetValue("LectureName", out lectureName);
+        LectureName = lectureName?.ToString();
+    }
+}
 
