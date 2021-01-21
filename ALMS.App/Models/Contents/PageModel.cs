@@ -48,6 +48,10 @@ namespace ALMS.App.Models.Contents
         {
             return dt.ToString("yyyy-MM-ddTHH:mm:sszzz");
         }
+        public static bool HasParameter(System.Dynamic.ExpandoObject viewBag, string parameterName)
+        {
+            return ((IDictionary<string, object>)viewBag).ContainsKey(parameterName);
+        }
     }
 
     public class Lecture
