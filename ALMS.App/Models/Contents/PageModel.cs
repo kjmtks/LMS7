@@ -38,6 +38,10 @@ namespace ALMS.App.Models.Contents
         {
             return Utility.DateTimeToString(dt);
         }
+        public bool HasParameter(System.Dynamic.ExpandoObject viewBag, string parameterName)
+        {
+            return ((IDictionary<string, object>)viewBag).ContainsKey(parameterName);
+        }
     }
 
     //-----
@@ -47,10 +51,6 @@ namespace ALMS.App.Models.Contents
         public static string DateTimeToString(DateTime dt)
         {
             return dt.ToString("yyyy-MM-ddTHH:mm:sszzz");
-        }
-        public static bool HasParameter(System.Dynamic.ExpandoObject viewBag, string parameterName)
-        {
-            return ((IDictionary<string, object>)viewBag).ContainsKey(parameterName);
         }
     }
 
