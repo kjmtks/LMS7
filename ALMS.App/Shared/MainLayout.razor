@@ -14,14 +14,14 @@
                 </a>
                 @if (!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
                 {
-                    <a class="header item" href="lecture/@OwnerAccount/@LectureName/page/master"
+                    <a class="header item" href="javascript: void(0);"
                        @onclick="() => { GoToLectureHome(); }">
                         <i class="pencil icon"></i>
                         Lecture Home
                     </a>
                     @if (IsTeacher(context.User.Identity.Name))
                     {
-                        <a class="header item" href="users/@OwnerAccount/lectures/@LectureName"
+                        <a class="header item" href="javascript: void(0);"
                            @onclick="() => { GoToLectureDashboard(); }">
                             <i class="pen square icon"></i>
                             Dashboard
