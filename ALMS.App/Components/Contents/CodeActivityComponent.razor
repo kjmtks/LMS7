@@ -8,6 +8,8 @@
 @code
 {
 
+    [Parameter]
+    public bool IsReadOnly { get; set; }
     protected int ComponentId = new Random().Next();
     protected override void OnInitialized()
     {
@@ -17,10 +19,10 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         var file = File as ALMS.App.Models.Contents.ActivityFilesCode;
-        await JS.InvokeVoidAsync("setupAceEditor", $"code-activity-{ComponentId}", file.Language);
+        await JS.InvokeVoidAsync("setupAceEditor", $"code-activity-{ComponentId}", file.Language, IsReadOnly);
     }
 
-    
+
     public override async Task<String> GetValueAsync()
     {
         return await JS.InvokeAsync<string>("getTextFromAceEditor", $"code-activity-{ComponentId}");

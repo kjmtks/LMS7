@@ -135,11 +135,6 @@ namespace ALMS.App.Models.Entities
                 {
                     x.WriteLine("");
                 }
-                var files = cc.CreateSubdirectory("files");
-                using (var x = new StreamWriter($"{files.FullName}/.keep"))
-                {
-                    x.WriteLine("");
-                }
                 LectureContentsRepositoryPair.ClonedRepository.CommitChanges("Initial Commit", Owner.DisplayName, Owner.EmailAddress);
                 LectureContentsRepositoryPair.ClonedRepository.Push();
             }

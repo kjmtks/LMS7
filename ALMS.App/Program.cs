@@ -60,7 +60,6 @@ namespace ALMS.App
                         foreach (var sandbox in lecture.Sandboxes)
                         {
                             sandbox.SetUsers();
-                            sandbox.MountLectureDirectory();
                         }
                     }
                 }
