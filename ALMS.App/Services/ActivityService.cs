@@ -98,7 +98,7 @@ namespace ALMS.App.Services
                 var assign = DatabaseService.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.UserId == user.Id && x.LectureId == lecture.Id).FirstOrDefault();
                 if (assign == null) { doneCallback(null, false, "The user is not assigned"); return; }
 
-                var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox).FirstOrDefault();
+                var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox && x.LectureId == lecture.Id).FirstOrDefault();
                 if (sandbox == null) { doneCallback(null, false, "Not found sandbox"); return; }
 
                 var time = DateTime.Now;
@@ -224,7 +224,7 @@ namespace ALMS.App.Services
 
                     if (!string.IsNullOrWhiteSpace(activity.Submit))
                     {
-                        var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox).FirstOrDefault();
+                        var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox && x.LectureId == lecture.Id).FirstOrDefault();
                         if (sandbox == null) { doneCallback(null, false, "Not found sandbox"); return; }
 
                         var sb = new System.Text.StringBuilder();
@@ -312,7 +312,7 @@ namespace ALMS.App.Services
                 var assign = DatabaseService.Context.LectureUsers.Include(x => x.User).Include(x => x.Lecture).ThenInclude(x => x.Owner).Where(x => x.UserId == user.Id && x.LectureId == lecture.Id).FirstOrDefault();
                 if (assign == null) doneCallback(null, false, "The user is not assigned");
 
-                var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox).FirstOrDefault();
+                var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox && x.LectureId == lecture.Id).FirstOrDefault();
                 if (sandbox == null) doneCallback(null, false, "Not found sandbox");
 
                 var time = DateTime.Now;
