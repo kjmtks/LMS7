@@ -23,13 +23,13 @@ namespace ALMS.App.Models.Contents
                .UseMemoryCachingProvider()
                .Build();
             var commitInfo = lecture.LectureContentsRepositoryPair.ReadCommitInfo($"activities/{activity_filename}", branch);
-            var model = new PageModel(lecture, user, commitInfo, current_page_path, branch);
+            dynamic viewbag = new System.Dynamic.ExpandoObject();
+            var model = new PageModel(lecture, user, commitInfo, current_page_path, branch, viewbag);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"@model {model.GetType().FullName}");
             sb.AppendLine("@{ DisableEncoding = true; }");
             sb.Append(text);
 
-            dynamic viewbag = new System.Dynamic.ExpandoObject();
             var x = viewbag as IDictionary<string, Object>;
             foreach (var p in lecture.GetParameters().GetValues())
             {
