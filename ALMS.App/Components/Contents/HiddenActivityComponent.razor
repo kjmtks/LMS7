@@ -3,31 +3,22 @@
 {
     [Parameter]
     public bool IsReadOnly { get; set; }
-    [Parameter]
-    public string Text { get; set; }
 
     public override Task<string> GetValueAsync()
     {
-        return Task.Run<string>(() => Text);
+        var file = File as ALMS.App.Models.Contents.ActivityFilesHidden;
+        return Task.Run<string>(() => file.Text);
     }
     public override Task SetValueAsync(string value)
     {
-        return Task.Run(() => { Text = value; });
+        return null;
     }
     public override Task SetDefaultValueAsync()
     {
-        return Task.Run(() =>
-        {
-            var file = File as ALMS.App.Models.Contents.ActivityFilesHidden;
-            Text = file.Text;
-        });
+        return null;
     }
     public override Task SetAnswerValueAsync()
     {
-        return Task.Run(() =>
-        {
-            var file = File as ALMS.App.Models.Contents.ActivityFilesHidden;
-            Text = file.Text;
-        });
+        return null;
     }
 }
