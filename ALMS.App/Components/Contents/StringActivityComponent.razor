@@ -1,7 +1,14 @@
 ﻿@inherits FileActivityComponentBase
 <div class="ui form" style="margin-left: 1em; margin-right: 1em;">
     <div class="field">
-        <input type="text" class="tt" style="margin-top: 1em; font-family: 'Courier New', Courier, monospace;" @bind="Value" readonly="@(IsReadOnly ? "true" : "false")" />
+        @if (IsReadOnly)
+        {
+            <input type="text" class="tt" style="margin-top: 1em; font-family: 'Courier New', Courier, monospace;" @bind="Value" readonly />
+        }
+        else
+        {
+            <input type="text" class="tt" style="margin-top: 1em; font-family: 'Courier New', Courier, monospace;" @bind="Value" />
+        }
     </div>
 </div>
 @code

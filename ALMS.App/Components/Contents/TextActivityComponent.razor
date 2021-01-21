@@ -1,7 +1,15 @@
 ﻿@inherits FileActivityComponentBase
-<div class="ui form" style="height: 100%">
-    <textarea style="max-height: none; height: 100%; width: 100%; resize: none;" class="tt" @bind="Value" readonly="@(IsReadOnly ? "true" : "false")"></textarea>
-</div>
+    <div class="ui form" style="height: 100%">
+        @if (IsReadOnly)
+        {
+            <textarea style="max-height: none; height: 100%; width: 100%; resize: none;" class="tt" @bind="Value" readonly></textarea>
+        }
+        else
+        {
+            <textarea style="max-height: none; height: 100%; width: 100%; resize: none;" class="tt" @bind="Value"></textarea>
+        }
+
+    </div>
 @code
 {
     [Parameter]
