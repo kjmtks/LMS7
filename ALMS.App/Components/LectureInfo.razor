@@ -76,17 +76,17 @@
 
         @try
         {
-            <h2 class="ui header">
-                <i class="dollar sign  icon"></i>
-                <div class="content">
-                    Parameters
-                    <div class="sub header">Show lecture's parameters</div>
-                </div>
-            </h2>
 
             var parameters = Lecture.GetParameters().GetValues();
             @if (parameters.Count() > 0)
             {
+                <h2 class="ui header">
+                    <i class="dollar sign  icon"></i>
+                    <div class="content">
+                        Parameters
+                        <div class="sub header">Show lecture's parameters</div>
+                    </div>
+                </h2>
                 <div class="ui menu top attached">
                     <div class="header left item"><i class="dollar sign icon"></i> Parameters</div>
                 </div>
@@ -115,18 +115,18 @@
             }
 
 
-            
-            <h2 class="ui header">
-                <i class="thumbs up outline icon"></i>
-                <div class="content">
-                    Scorings
-                    <div class="sub header">Show lecture's scorings</div>
-                </div>
-            </h2>
 
             var scorings = Lecture.GetScorings().Children;
             @if (scorings.Count() > 0)
             {
+            
+                <h2 class="ui header">
+                    <i class="thumbs up outline icon"></i>
+                    <div class="content">
+                        Scorings
+                        <div class="sub header">Show lecture's scorings</div>
+                    </div>
+                </h2>
                 <div class="ui menu top attached">
                     <div class="header left item"><i class="thumbs up outline icon"></i> Scorings</div>
                 </div>
