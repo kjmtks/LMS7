@@ -11,10 +11,11 @@
                 </a>
                 @if (!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
                 {
-                    <a class="header item" href="/lecture/@OwnerAccount/@LectureName/page/master">
-                        <i class="pencil icon"></i>
-                        Lecture Home
-                    </a>
+            <a class="header item" href="lecture/@OwnerAccount/@LectureName/page/master"
+               @onclick="() => { GoToLectureHome(); }">
+                <i class="pencil icon"></i>
+                Lecture Home
+            </a>
                 }
                 <div class="right menu">
                     <AuthorizeView Roles="Admin" Context="AdminContext">
@@ -69,6 +70,11 @@
 
         (this.Body.Target as RouteView)?.RouteData.RouteValues?.TryGetValue("LectureName", out lectureName);
         LectureName = lectureName?.ToString();
+    }
+
+    protected void GoToLectureHome()
+    {
+        NM.NavigateTo($"/lecture/{OwnerAccount}/{LectureName}/page/master", true);
     }
 }
 
