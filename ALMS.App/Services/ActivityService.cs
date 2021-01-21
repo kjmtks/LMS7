@@ -409,7 +409,7 @@ namespace ALMS.App.Services
                     {
                         u.SetSavedFileInfo(fileInfo);
                     }
-                    else
+                    else if (!(f is HiddenActivityComponent))
                     {
                         using (var t = new StreamReader(fileInfo.FullName))
                         {
@@ -417,7 +417,7 @@ namespace ALMS.App.Services
                         }
                     }
                 }
-                else
+                else if(!(f is HiddenActivityComponent))
                 {
                     await activity.GetFileComponents()[f.Name].SetDefaultValueAsync();
                 }
