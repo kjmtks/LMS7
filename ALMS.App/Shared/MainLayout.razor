@@ -9,11 +9,11 @@
                     <i class="home icon"></i>
                     Home
                 </a>
-                @if(!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
+                @if (!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
                 {
                     <a class="header item" href="">
                         <i class="pencil icon"></i>
-                        <a href="/lecture/@OwnerAccount/@LectureName">Lecture Home</a>
+                        <a href="/lecture/@OwnerAccount/@LectureName/page/master/">Lecture Home</a>
                     </a>
                 }
                 <div class="right menu">
