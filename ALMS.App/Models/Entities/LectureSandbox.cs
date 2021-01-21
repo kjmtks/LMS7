@@ -75,11 +75,11 @@ namespace ALMS.App.Models.Entities
             File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");
             File.Copy($"{DirectoryPath}/etc/group", $"{DirectoryPath}/etc/group.original");
 
-            // mounting lecture direcotry
-            MountLectureDirectory();
-
             // mounting user homes
             SetUsers();
+
+            // mounting lecture direcotry
+            MountLectureDirectory();
 
         }
         public override void Update(DatabaseContext context, IConfiguration config, LectureSandbox previous)
@@ -235,7 +235,7 @@ namespace ALMS.App.Models.Entities
             if (!f.Exists) { f.Create(); }
             Console.WriteLine($"mounting: {f.FullName} {h.FullName}");
             System.Diagnostics.Process.Start("chmod", $"644 {f.FullName}").WaitForExit();
-            System.Diagnostics.Process.Start("chown", $"root:root {f.FullName}").WaitForExit();
+            System.Diagnostics.Process.Start("chown", $"{Lecture.Owner.Id + 1000}:{Lecture.Owner.Id + 1000} {f.FullName}").WaitForExit();
             System.Diagnostics.Process.Start("mount", $"--bind {f.FullName} {h.FullName}").WaitForExit();
         }
 

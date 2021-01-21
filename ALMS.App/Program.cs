@@ -59,8 +59,8 @@ namespace ALMS.App
                     {
                         foreach (var sandbox in lecture.Sandboxes)
                         {
-                            sandbox.MountLectureDirectory();
                             sandbox.SetUsers();
+                            sandbox.MountLectureDirectory();
                         }
                     }
                 }
