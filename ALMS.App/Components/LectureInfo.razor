@@ -113,6 +113,42 @@
                     </tbody>
                 </table>
             }
+
+
+            
+            <h2 class="ui header">
+                <i class="dollar sign  icon"></i>
+                <div class="content">
+                    Scorings
+                    <div class="sub header">Show lecture's scorings</div>
+                </div>
+            </h2>
+
+            var scorings = Lecture.GetScorings().Children;
+            @if (scorings.Count() > 0)
+            {
+                <div class="ui menu top attached">
+                    <div class="header left item"><i class="thumbs up outline icon"></i> Scorings</div>
+                </div>
+                <table class="ui padded table attached">
+                    <thead>
+                        <tr>
+                            <th class="single line">Name</th>
+                            <th class="single line">Description</th>
+                            <th class="right aligned"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in parameters)
+                        {
+                            <tr>
+                                <td>@p.Name</td>
+                                <td>@p.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         }
         catch (Exception e)
         {

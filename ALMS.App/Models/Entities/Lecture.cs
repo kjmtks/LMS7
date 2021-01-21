@@ -314,5 +314,19 @@ namespace ALMS.App.Models.Entities
                 return new LectureParameters();
             }
         }
+        public LectureScorings GetScorings(string branch = "master")
+        {
+            try
+            {
+                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("scorings.xml", branch);
+                XmlSerializer serializer = new XmlSerializer(typeof(LectureScorings));
+                LectureScorings scorings = (LectureScorings)serializer.Deserialize(text);
+                return scorings;
+            }
+            catch (FileNotFoundException)
+            {
+                return new LectureScorings();
+            }
+        }
     }
 }
