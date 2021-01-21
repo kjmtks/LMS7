@@ -15,7 +15,8 @@ namespace ALMS.App.Models.Entities
 {
     public class LectureSandbox : SandboxBase<LectureSandbox>,
         IChildEntity<LectureSandbox, Lecture>,
-        IDirectoryMountedEntity<LectureSandbox>,
+        IDirectory
+        edEntity<LectureSandbox>,
         IEditableEntity<LectureSandbox>
     {
         public int Id { get; set; }
@@ -66,6 +67,16 @@ namespace ALMS.App.Models.Entities
             if (dir.Exists) { dir.Delete(true); }
         }
 
+        public void MoundLectureDirectory()
+        {
+            var h = new System.IO.DirectoryInfo($"{DirectoryPath}/lecture");
+            if (!h.Exists) { h.Create(); }
+            var f = new System.IO.DirectoryInfo($"{Lecture.LectureContentsRepositoryPair.ClonedRepository.DirectoryPath}/files");
+            if (!f.Exists) { f.Create(); }
+            Console.WriteLine($"mounting: {f.FullName} {h.FullName}");
+            System.Diagnostics.Process.Start("chmod", $"644 {f.FullName}").WaitForExit();
+            System.Diagnostics.Process.Start("mount", $"--bind {f.FullName} {h.FullName}").WaitForExit();
+        }
         public override void CreateNew(DatabaseContext context, IConfiguration config)
         {
             CreateDirectory(context, config);
@@ -73,14 +84,7 @@ namespace ALMS.App.Models.Entities
             context.Add(this);
 
             // mounting lecture direcotry
-            var h = new System.IO.DirectoryInfo($"{DirectoryPath}/lecture");
-            if (!h.Exists) { h.Create(); }
-            var f = new System.IO.DirectoryInfo($"{Lecture.LectureContentsRepositoryPair.ClonedRepository.DirectoryPath}/files");
-            if (!f.Exists) { f.Create(); }
-            f.Create();
-            Console.WriteLine($"mounting: {f.FullName} {h.FullName}");
-            System.Diagnostics.Process.Start("chmod", $"644 {f.FullName}").WaitForExit();
-            System.Diagnostics.Process.Start("mount", $"--bind {f.FullName} {h.FullName}").WaitForExit();
+            MoundLectureDirectory();
 
             // copy /etc/passwd, /etc/group
             File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");
