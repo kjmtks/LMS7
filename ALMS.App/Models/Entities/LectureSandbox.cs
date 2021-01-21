@@ -15,8 +15,7 @@ namespace ALMS.App.Models.Entities
 {
     public class LectureSandbox : SandboxBase<LectureSandbox>,
         IChildEntity<LectureSandbox, Lecture>,
-        IDirectory
-        edEntity<LectureSandbox>,
+        IDirectoryMountedEntity<LectureSandbox>,
         IEditableEntity<LectureSandbox>
     {
         public int Id { get; set; }
@@ -66,8 +65,7 @@ namespace ALMS.App.Models.Entities
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
         }
-
-        public void MoundLectureDirectory()
+        public void MountLectureDirectory()
         {
             var h = new System.IO.DirectoryInfo($"{DirectoryPath}/lecture");
             if (!h.Exists) { h.Create(); }
@@ -84,7 +82,7 @@ namespace ALMS.App.Models.Entities
             context.Add(this);
 
             // mounting lecture direcotry
-            MoundLectureDirectory();
+            MountLectureDirectory();
 
             // copy /etc/passwd, /etc/group
             File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");

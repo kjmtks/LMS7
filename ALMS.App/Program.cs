@@ -57,11 +57,9 @@ namespace ALMS.App
 
                     foreach(var lecture in lectures)
                     {
-
-                        lecture.MoundLectureDirectory();
-
                         foreach (var sandbox in lecture.Sandboxes)
                         {
+                            sandbox.MountLectureDirectory();
                             sandbox.SetUsers();
                         }
                     }
