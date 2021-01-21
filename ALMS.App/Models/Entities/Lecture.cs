@@ -98,7 +98,14 @@ namespace ALMS.App.Models.Entities
 
         public void CreateNew(DatabaseContext context, IConfiguration config)
         {
-            context.Add(this);
+            try
+            {
+                context.Add(this);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e.GetBaseException().ToString());
+            }
 
             CreateDirectory(context, config);
 

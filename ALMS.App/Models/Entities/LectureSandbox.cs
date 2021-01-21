@@ -73,7 +73,7 @@ namespace ALMS.App.Models.Entities
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.GetBaseException().ToString());
+                Console.Error.WriteLine(e.GetBaseException().ToString());
             }
             CreateDirectory(context, config);
 

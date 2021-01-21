@@ -142,7 +142,14 @@ namespace ALMS.App.Models
 
         public IEnumerable<string> GetBranches()
         {
-            return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute("branch --format=\"%(refname:short)\"")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
+            try
+            {
+                return System.Text.Encoding.UTF8.GetString(SharedRepository.Execute("branch --format=\"%(refname:short)\"")).Trim().Split().Where(x => !string.IsNullOrWhiteSpace(x));
+            }
+            catch(Exception e)
+            {
+                Console.Error.WriteLine(e.GetBaseException().ToString());
+            }
         }
         public IEnumerable<string> ReadFileList(string path, string branch = "master")
         {
