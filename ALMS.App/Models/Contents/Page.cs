@@ -161,7 +161,7 @@ namespace ALMS.App.Models.Contents
                                     var ec = EventCallback.Factory.Create(el, () => {
                                         NM.NavigateTo(href, true);
                                     });
-                                    builder.AddAttribute(seq++, "href", "javascript: void(0);");
+                                    builder.AddAttribute(seq++, "href", href);
                                     builder.AddAttribute(seq++, "onclick", ec);
                                 }
                             }

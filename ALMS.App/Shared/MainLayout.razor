@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.EntityFrameworkCore;
 @inject NavigationManager NM;
+@inject DatabaseService DB;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
 
 <div class="ui fixed inverted menu">
     <div class="ui container">
@@ -11,11 +14,19 @@
                 </a>
                 @if (!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
                 {
-            <a class="header item" href="lecture/@OwnerAccount/@LectureName/page/master"
-               @onclick="() => { GoToLectureHome(); }">
-                <i class="pencil icon"></i>
-                Lecture Home
-            </a>
+                    <a class="header item" href="lecture/@OwnerAccount/@LectureName/page/master"
+                       @onclick="() => { GoToLectureHome(); }">
+                        <i class="pencil icon"></i>
+                        Lecture Home
+                    </a>
+                    @if (IsTeacher(context.User.Identity.Name))
+                    {
+                        <a class="header item" href="users/@OwnerAccount/lectures/@LectureName"
+                           @onclick="() => { GoToLectureDashboard(); }">
+                            <i class="pen square icon"></i>
+                            Dashboard
+                        </a>
+                    }
                 }
                 <div class="right menu">
                     <AuthorizeView Roles="Admin" Context="AdminContext">
@@ -60,7 +71,19 @@
 @code {
     private string LectureName { get; set; } = null;
     private string OwnerAccount { get; set; } = null;
+    private Models.Entities.Lecture Lecture { get; set; } = null;
 
+
+    protected bool IsTeacher(string userName)
+    {
+        if (Lecture == null) return false;
+        var user = DB.Context.Users.Where(x => x.Account == userName)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture)
+            .FirstOrDefault();
+        return user != null ? user.IsTeacher(Lecture) : false;
+    }
     protected override void OnParametersSet()
     {
         object ownerAccount = null;
@@ -70,11 +93,25 @@
 
         (this.Body.Target as RouteView)?.RouteData.RouteValues?.TryGetValue("LectureName", out lectureName);
         LectureName = lectureName?.ToString();
+
+        if (!string.IsNullOrWhiteSpace(OwnerAccount) && !string.IsNullOrWhiteSpace(LectureName))
+        {
+            Lecture = DB.Context.Lectures
+                .Include(x => x.Owner)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+                .Where(x => x.Name == LectureName && x.Owner.Account == OwnerAccount)
+                .FirstOrDefault();
+        }
     }
 
     protected void GoToLectureHome()
     {
         NM.NavigateTo($"/lecture/{OwnerAccount}/{LectureName}/page/master", true);
+    }
+    protected void GoToLectureDashboard()
+    {
+        NM.NavigateTo($"/users/{OwnerAccount}/lectures/{LectureName}", true);
     }
 }
 
