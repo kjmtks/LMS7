@@ -22,12 +22,14 @@ namespace ALMS.App.Models.Contents
 
         public string CurrentPagePath { get; }
         public string Branch { get; }
-        public PageModel(Entities.Lecture lecture, Entities.User user, CommitInfo commitInfo, string current_page_path, string branch)
+        public System.Dynamic.ExpandoObject ViewBag { get; }
+        public PageModel(Entities.Lecture lecture, Entities.User user, CommitInfo commitInfo, string current_page_path, string branch, System.Dynamic.ExpandoObject viewBag)
         {
             Lecture = new Lecture(lecture);
             CommitInfo = commitInfo;
             CurrentPagePath = current_page_path;
             Branch = branch;
+            ViewBag = viewBag;
             User = new User(user, user.IsTeacher(lecture) ? Role.Teacher : Role.Studnet);
             Teachers = lecture.GetTeachers().Where(x => x.IsTeacher(lecture) ).Select(x => new User(x, Role.Teacher));
             Students = lecture.GetTeachers().Where(x => x.IsStudent(lecture)).Select(x => new User(x, Role.Studnet));
@@ -38,9 +40,9 @@ namespace ALMS.App.Models.Contents
         {
             return Utility.DateTimeToString(dt);
         }
-        public bool HasParameter(System.Dynamic.ExpandoObject viewBag, string parameterName)
+        public bool HasParameter(string parameterName)
         {
-            return ((IDictionary<string, object>)viewBag).ContainsKey(parameterName);
+            return ((IDictionary<string, object>)ViewBag).ContainsKey(parameterName);
         }
     }
 

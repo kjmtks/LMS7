@@ -84,7 +84,8 @@ namespace ALMS.App.Models.Contents
                .UseMemoryCachingProvider()
                .Build();
             var commitInfo = Lecture.LectureContentsRepositoryPair.ReadCommitInfo($"pages/{Path}", Branch);
-            var model = new PageModel(Lecture, user, commitInfo, Path, Branch);
+            dynamic viewbag = new System.Dynamic.ExpandoObject();
+            var model = new PageModel(Lecture, user, commitInfo, Path, Branch, viewbag);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"@model {model.GetType().FullName}");
             sb.AppendLine("@{ DisableEncoding = true; }");
@@ -94,7 +95,6 @@ namespace ALMS.App.Models.Contents
             sb.AppendLine("");
             sb.AppendLine("</div>");
 
-            dynamic viewbag = new System.Dynamic.ExpandoObject();
             var x = viewbag as IDictionary<string, Object>;
             foreach (var p in Lecture.GetParameters().GetValues())
             {
