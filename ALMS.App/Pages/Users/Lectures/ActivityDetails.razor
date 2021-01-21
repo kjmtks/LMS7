@@ -82,8 +82,8 @@
                                     <td>
                                         <p>Score: <input type="text" class="tt" @bind="score_templ" /><br /></p>
                                         <p><textarea class="tt" rows="4" style="width: 250px" @bind="comment_templ" placeholder="comment"></textarea></p>
+                                        <p><button class="ui primary button" @onclick="() => { CopyCommentAndScoreToBlanks(); }">copy to blanks</button></p>
                                     </td>
-                                    <p><button @onclick="() => { CopyCommentAndScoreToBlanks(); }">copy to blanks</button></p>
                                 </tr>
                                 @foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
                                 {
