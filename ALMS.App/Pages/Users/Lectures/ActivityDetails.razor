@@ -81,8 +81,8 @@
                             <tbody>
                                 <tr>
                                     <td colspan="3">*</td>
+                                    <td><div class="ui input"><input type="text" class="tt" @bind="score_templ" /></div></td>
                                     <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" style="width: 250px" @bind="comment_templ" placeholder="comment"></textarea></div></div></td>
-                                    <td><div class="ui form"><div class="field"><input type="text" class="tt" @bind="score_templ" /></div></div></td>
                                     <td><button class="ui primary button" @onclick="() => { CopyCommentAndScoreToBlanks(); }">copy to blanks</button></td>
                                 </tr>
                                 @foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
@@ -138,8 +138,8 @@
                                         }
 
                                     </td>
-                                    <td><div class="ui form"><div class="field"><input type="text" class="tt" @bind="scores[i]" /></div></div></td>
-                                    <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" style="width: 250px" @bind="comments[i]" placeholder="comment"></textarea></div></div></td>
+                                    <td><div class="ui input"><input type="text" class="tt" @bind="scores[i]" /></div></td>
+                                    <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" @bind="comments[i]" placeholder="comment"></textarea></div></div></td>
                                     <td></td>
                                 }
                             </tr>
