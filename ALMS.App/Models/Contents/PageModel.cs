@@ -25,7 +25,7 @@ namespace ALMS.App.Models.Contents
         public System.Dynamic.ExpandoObject ViewBag { get; }
         public PageModel(Entities.Lecture lecture, Entities.User user, CommitInfo commitInfo, string current_page_path, string branch, System.Dynamic.ExpandoObject viewBag)
         {
-            lecture = lecture;
+            this.lecture = lecture;
             Lecture = new Lecture(lecture);
             CommitInfo = commitInfo;
             CurrentPagePath = current_page_path;
