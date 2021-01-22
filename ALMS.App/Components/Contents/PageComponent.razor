@@ -113,6 +113,7 @@ else
             await JS.InvokeVoidAsync("consoleLog", $"==> {config}");
             await JS.InvokeVoidAsync("setMathJaxConfig", config);
         }
+            await JS.InvokeVoidAsync("consoleLog", $"typeset");
         await JS.InvokeVoidAsync("typesetMathJax");
     }
 
