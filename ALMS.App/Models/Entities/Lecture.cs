@@ -330,5 +330,21 @@ namespace ALMS.App.Models.Entities
                 return new LectureScorings();
             }
         }
+
+        public string GetMathJaxConfig(string branch = "master")
+        {
+            try
+            {
+                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("mathjax-config.xml", branch);
+                using (var r = new StreamReader(text))
+                {
+                    return r.ReadToEnd();
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+        }
     }
 }

@@ -44,8 +44,8 @@
         function setupAceEditor(id, mode, is_read_only) {
             var editor = ace.edit(id);
 
-            var resizer = function() {
-				editor.resize();
+            var resizer = function () {
+                editor.resize();
             };
             if (is_read_only) {
                 editor.setReadOnly(is_read_only);
@@ -63,22 +63,11 @@
 
         function typesetMathJax() { MathJax.typeset(); }
         function consoleLog(msg) { console.log(msg); }
-    </script>
-    
 
-    <script>
-        window.MathJax = {
-            tex: {
-                tags: "ams",
-                macros: {
-                    bm: ["{\\boldsymbol{#1}}",1],
-                }
-            },
-            chtml: {
-                scale: 0.9,
-                mtextInheritFont: true
-            }
-        }; 
+        function setMathJaxConfig(conf) {
+            window.MathJax = conf;
+            console.log(conf);
+        }
     </script>
 
     <style type="text/css">
