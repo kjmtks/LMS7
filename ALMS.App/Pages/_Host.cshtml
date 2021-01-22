@@ -64,7 +64,8 @@
         function typesetMathJax() { MathJax.typeset(); }
         function consoleLog(msg) { console.log(msg); }
 
-        function setMathJaxConfig(conf) {
+        function setMathJaxConfig(conf_json) {
+            var conf = JSON.parse(conf_json);
             console.log(conf);
             MathJax.Hub.Config(conf);
         }
