@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 
 namespace ALMS.App.Controllers
@@ -49,38 +50,48 @@ namespace ALMS.App.Controllers
                 }
             }
 
-
+            byte[] result;
             var scorings = lecture.GetScorings().Children ?? new Models.LectureScoring[]{ };
-
-            var sb = new System.Text.StringBuilder();
-            sb.Append("account,name");
-            foreach (var scoring in scorings)
+            using (var ms = new MemoryStream())
             {
-                sb.Append($",{scoring.Name}");
-            }
-            sb.AppendLine();
-            foreach (var u in lecture.GetStudents())
-            {
-                sb.Append($"{u.Account},{u.DisplayName}");
-                foreach (var scoring in scorings)
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                using (var w = new StreamWriter(ms, Encoding.GetEncoding("Shift_JIS")))
                 {
-                    var path = new FileInfo($"{lecture.DirectoryPath}/submissions/{u.Account}/{scoring.Name}/SCORE");
-                    if (path.Exists)
+                    w.Write("account,name");
+                    foreach (var scoring in scorings)
                     {
-                        using (var fs = path.OpenText())
-                        {
-                            sb.Append($",{fs.ReadToEnd()}");
-                        }
+                        w.Write($",{scoring.Name}");
                     }
-                    else
+                    w.WriteLine();
+
+
+                    foreach (var u in lecture.GetStudents())
                     {
-                        sb.Append(",");
+                        w.Write($"{u.Account},{u.DisplayName}");
+                        foreach (var scoring in scorings)
+                        {
+                            var path = new FileInfo($"{lecture.DirectoryPath}/submissions/{u.Account}/{scoring.Name}/SCORE");
+                            if (path.Exists)
+                            {
+                                using (var fs = path.OpenText())
+                                {
+                                    w.Write($",{fs.ReadToEnd()}");
+                                }
+                            }
+                            else
+                            {
+                                w.Write(",");
+                            }
+                        }
+                        w.WriteLine();
                     }
                 }
-                sb.AppendLine();
+                result = ms.ToArray();
             }
 
-            return File(sb.ToString(), "text/csv");
+
+
+            return File(result, "text/csv");
         }
 
     }
