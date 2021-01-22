@@ -141,39 +141,5 @@ namespace ALMS.App.Controllers
                 return new NotFoundResult();
             }
         }
-
-
-
-        [HttpGet("lecture/{owner_account}/{lecture_name}/etc-contents/{branch}/mathjax-config.js")]
-        public IActionResult LectureMathJaxConfigJsRawFile(string owner_account, string lecture_name, string branch)
-        {
-            var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).Where(x => x.Owner.Account == owner_account && x.Name == lecture_name).FirstOrDefault();
-            if (lecture == null)
-            {
-                return new NotFoundResult();
-            }
-
-            var user = DB.Context.Users.Include(x => x.Lectures).Include(x => x.LectureUsers).Where(x => x.Account == HttpContext.User.Identity.Name).FirstOrDefault();
-            if (user == null)
-            {
-                return new UnauthorizedResult();
-            }
-            var assignment = DB.Context.LectureUsers.Where(x => x.UserId == user.Id && x.LectureId == lecture.Id).FirstOrDefault();
-            if (assignment == null)
-            {
-                return new UnauthorizedResult();
-            }
-
-            try
-            {
-                var ms = lecture.LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("mathjax-config.js", branch);
-
-                return File(ms, "text/javascript");
-            }
-            catch
-            {
-                return Content("");
-            }
-        }
     }
 }
