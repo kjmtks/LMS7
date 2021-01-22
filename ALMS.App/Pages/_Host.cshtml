@@ -64,9 +64,8 @@
 
         function typesetMathJax() { window.MathJax.typeset(); }
         function consoleLog(msg) { console.log(msg); }
-        function importJs(url) {
-            var mod = await import(url);
-            mod.setMathJaxConfig();
+        function importMathJaxConfig(url) {
+            import(url).then(mod => mod.setMathJaxConfig());
         }
     </script>
 
