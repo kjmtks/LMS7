@@ -108,14 +108,7 @@ else
         Building = false;
         StateHasChanged();
 
-        var macrosJson = Lecture.GetMathJaxMacrosJson(Branch);
-        if(macrosJson != null)
-        {
-            await JS.InvokeVoidAsync("addMathJaxMacro", macrosJson);
-        await JS.InvokeVoidAsync("consoleLog", $"add macors: {macrosJson}");
-        }
         await JS.InvokeVoidAsync("typesetMathJax");
-        await JS.InvokeVoidAsync("consoleLog", $"typeset");
     }
 
 }
