@@ -32,6 +32,9 @@
             displayMath: [['$$','$$'], ['\\[','\\]']],
             processEscapes: true
           },
+          tex: {
+            macros: { }
+          }
           CommonHTML: { matchFontHeight: false },
           displayAlign: "left",
           displayIndent: "2em"
@@ -69,6 +72,7 @@
             var macros = JSON.parse(macrosJson);
             for (let key in macros) {
                 var value = macros[key];
+                console.log({ key, value[0], value[1]})
                 MathJax.InputJax.TeX.Macro(key, value[0], value[1]);
             }
         }
