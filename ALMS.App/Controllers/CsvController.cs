@@ -25,7 +25,7 @@ namespace ALMS.App.Controllers
         [HttpGet("lecture/{owner_account}/{lecture_name}/csv/{branch}/scores.csv")]
         public IActionResult ScoresCsv(string owner_account, string lecture_name, string branch)
         {
-            var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).Where(x => x.Owner.Account == owner_account && x.Name == lecture_name).FirstOrDefault();
+            var lecture = DB.Context.Lectures.Include(x => x.Owner).Include(x => x.LectureUsers).ThenInclude(x => x.User).Where(x => x.Owner.Account == owner_account && x.Name == lecture_name).FirstOrDefault();
             if (lecture == null)
             {
                 return new NotFoundResult();
