@@ -1,0 +1,7 @@
+name: latex
+subject: LaTeX
+description: |-2
+  latex
+commands: |-2
+  apt-get update && apt-get install -y build-essential libffi-dev zlib1g-dev libssl-dev libreadline-dev libgdbm-dev libbison-dev libmariadbclient-dev
+  apt-get update && apt-get install -y texlive-lang-cjk xdvik-ja evince texlive-fonts-recommended texlive-fonts-extra
