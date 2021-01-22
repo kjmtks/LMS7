@@ -72,7 +72,7 @@
             var macros = JSON.parse(macrosJson);
             for (let key in macros) {
                 var value = macros[key];
-                console.log({ key, value[0], value[1]})
+                console.log(value);
                 MathJax.InputJax.TeX.Macro(key, value[0], value[1]);
             }
         }
