@@ -330,5 +330,6 @@ namespace ALMS.App.Models.Entities
                 return new LectureScorings();
             }
         }
+
     }
 }
