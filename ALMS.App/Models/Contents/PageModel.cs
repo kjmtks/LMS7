@@ -44,6 +44,21 @@ namespace ALMS.App.Models.Contents
         {
             return ((IDictionary<string, object>)ViewBag).ContainsKey(parameterName);
         }
+        public string EmbedTextFile(string path)
+        {
+            try
+            {
+                var text = lecture.LectureContentsRepositoryPair.ReadFileWithoutTypeCheck(path, Branch);
+                using (var r = new StreamReader(text))
+                {
+                    return r.ReadToEnd();
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                return "";
+            }
+        }
     }
 
     //-----
