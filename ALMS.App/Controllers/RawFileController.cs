@@ -171,7 +171,7 @@ namespace ALMS.App.Controllers
             }
             catch
             {
-                return Content("{ }");
+                return Content("export function setMathJaxConfig() { }");
             }
         }
     }
