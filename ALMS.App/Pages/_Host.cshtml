@@ -65,7 +65,22 @@
         function typesetMathJax() { window.MathJax.typeset(); }
         function consoleLog(msg) { console.log(msg); }
         function importMathJaxConfig(url) {
-            import(url).then(mod => mod.setMathJaxConfig());
+            import(url).then(mod => {
+                MathJax.Hub.Config({
+                  tex2jax: {
+                    skipStartupTypeset: true,
+                    inlineMath: [['$','$'], ['\\(','\\)']],
+                    displayMath: [['$$','$$'], ['\\[','\\]']],
+                    processEscapes: true
+                  },
+                  tex: {
+                    macros: mod.getMathJaxConfig()
+                  },
+                  CommonHTML: { matchFontHeight: false },
+                  displayAlign: "left",
+                  displayIndent: "2em"
+                });
+            });
         }
     </script>
 
