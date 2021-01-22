@@ -107,30 +107,15 @@ else
         }
         Building = false;
         StateHasChanged();
-        var config = Lecture.GetMathJaxConfig(Branch);
-        if(config != null)
+
+        var macrosJson = Lecture.GetMathJaxMacrosJson(Branch);
+        if(macrosJson != null)
         {
-            await JS.InvokeVoidAsync("consoleLog", $"==> {config}");
-            await JS.InvokeVoidAsync("setMathJaxConfig", config);
+            await JS.InvokeVoidAsync("addMathJaxMacro", macrosJson);
+        await JS.InvokeVoidAsync("consoleLog", $"add macors: {macrosJson}");
         }
-        else
-        {
-            config = @"{
-              ""tex2jax"": {
-                ""skipStartupTypeset"": true,
-                ""inlineMath"": [[""$"",""$""], [""\\("",""\\)""]],
-                ""displayMath"": [[""$$"",""$$""], [""\\["",""\\]""]],
-                ""processEscapes"": true
-              },
-              ""CommonHTML"": { ""matchFontHeight"": false },
-              ""displayAlign"": ""left"",
-              ""displayIndent"": ""2em""
-            }";
-            await JS.InvokeVoidAsync("consoleLog", $"==> {config}");
-            await JS.InvokeVoidAsync("setMathJaxConfig", config);
-        }
-        await JS.InvokeVoidAsync("consoleLog", $"typeset");
         await JS.InvokeVoidAsync("typesetMathJax");
+        await JS.InvokeVoidAsync("consoleLog", $"typeset");
     }
 
 }

@@ -331,11 +331,11 @@ namespace ALMS.App.Models.Entities
             }
         }
 
-        public string GetMathJaxConfig(string branch = "master")
+        public string GetMathJaxMacrosJson(string branch = "master")
         {
             try
             {
-                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("mathjax-config.json", branch);
+                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("mathjax-macros.json", branch);
                 using (var r = new StreamReader(text))
                 {
                     return r.ReadToEnd();
