@@ -46,8 +46,8 @@ namespace ALMS.App.Models.Contents
                 if (file.Extension == ".md")
                 {
                     var r = new Markdig.MarkdownPipelineBuilder();
-                    var q = Markdig.MarkdownExtensions.UsePipeTables(r);
-                    var p = Markdig.MarkdownExtensions.UseMathematics(q).Build();
+                    var q = Markdig.MarkdownExtensions.UseAdvancedExtensions(r);
+                    var p = q.Build();
                     source = Markdig.Markdown.ToHtml(source
                         .Replace("\\[", "\\\\[").Replace("\\]", "\\\\]")
                         .Replace("\\(", "\\\\(").Replace("\\)", "\\\\)")
