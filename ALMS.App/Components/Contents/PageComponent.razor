@@ -109,7 +109,8 @@ else
         Building = false;
         StateHasChanged();
 
-        await JS.InvokeVoidAsync("import", $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/etc-contents/{Branch}/mathjax-config.js");
+        var m = await JS.InvokeAsync<dynamic>("import", $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/etc-contents/{Branch}/mathjax-config.js");
+        await m.InvokeVoidAsync("set");
 
         await JS.InvokeVoidAsync("typesetMathJax");
     }
