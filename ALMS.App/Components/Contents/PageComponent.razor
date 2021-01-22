@@ -110,6 +110,7 @@ else
         var config = Lecture.GetMathJaxConfig(Branch);
         if(config != null)
         {
+            await JS.InvokeVoidAsync("consoleLog", $"==> {config}");
             await JS.InvokeVoidAsync("setMathJaxConfig", config);
         }
         await JS.InvokeVoidAsync("typesetMathJax");
