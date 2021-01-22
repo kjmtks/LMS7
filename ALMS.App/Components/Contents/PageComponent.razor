@@ -113,7 +113,23 @@ else
             await JS.InvokeVoidAsync("consoleLog", $"==> {config}");
             await JS.InvokeVoidAsync("setMathJaxConfig", config);
         }
-            await JS.InvokeVoidAsync("consoleLog", $"typeset");
+        else
+        {
+            config = @"{
+              ""tex2jax"": {
+                ""skipStartupTypeset"": true,
+                ""inlineMath"": [[""$"",""$""], [""\\("",""\\)""]],
+                ""displayMath"": [[""$$"",""$$""], [""\\["",""\\]""]],
+                ""processEscapes"": true
+              },
+              ""CommonHTML"": { ""matchFontHeight"": false },
+              ""displayAlign"": ""left"",
+              ""displayIndent"": ""2em""
+            }";
+            await JS.InvokeVoidAsync("consoleLog", $"==> {config}");
+            await JS.InvokeVoidAsync("setMathJaxConfig", config);
+        }
+        await JS.InvokeVoidAsync("consoleLog", $"typeset");
         await JS.InvokeVoidAsync("typesetMathJax");
     }
 

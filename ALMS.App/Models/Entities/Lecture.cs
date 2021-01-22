@@ -335,7 +335,7 @@ namespace ALMS.App.Models.Entities
         {
             try
             {
-                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("mathjax-config.js", branch);
+                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("mathjax-config.json", branch);
                 using (var r = new StreamReader(text))
                 {
                     return r.ReadToEnd();
