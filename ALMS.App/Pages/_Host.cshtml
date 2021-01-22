@@ -64,6 +64,23 @@
         function typesetMathJax() { MathJax.typeset(); }
         function consoleLog(msg) { console.log(msg); }
     </script>
+    
+
+    <script>
+        window.MathJax = {
+            tex: {
+                tags: "ams",
+                macros: {
+                    bm: ["{\\boldsymbol{#1}}",1],
+                }
+            },
+            chtml: {
+                scale: 0.9,
+                mtextInheritFont: true
+            }
+        }; 
+    </script>
+
     <style type="text/css">
 
 
