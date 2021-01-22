@@ -1,4 +1,5 @@
 ﻿@inject NavigationManager NM;
+@using Microsoft.JSInterop
 
 @if (string.IsNullOrWhiteSpace(ErrorMessage))
 {
@@ -107,6 +108,8 @@ else
         }
         Building = false;
         StateHasChanged();
+
+        await JS.InvokeVoidAsync("import", $"/lecture/{Lecture.Owner.Account}/{Lecture.Name}/etc-contents/{Branch}/mathjax-config.js");
 
         await JS.InvokeVoidAsync("typesetMathJax");
     }

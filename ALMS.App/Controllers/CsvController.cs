@@ -44,10 +44,11 @@ namespace ALMS.App.Controllers
             }
             if(!user.IsTeacher(lecture))
             {
-                if (branch != "master")
-                {
-                    return new UnauthorizedResult();
-                }
+                return new UnauthorizedResult();
+            }
+            if (branch != "master")
+            {
+                return new UnauthorizedResult();
             }
 
             byte[] result;
