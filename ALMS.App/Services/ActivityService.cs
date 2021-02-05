@@ -63,6 +63,17 @@ namespace ALMS.App.Services
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                     }
                 }
+
+                // Check certainly saved
+                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                {
+                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                    if(!fileInfo.Exists)
+                    {
+                        return (false, "Failure to save. Please retry.");
+                    }
+                }
+
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
 
@@ -134,34 +145,38 @@ namespace ALMS.App.Services
                     }
                 }
 
+                // Check certainly saved
+                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                {
+                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                    if (!fileInfo.Exists)
+                    {
+                        doneCallback(null, false, "Failure to save. Please retry.");
+                        return;
+                    }
+                }
+                assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                assign.RepositoryPair.ClonedRepository.Push();
+
                 var command = $"cd ~/{activity.Directory}; {activity.Run}";
                 Queue.QueueBackgroundWorkItem(async token =>
                 {
                     await sandbox.DoOnSandboxWithCmdAsync(user, command, stdoutCallback, stderrCallback, cmdCallback, (code) =>
                     {
-
-                        try
+                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                        assign.RepositoryPair.ClonedRepository.Push();
+                        Console.WriteLine("Done");
+                        DatabaseService.Context.ActivityActionHistories.Add(new Models.Entities.ActivityActionHistory()
                         {
-                            DatabaseService.Context.ActivityActionHistories.Add(new Models.Entities.ActivityActionHistory()
-                            {
-                                User = user,
-                                Lecture = lecture,
-                                ActivityName = activity.Name,
-                                Directory = activity.Directory,
-                                ActionType = Models.Entities.ActivityActionType.SaveAndRun,
-                                DateTime = time
-                            });
-                            DatabaseService.Context.SaveChanges();
-                            assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                            assign.RepositoryPair.ClonedRepository.Push();
-                            Console.WriteLine("Done");
-                            doneCallback(code, true, "Run successfully");
-                        }
-                        catch (Exception e)
-                        {
-                            Console.Error.WriteLine(e);
-                        }
-
+                            User = user,
+                            Lecture = lecture,
+                            ActivityName = activity.Name,
+                            Directory = activity.Directory,
+                            ActionType = Models.Entities.ActivityActionType.SaveAndRun,
+                            DateTime = time
+                        });
+                        DatabaseService.Context.SaveChanges();
+                        doneCallback(code, true, "Run successfully");
                     }, activity.Limits);
                 }, user.IsTeacher(lecture));
             }
@@ -215,6 +230,19 @@ namespace ALMS.App.Services
                     }
                 }
 
+                // Check certainly saved
+                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                {
+                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                    if (!fileInfo.Exists)
+                    {
+                        doneCallback(null, false, "Failure to save. Please retry.");
+                        return;
+                    }
+                }
+
+                assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                assign.RepositoryPair.ClonedRepository.Push();
 
 
                 var submit_file = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/SUBMIT");
@@ -235,11 +263,15 @@ namespace ALMS.App.Services
                                 w.Write(sb.ToString());
                             }
                         });
+                        if (!submit_file.Exists)
+                        {
+                            doneCallback(null, false, "Failure to submit. Please retry.");
+                            return;
+                        }
+
+                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save Submit Summary\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                        assign.RepositoryPair.ClonedRepository.Push();
                     }
-
-
-                    assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                    assign.RepositoryPair.ClonedRepository.Push();
 
 
                     foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
@@ -273,13 +305,29 @@ namespace ALMS.App.Services
                         }
                     }
 
+
+                    // Check certainly submit
+                    foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                    {
+                        var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
+                        if (!fileInfo.Exists)
+                        {
+                            doneCallback(null, false, "Failure to submit. Please retry.");
+                            return;
+                        }
+                    }
+
                     if (!string.IsNullOrWhiteSpace(activity.Submit))
                     {
                         var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/SUBMIT");
                         var target = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/SUBMIT");
                         File.Copy(source.FullName, target.FullName, true);
+                        if (!target.Exists)
+                        {
+                            doneCallback(null, false, "Failure to submit. Please retry.");
+                            return;
+                        }
                     }
-
 
                     lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                     lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
@@ -348,6 +396,19 @@ namespace ALMS.App.Services
                     }
                 }
 
+                // Check certainly saved
+                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                {
+                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                    if (!fileInfo.Exists)
+                    {
+                        doneCallback(null, false, "Failure to save. Please retry.");
+                        return;
+                    }
+                }
+                assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                assign.RepositoryPair.ClonedRepository.Push();
+
                 Queue.QueueBackgroundWorkItem(async token =>
                 {
                     var accept = await (activity.Validations.Child as ALMS.App.Models.Contents.IValidatable).ValidateAsync(async validation =>
@@ -368,6 +429,9 @@ namespace ALMS.App.Services
 
                     try
                     {
+                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                        assign.RepositoryPair.ClonedRepository.Push();
+
                         DatabaseService.Context.ActivityActionHistories.Add(new Models.Entities.ActivityActionHistory()
                         {
                             User = user,
@@ -378,9 +442,6 @@ namespace ALMS.App.Services
                             DateTime = time
                         });
                         DatabaseService.Context.SaveChanges();
-                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                        assign.RepositoryPair.ClonedRepository.Push();
-
                         doneCallback(accept, true, "Validate successfully");
                     }
                     catch (Exception e)

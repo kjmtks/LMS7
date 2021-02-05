@@ -59,7 +59,7 @@ namespace ALMS.App.Components.Admin
         }
         protected virtual void SetSomeParameterToModel(T model) { }
 
-        protected async Task OpenCreate()
+        protected async Task OpenCreate(T template = null)
         {
             if (!Permision.HasFlag(EntityManagementPermision.CanCreateNew))
             {
@@ -67,7 +67,7 @@ namespace ALMS.App.Components.Admin
                 ErrorMessage = "You can not create new entity.";
                 return;
             }
-            EdittingModel = new T();
+            EdittingModel = template == null ? new T() : template;
             SetSomeParameterToModel(EdittingModel);
             EdittingModel.PrepareModelForAddNew(DB.Context, Config);
             Mode = EditMode.CreateNew;

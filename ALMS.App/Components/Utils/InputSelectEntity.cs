@@ -12,8 +12,21 @@ namespace ALMS.App.Components.Utils
     {
         [Parameter]
         public IEnumerable<T> Collection { get; set; }
+        [Parameter]
+        public Func<string, (bool, T)> BeforeTryParseValueFromString { get; set; } = null;
         protected override bool TryParseValueFromString(string value, out T result, out string validationErrorMessage)
         {
+            if(BeforeTryParseValueFromString != null)
+            {
+                bool rtn = false;
+                (rtn, result) = BeforeTryParseValueFromString(value);
+                if (rtn)
+                {
+                    validationErrorMessage = null;
+                    return true;
+                }
+            }
+
             if (int.TryParse(value, out var resultInt))
             {
                 result = Collection.Where(x =>

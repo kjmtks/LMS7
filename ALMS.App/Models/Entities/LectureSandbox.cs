@@ -46,11 +46,16 @@ namespace ALMS.App.Models.Entities
             var dir = new DirectoryInfo(DirectoryPath);
             if (dir.Exists) { dir.Delete(true); }
             if (!dir.Parent.Exists) { dir.Parent.Create(); }
-            
-            Console.WriteLine($"{Original.DirectoryPath} => {DirectoryPath}");
-            Process.Start("/bin/sh", $"-c \"cp -rax {Original.DirectoryPath} {DirectoryPath}\"").WaitForExit();
 
-
+            if (Original != null)
+            {
+                Console.WriteLine($"{Original.DirectoryPath} => {DirectoryPath}");
+                Process.Start("/bin/sh", $"-c \"cp -rax {Original.DirectoryPath} {DirectoryPath}\"").WaitForExit();
+            }
+            else
+            {
+                dir.Create();
+            }
         }
         public override void UpdateDirectory(DatabaseContext context, IConfiguration config, LectureSandbox previous)
         {
@@ -77,12 +82,15 @@ namespace ALMS.App.Models.Entities
             }
             CreateDirectory(context, config);
 
-            // copy /etc/passwd, /etc/group
-            File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");
-            File.Copy($"{DirectoryPath}/etc/group", $"{DirectoryPath}/etc/group.original");
+            if (Original != null)
+            {
+                // copy /etc/passwd, /etc/group
+                File.Copy($"{DirectoryPath}/etc/passwd", $"{DirectoryPath}/etc/passwd.original");
+                File.Copy($"{DirectoryPath}/etc/group", $"{DirectoryPath}/etc/group.original");
 
-            // mounting user homes
-            SetUsers();
+                // mounting user homes
+                SetUsers();
+            }
 
         }
         public override void Update(DatabaseContext context, IConfiguration config, LectureSandbox previous)

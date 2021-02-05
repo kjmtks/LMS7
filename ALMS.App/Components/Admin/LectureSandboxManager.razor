@@ -26,6 +26,19 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach (var model in Parent.GetLectureRequiredSandboxes().Children.Where(x => !Pagination.ShowedModels.Select(y => y.Name).Contains(x.Name)))
+                        {
+                            <tr>
+                                <td><a href="javascript: void(0)">@model.Name</a></td>
+                                <td>@model.Description?.Trim()</td>
+                                <td class="right aligned">
+                                    @if (Permision.HasFlag(EntityManagementPermision.CanEdit))
+                                    {
+                                        <a class="ui blue icon button" @onclick="async () => { if (CommandLiner.Runnable) { var m = new LectureSandbox(); m.Name = model.Name; m.Description = model.Description?.Trim(); await OpenCreate(m); } }"><i class="plus icon"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
                         @foreach (var model in Pagination.ShowedModels)
                         {
                             <tr>
@@ -63,22 +76,19 @@
                             </div>
                             @if (Mode == EditMode.CreateNew)
                             {
-                                <div class="field">
-                                    <label>Clone From</label>
+                        <div class="field">
+                            <label>Build by</label>
 
-                                    <ALMS.App.Components.Utils.InputSelectEntity @ref="InputSelectEntity" @bind-Value="@EdittingModel.Original" Collection="@DB.Context.Sandboxes.Where(x => x.Owner.Account == User.Account)" CssClass="ui fluid dropdown">
-                                        @foreach (var st in InputSelectEntity.Collection)
-                                            {
-                                            <option value="@st.Id">@st.Name</option>
-                                            }
-                                        /**/
-                                        /**/
-                                        /**/
-                                        /**/
-                                    </ALMS.App.Components.Utils.InputSelectEntity>
+                            <ALMS.App.Components.Utils.InputSelectEntity @ref="InputSelectEntity" @bind-Value="@EdittingModel.Original" Collection="@DB.Context.Sandboxes.Where(x => x.Owner.Account == User.Account)" BeforeTryParseValueFromString="BeforeTryParseValueFromString" CssClass="ui fluid dropdown">
+                                <option value="0">Default installer</option>
+                                @foreach (var st in InputSelectEntity.Collection)
+                                {
+                                    <option value="@st.Id">clone from your "@st.Name"</option>
+                                }
+                            </ALMS.App.Components.Utils.InputSelectEntity>
 
-                                    <ValidationMessage For="@(() => EdittingModel.Original)" />
-                                </div>
+                            <ValidationMessage For="@(() => EdittingModel.Original)" />
+                        </div>
                             }
                             <div class="field">
                                 <label>Description</label>
@@ -114,4 +124,34 @@
     [Parameter]
     public User User { get; set; }
 
+    private (bool, Sandbox) BeforeTryParseValueFromString(string value)
+    {
+        if(value != "0")
+        {
+            return (false, null);
+        }
+        return (true, null);
+    }
+
+
+    protected override void OnAfterCreateAndCloseDialog(LectureSandbox sandbox)
+    {
+        if (sandbox.Original == null)
+        {
+            var req = Parent.GetLectureRequiredSandboxes().Children.Where(x => x.Name == sandbox.Name).FirstOrDefault();
+            var setupCommand = string.IsNullOrWhiteSpace(req?.Installer) ? "" : req.Installer;
+            CommandLiner.SetSandbox(sandbox);
+            CommandLiner.Run(async token =>
+            {
+                await sandbox.BuildAsync(setupCommand.Replace("\r\n", "\n").Replace("\r", "\n"), CommandLiner.SendOutput, CommandLiner.SendError);
+
+                // copy /etc/passwd, /etc/group
+                System.IO.File.Copy($"{sandbox.DirectoryPath}/etc/passwd", $"{sandbox.DirectoryPath}/etc/passwd.original");
+                System.IO.File.Copy($"{sandbox.DirectoryPath}/etc/group", $"{sandbox.DirectoryPath}/etc/group.original");
+
+                // mounting user homes
+                sandbox.SetUsers();
+            }, "# Creating lecture sandbox...");
+        }
+    }
 }

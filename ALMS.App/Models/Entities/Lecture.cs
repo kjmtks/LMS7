@@ -325,9 +325,23 @@ namespace ALMS.App.Models.Entities
                 LectureScorings scorings = (LectureScorings)serializer.Deserialize(text);
                 return scorings;
             }
-            catch (FileNotFoundException)
+            catch (Exception)
             {
                 return new LectureScorings();
+            }
+        }
+        public LectureRequiredSandboxes GetLectureRequiredSandboxes(string branch = "master")
+        {
+            try
+            {
+                var text = LectureContentsRepositoryPair.ReadFileWithoutTypeCheck("required_sandboxes.xml", branch);
+                XmlSerializer serializer = new XmlSerializer(typeof(LectureRequiredSandboxes));
+                LectureRequiredSandboxes images = (LectureRequiredSandboxes)serializer.Deserialize(text);
+                return images;
+            }
+            catch (Exception)
+            {
+                return new LectureRequiredSandboxes();
             }
         }
 
