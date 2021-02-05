@@ -61,18 +61,19 @@ namespace ALMS.App.Services
                             }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Console.WriteLine($"DEBUG_LOG: SAVE FILE {fileInfo.FullName}");
                     }
                 }
 
                 // Check certainly saved
-                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                {
-                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
-                    if(!fileInfo.Exists)
-                    {
-                        return (false, "Failure to save. Please retry.");
-                    }
-                }
+                //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                //{
+                //    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                //    if(!fileInfo.Exists)
+                //    {
+                //        return (false, "Failure to save. Please retry.");
+                //    }
+                //}
 
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
@@ -142,19 +143,20 @@ namespace ALMS.App.Services
                             }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE RUN {fileInfo.FullName}");
                     }
                 }
 
                 // Check certainly saved
-                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                {
-                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
-                    if (!fileInfo.Exists)
-                    {
-                        doneCallback(null, false, "Failure to save. Please retry.");
-                        return;
-                    }
-                }
+                //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                //{
+                //    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                //    if (!fileInfo.Exists)
+                //    {
+                //        doneCallback(null, false, "Failure to save. Please retry.");
+                //        return;
+                //    }
+                //}
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
 
@@ -178,6 +180,9 @@ namespace ALMS.App.Services
                         DatabaseService.Context.SaveChanges();
                         doneCallback(code, true, "Run successfully");
                     }, activity.Limits);
+
+                    assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save after Run\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                    assign.RepositoryPair.ClonedRepository.Push();
                 }, user.IsTeacher(lecture));
             }
             catch (Exception e)
@@ -227,19 +232,20 @@ namespace ALMS.App.Services
                             }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE SUBMIT {fileInfo.FullName}");
                     }
                 }
 
                 // Check certainly saved
-                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                {
-                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
-                    if (!fileInfo.Exists)
-                    {
-                        doneCallback(null, false, "Failure to save. Please retry.");
-                        return;
-                    }
-                }
+                //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                //{
+                //    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                //    if (!fileInfo.Exists)
+                //    {
+                //        doneCallback(null, false, "Failure to save. Please retry.");
+                //        return;
+                //    }
+                //}
 
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
@@ -303,19 +309,20 @@ namespace ALMS.App.Services
                                 }
                             }
                         }
+                        Console.WriteLine($"DEBUG_LOG: SAVE FILE OF SUBMISSION {fileInfo.FullName}");
                     }
 
 
                     // Check certainly submit
-                    foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                    {
-                        var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
-                        if (!fileInfo.Exists)
-                        {
-                            doneCallback(null, false, "Failure to submit. Please retry.");
-                            return;
-                        }
-                    }
+                    //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                    //{
+                    //    var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
+                    //    if (!fileInfo.Exists)
+                    //    {
+                    //        doneCallback(null, false, "Failure to submit. Please retry.");
+                    //        return;
+                    //    }
+                    //}
 
                     if (!string.IsNullOrWhiteSpace(activity.Submit))
                     {
@@ -393,19 +400,20 @@ namespace ALMS.App.Services
                             }
                         }
                         Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE VALIDATION {fileInfo.FullName}");
                     }
                 }
 
                 // Check certainly saved
-                foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                {
-                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
-                    if (!fileInfo.Exists)
-                    {
-                        doneCallback(null, false, "Failure to save. Please retry.");
-                        return;
-                    }
-                }
+                //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                //{
+                //    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
+                //    if (!fileInfo.Exists)
+                //    {
+                //        doneCallback(null, false, "Failure to save. Please retry.");
+                //        return;
+                //    }
+                //}
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
 
