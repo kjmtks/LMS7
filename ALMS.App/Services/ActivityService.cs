@@ -60,7 +60,8 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE {fileInfo.FullName}");
                     }
                 }
@@ -142,7 +143,8 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE RUN {fileInfo.FullName}");
                     }
                 }
@@ -231,7 +233,8 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        // Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE SUBMIT {fileInfo.FullName}");
                     }
                 }
@@ -399,7 +402,8 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE VALIDATION {fileInfo.FullName}");
                     }
                 }
