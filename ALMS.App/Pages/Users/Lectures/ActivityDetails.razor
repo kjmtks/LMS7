@@ -114,7 +114,7 @@
                                                 <p><i class="clock outline icon"></i>@action.DateTime.ToString()</p>
                                                 @if (dir.Exists)
                                                 {
-                                                    @foreach (var file in dir.GetFiles())
+                                                    @foreach (var file in dir.GetFiles().Where(x => !(new string[] { "SUBMIT", "SCORE", "COMMENT" }.Contains(x.Name))))
                                                     {
                                                         <p>
                                                             <i class="file outline icon"></i>
