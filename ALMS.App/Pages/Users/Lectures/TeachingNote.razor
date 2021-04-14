@@ -1,0 +1,199 @@
+﻿@page "/users/{UserAccount}/lectures/{LectureName}/teaching-note/{Branch}"
+
+@inject DatabaseService DB;
+@using Microsoft.EntityFrameworkCore;
+@using ALMS.App.Components.Admin;
+@using ALMS.App.Components;
+@using ALMS.App.Components.Utils;
+@using ALMS.App.Models.Entities;
+@inject NotifierService Notifier;
+@implements IDisposable;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+
+
+<AuthorizeView>
+    <Authorized Context="AuthorizedContext">
+        @if (Lecture != null)
+        {
+            var LoginUser = DB.Context.Users.Where(x => x.Account == AuthorizedContext.User.Identity.Name)
+                .Include(x => x.Lectures)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            @if (LoginUser.IsTeacher(Lecture))
+            {
+                var p = LoginUser.IsSenior || LoginUser.IsAdmin ? EntityManagementPermision.CanCreateNew | EntityManagementPermision.CanEdit | EntityManagementPermision.CanRemove : EntityManagementPermision.DenyAll;
+
+                <div class="ui">
+
+                    @if (!string.IsNullOrWhiteSpace(Message))
+                    {
+                        <div class="ui top attached mini icon menu">
+                            <span class="borderless item">Message</span>
+                            <a class="right item" @onclick='() => { Message = ""; }'><i class="times icon"></i></a>
+                        </div>
+                        <pre class="ui green segment bottom attached tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;">@Message</pre>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+                    {
+                        <div class="ui top attached mini icon menu">
+                            <span class="borderless item">Error</span>
+                            <a class="right item" @onclick='() => { ErrorMessage = ""; }'><i class="times icon"></i></a>
+                        </div>
+                        <pre class="ui red segment bottom attached tt" style="overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;">@ErrorMessage</pre>
+                    }
+
+                    <div class="ui content">
+
+                        <div class="ui menu top attached">
+                            <div class="header left item"><i class="pen square icon"></i> Teaching Note</div>
+
+                            <a class="right item" @onclick="async () => await SaveCommentsAsync()"><i class="save icon"></i> Save all comments and scores</a>
+                        </div>
+                        <table class="ui padded table bottom attached">
+                            <thead>
+                                <tr>
+                                    <th class="two wide">User</th>
+                                    <th class="four wide">Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+                                {
+                                    <tr>
+                                        <td>
+                                            <p>
+                                                @if (a.Role == LectureUserRole.Teacher)
+                                                {
+                                                    <i class="chess king icon"></i>
+                                                }
+                                                @if (a.Role == LectureUserRole.Student)
+                                                {
+                                                    <i class="chess pawn icon"></i>
+                                                }
+                                                @a.User.Account
+                                            </p>
+                                            <p>@a.User.DisplayName</p>
+                                        </td>
+                                        <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" @bind="comments[i]" placeholder="comment"></textarea></div></div></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            }
+        }
+        else
+        {
+            <ErrorMessageComponent Subject="Error" ErrorMessage="Not found" />
+        }
+    </Authorized>
+</AuthorizeView>
+
+@code{
+
+    [Parameter]
+    public string UserAccount { get; set; }
+    [Parameter]
+    public string LectureName { get; set; }
+    [Parameter]
+    public string Branch { get; set; }
+
+    public IRepositoryPair RepositoryPair { get; set; }
+
+    protected User User { get; set; }
+    protected Lecture Lecture { get; set; }
+
+    protected IEnumerable<string> Files { get; set; }
+
+    protected string[] comments;
+    private string Message = "";
+    private string ErrorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        Notifier.Notify += OnNotify;
+        User = DB.Context.Users.Where(x => x.Account == UserAccount)
+            .Include(x => x.Lectures)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+        Lecture = DB.Context.Lectures
+            .Include(x => x.Owner)
+            .Include(x => x.Sandboxes)
+            .Include(x => x.LectureUsers).ThenInclude(x => x.User)
+            .Where(x => x.Name == LectureName && x.Owner.Account == UserAccount).FirstOrDefault();
+        RepositoryPair = Lecture.LectureSubmissionsRepositoryPair;
+        Files = RepositoryPair.ReadFileList("", Branch);
+
+        comments = new string[Lecture.LectureUsers.Count()];
+        for (int i = 0; i < comments.Length; i++)
+        {
+            comments[i] = $"";
+        }
+        ReadComments();
+    }
+
+    public void ReadComments()
+    {
+        foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+        {
+            var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
+            if (comment_file.Exists)
+            {
+                using (var fs = comment_file.OpenText())
+                {
+                    comments[i] = fs.ReadToEnd().Trim();
+                }
+            }
+        }
+    }
+
+    public async Task SaveCommentsAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var LoginUser = DB.Context.Users.Where(x => x.Account == authState.User.Identity.Name)
+                .Include(x => x.Lectures)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            Console.WriteLine(authState.User.Identity.Name);
+            var time = DateTime.Now;
+            foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+            {
+                var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
+                var score_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
+
+                using (var w = new System.IO.StreamWriter(comment_file.FullName))
+                {
+                    w.Write(comments[i]);
+                }
+                Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[TeachinNote] DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
+                Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
+            }
+            Message = "Comments were saved successfully";
+            ErrorMessage = "";
+        }
+        catch (Exception e)
+        {
+            Message = "";
+            ErrorMessage = e.Message;
+        }
+
+    }
+
+    public async Task OnNotify()
+    {
+        await InvokeAsync(StateHasChanged);
+        Files = RepositoryPair.ReadFileList("", Branch);
+    }
+    public void Dispose()
+    {
+        Notifier.Notify -= OnNotify;
+    }
+
+}
+

@@ -126,8 +126,6 @@
         @try
         {
             var scorings = Lecture.GetScorings().Children;
-            @if (scorings != null && scorings.Count() > 0)
-            {
 
                 <h2 class="ui header">
                     <i class="thumbs up outline icon"></i>
@@ -149,18 +147,26 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var p in scorings)
+                        <tr>
+                            <td>
+                                <a href="/users/@Lecture.Owner.Account/lectures/@Lecture.Name/teaching-note/master/">Teaching Note</a>
+                            </td>
+                            <td></td>
+                        </tr>
+                        @if (scorings != null && scorings.Count() > 0)
                         {
-                            <tr>
-                                <td>
-                                    <a href="/users/@Lecture.Owner.Account/lectures/@Lecture.Name/activities/master/@p.Name">@p.Name</a>
-                                </td>
-                                <td>@p.Description</td>
-                            </tr>
+                            @foreach (var p in scorings)
+                            {
+                                <tr>
+                                    <td>
+                                        <a href="/users/@Lecture.Owner.Account/lectures/@Lecture.Name/activities/master/@p.Name">@p.Name</a>
+                                    </td>
+                                    <td>@p.Description</td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
-            }
         }
         catch (Exception e)
         {

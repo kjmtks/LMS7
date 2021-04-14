@@ -24,6 +24,7 @@ namespace ALMS.App.Models
     {
         [XmlAttribute]
         public string Name { get; set; }
+
         [XmlAttribute]
         public string Description { get; set; }
     }
