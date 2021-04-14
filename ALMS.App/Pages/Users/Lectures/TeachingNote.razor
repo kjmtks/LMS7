@@ -47,7 +47,7 @@
                         <div class="ui menu top attached">
                             <div class="header left item"><i class="pen square icon"></i> Teaching Note</div>
 
-                            <a class="right item" @onclick="async () => await SaveCommentsAsync()"><i class="save icon"></i> Save all comments and scores</a>
+                            <a class="right item" @onclick="async () => await SaveCommentsAsync()"><i class="save icon"></i> Save all comments</a>
                         </div>
                         <table class="ui padded table bottom attached">
                             <thead>
@@ -165,8 +165,10 @@
             foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
             {
                 var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
-                var score_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
-
+                if (!comment_file.Directory.Exists)
+                {
+                    comment_file.Directory.Create();
+                }
                 using (var w = new System.IO.StreamWriter(comment_file.FullName))
                 {
                     w.Write(comments[i]);
