@@ -109,23 +109,18 @@
                                         }
                                         else
                                         {
+                                            var dir = new System.IO.DirectoryInfo($"{action.Lecture.DirectoryPath}/submissions/{action.User.Account}/{action.ActivityName}/");
                                             <td>
                                                 <p><i class="clock outline icon"></i>@action.DateTime.ToString()</p>
-                                                @foreach (var name in GetChildren($"{a.User.Account}/{action.Directory}").Where(x => !(new string[] { "SUBMIT", "SCORE", "COMMENT" }.Contains(x))))
+                                                @if (dir.Exists)
                                                 {
-                                                    var isDir = GetChildren($"{a.User.Account}/{action.Directory}/{name}").Count() > 0;
-                                                    <p>
-                                                        @if (isDir)
-                                                        {
-                                                            <i class="folder outline icon"></i>
-                                                            @name
-                                                        }
-                                                        else
-                                                        {
+                                                    @foreach (var file in dir.GetFiles())
+                                                    {
+                                                        <p>
                                                             <i class="file outline icon"></i>
-                                                            <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.ActivityName/@name">@name</a>
-                                                        }
-                                                    </p>
+                                                            <a target="_blank" href="/lecture/@Lecture.Owner.Account/@Lecture.Name/submissions/@Branch/@a.User.Account/@action.ActivityName/@file.Name">@file.Name</a>
+                                                        </p>
+                                                    }
                                                 }
                                             </td>
 
@@ -334,13 +329,6 @@
         Notifier.Notify -= OnNotify;
     }
 
-    protected IEnumerable<string> GetChildren(string path)
-    {
-        return Files.Where(x => x.Length >= path.Length && x.Substring(0, path.Length) == path)
-            .Where(x => string.IsNullOrWhiteSpace(path) ? true : (!(x.Length >= path.Length + 1) || x[path.Length] == '/'))
-            .Select(x => x.Substring(path.Length).Split("/")?.Where(x => !string.IsNullOrWhiteSpace(x))?.FirstOrDefault())
-            .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct();
-    }
 
     protected string GetSummary(ActivityActionHistory action)
     {
