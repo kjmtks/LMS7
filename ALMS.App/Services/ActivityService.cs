@@ -60,8 +60,13 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
-                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
+                        
+                        if (!fileInfo.Exists)
+                        {
+                            return (false, "Failure to save. Please retry.");
+                        }
+                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        // Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE {fileInfo.FullName}");
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
                         {
@@ -147,8 +152,14 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
-                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
+
+                        if (!fileInfo.Exists)
+                        {
+                            doneCallback(null, false, "Failure to save. Please retry.");
+                            return;
+                        }
+                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        // Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE RUN {fileInfo.FullName}");
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
                         {
@@ -240,14 +251,18 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        // Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
-                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         if (!fileInfo.Exists)
                         {
                             doneCallback(null, false, "Failure to submit. Please retry.");
                             return;
                         }
+                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        // Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE SUBMIT {fileInfo.FullName}");
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                        {
+                            uac2.SetSavedFileInfo(fileInfo);
+                        }
                     }
                 }
 
@@ -337,17 +352,6 @@ namespace ALMS.App.Services
                         }
 
 
-                        // Check certainly submit
-                        //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                        //{
-                        //    var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
-                        //    if (!fileInfo.Exists)
-                        //    {
-                        //        doneCallback(null, false, "Failure to submit. Please retry.");
-                        //        return;
-                        //    }
-                        //}
-
                         if (!string.IsNullOrWhiteSpace(activity.Submit))
                         {
                             var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/SUBMIT");
@@ -390,6 +394,11 @@ namespace ALMS.App.Services
             }
         }
 
+
+
+        
+
+
         public async Task ValidateAsync(Models.Contents.Activity activity, Models.Entities.Lecture lecture, Models.Entities.User user,
                 Action<bool?, bool, string> doneCallback = null)
         {
@@ -430,22 +439,22 @@ namespace ALMS.App.Services
                                 w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
                             }
                         }
-                        //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
-                        Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
+
+                        if (!fileInfo.Exists)
+                        {
+                            doneCallback(null, false, "Failure to save. Please retry.");
+                            return;
+                        }
+                        Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
+                        // Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE VALIDATION {fileInfo.FullName}");
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                        {
+                            uac2.SetSavedFileInfo(fileInfo);
+                        }
                     }
                 }
 
-                // Check certainly saved
-                //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                //{
-                //    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
-                //    if (!fileInfo.Exists)
-                //    {
-                //        doneCallback(null, false, "Failure to save. Please retry.");
-                //        return;
-                //    }
-                //}
                 assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save before Validate\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
                 assign.RepositoryPair.ClonedRepository.Push();
 
