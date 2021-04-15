@@ -242,11 +242,12 @@ namespace ALMS.App.Services
                         }
                         // Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
-                        Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE SUBMIT {fileInfo.FullName}");
-                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                        if (!fileInfo.Exists)
                         {
-                            uac2.SetSavedFileInfo(fileInfo);
+                            doneCallback(null, false, "Failure to submit. Please retry.");
+                            return;
                         }
+                        Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE SUBMIT {fileInfo.FullName}");
                     }
                 }
 
