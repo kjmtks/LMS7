@@ -43,6 +43,7 @@ namespace ALMS.App.Services
 
                     if (activity.GetFileComponents().ContainsKey(f.Name))
                     {
+                        Process.Start("rm", $"-R {fileInfo.FullName}").WaitForExit();
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac)
                         {
                             if (uac.Data != null)
@@ -135,6 +136,7 @@ namespace ALMS.App.Services
 
                     if (activity.GetFileComponents().ContainsKey(f.Name))
                     {
+                        Process.Start("rm", $"-R {fileInfo.FullName}").WaitForExit();
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac)
                         {
                             if (uac.Data != null)
@@ -234,6 +236,7 @@ namespace ALMS.App.Services
 
                     if (activity.GetFileComponents().ContainsKey(f.Name))
                     {
+                        Process.Start("rm", $"-R {fileInfo.FullName}").WaitForExit();
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac)
                         {
                             if (uac.Data != null)
@@ -422,6 +425,7 @@ namespace ALMS.App.Services
 
                     if (activity.GetFileComponents().ContainsKey(f.Name))
                     {
+                        Process.Start("rm", $"-R {fileInfo.FullName}").WaitForExit();
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac)
                         {
                             if (uac.Data != null)
