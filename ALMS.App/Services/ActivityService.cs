@@ -63,6 +63,10 @@ namespace ALMS.App.Services
                         //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE {fileInfo.FullName}");
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                        {
+                            uac2.SetSavedFileInfo(fileInfo);
+                        }
                     }
                 }
 
@@ -146,6 +150,10 @@ namespace ALMS.App.Services
                         //Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE RUN {fileInfo.FullName}");
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                        {
+                            uac2.SetSavedFileInfo(fileInfo);
+                        }
                     }
                 }
 
@@ -223,7 +231,6 @@ namespace ALMS.App.Services
                                 {
                                     w.Write(uac.Data, 0, uac.Data.Length);
                                 }
-                                uac.SetSavedFileInfo(fileInfo);
                             }
                         }
                         else
@@ -236,6 +243,10 @@ namespace ALMS.App.Services
                         // Process.Start("chown", $" {user.Id + 1000}:{user.Id + 1000} {fileInfo.FullName}").WaitForExit();
                         Process.Start("chown", $"-R {user.Id + 1000}:{user.Id + 1000} {user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home").WaitForExit();
                         Console.WriteLine($"DEBUG_LOG: SAVE FILE BEFORE SUBMIT {fileInfo.FullName}");
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                        {
+                            uac2.SetSavedFileInfo(fileInfo);
+                        }
                     }
                 }
 
@@ -258,101 +269,117 @@ namespace ALMS.App.Services
                 var command = $"cd ~/{activity.Directory}; {activity.Submit}";
                 Queue.QueueBackgroundWorkItem(async token =>
                 {
-
-                    if (!string.IsNullOrWhiteSpace(activity.Submit))
+                    try 
                     {
-                        var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox && x.LectureId == lecture.Id).FirstOrDefault();
-                        if (sandbox == null) { doneCallback(null, false, "Not found sandbox"); return; }
-
-                        var sb = new System.Text.StringBuilder();
-                        await sandbox.DoOnSandboxWithCmdAsync(user, command, (stdout) => { sb.AppendLine(stdout); }, null, null, (code) =>
+                        if (!string.IsNullOrWhiteSpace(activity.Submit))
                         {
-                            using (var w = new StreamWriter(submit_file.FullName))
+                            var sandbox = DatabaseService.Context.LectureSandboxes.Where(x => x.Name == activity.Sandbox && x.LectureId == lecture.Id).FirstOrDefault();
+                            if (sandbox == null) { doneCallback(null, false, "Not found sandbox"); return; }
+
+                            var sb = new System.Text.StringBuilder();
+                            await sandbox.DoOnSandboxWithCmdAsync(user, command, (stdout) => { sb.AppendLine(stdout); }, null, null, (code) =>
                             {
-                                w.Write(sb.ToString());
-                            }
-                        });
-                        if (!submit_file.Exists)
-                        {
-                            doneCallback(null, false, "Failure to submit. Please retry.");
-                            return;
-                        }
-
-                        assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save Submit Summary\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                        assign.RepositoryPair.ClonedRepository.Push();
-                    }
-
-
-                    foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                    {
-                        var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
-                        if (!fileInfo.Directory.Exists)
-                        {
-                            fileInfo.Directory.Create();
-                        }
-
-                        if (activity.GetFileComponents().ContainsKey(f.Name))
-                        {
-                            if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac)
-                            {
-                                if (uac.Data != null)
+                                using (var w = new StreamWriter(submit_file.FullName))
                                 {
-                                    using (var w = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
+                                    w.Write(sb.ToString());
+                                }
+                            });
+                            if (!submit_file.Exists)
+                            {
+                                doneCallback(null, false, "Failure to submit. Please retry.");
+                                return;
+                            }
+
+                            assign.RepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Save Submit Summary\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                            assign.RepositoryPair.ClonedRepository.Push();
+                        }
+
+
+                        foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                        {
+                            var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
+                            if (!fileInfo.Directory.Exists)
+                            {
+                                fileInfo.Directory.Create();
+                            }
+
+                            if (activity.GetFileComponents().ContainsKey(f.Name))
+                            {
+                                if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac)
+                                {
+                                    if (uac.Data != null)
                                     {
-                                        w.Write(uac.Data, 0, uac.Data.Length);
+                                        using (var w = new FileStream(fileInfo.FullName, FileMode.Create, FileAccess.Write))
+                                        {
+                                            w.Write(uac.Data, 0, uac.Data.Length);
+                                        }
                                     }
-                                    uac.SetSubmittedFileInfo(fileInfo);
                                 }
-                            }
-                            else
-                            {
-                                using (var w = new StreamWriter(fileInfo.FullName))
+                                else
                                 {
-                                    w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
+                                    using (var w = new StreamWriter(fileInfo.FullName))
+                                    {
+                                        w.Write(await activity.GetFileComponents()[f.Name].GetValueAsync());
+                                    }
                                 }
                             }
+                            Console.WriteLine($"DEBUG_LOG: SAVE FILE OF SUBMISSION {fileInfo.FullName}");
+                            if (!fileInfo.Exists)
+                            {
+                                doneCallback(null, false, "Failure to submit. Please retry.");
+                                return;
+                            }
+                            if (activity.GetFileComponents()[f.Name] is UploadActivityComponent uac2 && uac2.Data != null)
+                            {
+                                uac2.SetSubmittedFileInfo(fileInfo);
+                            }
                         }
-                        Console.WriteLine($"DEBUG_LOG: SAVE FILE OF SUBMISSION {fileInfo.FullName}");
-                    }
 
 
-                    // Check certainly submit
-                    //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
-                    //{
-                    //    var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
-                    //    if (!fileInfo.Exists)
-                    //    {
-                    //        doneCallback(null, false, "Failure to submit. Please retry.");
-                    //        return;
-                    //    }
-                    //}
+                        // Check certainly submit
+                        //foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
+                        //{
+                        //    var fileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
+                        //    if (!fileInfo.Exists)
+                        //    {
+                        //        doneCallback(null, false, "Failure to submit. Please retry.");
+                        //        return;
+                        //    }
+                        //}
 
-                    if (!string.IsNullOrWhiteSpace(activity.Submit))
-                    {
-                        var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/SUBMIT");
-                        var target = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/SUBMIT");
-                        File.Copy(source.FullName, target.FullName, true);
-                        if (!target.Exists)
+                        if (!string.IsNullOrWhiteSpace(activity.Submit))
                         {
-                            doneCallback(null, false, "Failure to submit. Please retry.");
-                            return;
+                            var source = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/SUBMIT");
+                            var target = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/SUBMIT");
+                            File.Copy(source.FullName, target.FullName, true);
+                            if (!target.Exists)
+                            {
+                                doneCallback(null, false, "Failure to submit. Please retry.");
+                                return;
+                            }
                         }
+
+                        lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
+                        lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
+
+                        DatabaseService.Context.ActivityActionHistories.Add(new Models.Entities.ActivityActionHistory()
+                        {
+                            User = user,
+                            Lecture = lecture,
+                            ActivityName = activity.Name,
+                            Directory = activity.Directory,
+                            ActionType = Models.Entities.ActivityActionType.SaveAndSubmit,
+                            DateTime = time
+                        });
+                        DatabaseService.Context.SaveChanges();
+                        doneCallback(null, true, "Files were submitted successfully");
                     }
-
-                    lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{activity.Name}\" Action=\"Submit\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", user.DisplayName, user.EmailAddress);
-                    lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
-
-                    DatabaseService.Context.ActivityActionHistories.Add(new Models.Entities.ActivityActionHistory()
+                    catch
                     {
-                        User = user,
-                        Lecture = lecture,
-                        ActivityName = activity.Name,
-                        Directory = activity.Directory,
-                        ActionType = Models.Entities.ActivityActionType.SaveAndSubmit,
-                        DateTime = time
-                    });
-                    DatabaseService.Context.SaveChanges();
-                    doneCallback(null, true, "Files were submitted successfully");
+                        doneCallback(null, false, "Failure to submit. Please retry.");
+                        return;
+                    }
+                    
 
                 }, user.IsTeacher(lecture));
             }
