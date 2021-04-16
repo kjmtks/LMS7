@@ -107,6 +107,10 @@ namespace ALMS.App.Components.Admin
                 return;
             }
             if (model == null) { return; }
+            if (!await JS.InvokeAsync<bool>("confirmDialog", new[] { "Are you sure?" }))
+            {
+                return;
+            }
             var m = model.GetEntityForEditOrRemove(DB.Context, Config);
             if (m == null)
             {
