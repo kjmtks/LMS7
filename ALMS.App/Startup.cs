@@ -66,6 +66,8 @@ namespace ALMS.App
             services.AddScoped<DatabaseService>();
 
             services.AddSingleton<NotifierService>();
+            services.AddSingleton<OnlineStatusService>();
+            
             services.AddScoped<ActivityService>();
 
             services.AddScoped<IFileUploadService, FileUploadService>();

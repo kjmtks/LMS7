@@ -2,6 +2,7 @@
 @using ALMS.App.Components.Utils;
 @using Microsoft.EntityFrameworkCore;
 @inject DatabaseService DB;
+@inject OnlineStatusService OS;
 
 
 <div class="@CssClass">
@@ -19,6 +20,7 @@
         <thead>
             <tr>
                 <th colspan="2">User</th>
+                <th>status</th>
                 <th>&nbsp;</th>
                 <th>Activity</th>
                 <th>Action</th>
@@ -31,6 +33,22 @@
             <tr style="background-color: @ToColorCode(history.DateTime)">
                 <td><a href="users/@history.User.Account">@history.User.Account</a></td>
                 <td><a href="users/@history.User.Account">@history.User.DisplayName</a></td>
+                <td>
+                    @{
+                        var status = OS.GetStatus(history.User.Account);
+                    }
+                    @if (status != null)
+                    {
+                        if (status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
+                        {
+                            <text>ONLINE at @status.PageName</text>
+                        }
+                        else
+                        {
+                            <text>ONLINE (another lecture)</text>
+                        }
+                    }
+                </td>
                 <td>@(history.ActionType == ActivityActionType.Nothing ? "" : ToDiffTime(history.DateTime, DateTime.Now) )</td>
                 <td>@history.ActivityName</td>
                 <td>
