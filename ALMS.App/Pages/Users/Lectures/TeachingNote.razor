@@ -58,7 +58,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+                                @foreach (var a in Lecture.LectureUsers.OrderBy(x => x.User.Account))
                                 {
                                 <tr>
                                     <td>
@@ -75,8 +75,8 @@
                                         </p>
                                         <p>@a.User.DisplayName</p>
                                     </td>
-                                    <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" @bind="comments[i]" placeholder="comment"></textarea></div></div></td>
-                                    <td><a class="ui primary button" @onclick="async () => await SaveCommentAsync(i)"><i class="save icon"></i></a></td>
+                                    <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" @bind="comments[a.User.Account]" placeholder="comment"></textarea></div></div></td>
+                                    <td><a class="ui primary button" @onclick="async () => await SaveCommentAsync(a.User.Account)">save</a></td>
                                 </tr>
                                 }
                             </tbody>
@@ -109,7 +109,7 @@
 
     protected IEnumerable<string> Files { get; set; }
 
-    protected string[] comments;
+    protected Dictionary<string, string> comments;
     private string Message = "";
     private string ErrorMessage = "";
 
@@ -130,24 +130,24 @@
         RepositoryPair = Lecture.LectureSubmissionsRepositoryPair;
         Files = RepositoryPair.ReadFileList("", Branch);
 
-        comments = new string[Lecture.LectureUsers.Count()];
-        for (int i = 0; i < comments.Length; i++)
+        comments = new Dictionary<string, string>();
+        foreach (var account in Lecture.LectureUsers.Select(x => x.User.Account))
         {
-            comments[i] = $"";
+            comments.Add(account, $"");
         }
         ReadComments();
     }
 
     public void ReadComments()
     {
-        foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+        foreach (var a in Lecture.LectureUsers.OrderBy(x => x.User.Account))
         {
             var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
             if (comment_file.Exists)
             {
                 using (var fs = comment_file.OpenText())
                 {
-                    comments[i] = fs.ReadToEnd().Trim();
+                    comments[a.User.Account] = fs.ReadToEnd().Trim();
                 }
             }
         }
@@ -163,7 +163,7 @@
                 .Include(x => x.Sandboxes)
                 .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
             var time = DateTime.Now;
-            foreach (var (a, i) in Lecture.LectureUsers.OrderBy(x => x.User.Account).Select((a, i) => (a, i)))
+            foreach (var a in Lecture.LectureUsers.OrderBy(x => x.User.Account))
             {
                 var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{a.User.Account}/TEACHING_NOTE");
                 if (!comment_file.Directory.Exists)
@@ -172,7 +172,7 @@
                 }
                 using (var w = new System.IO.StreamWriter(comment_file.FullName))
                 {
-                    w.Write(comments[i]);
+                    w.Write(comments[a.User.Account]);
                 }
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[TeachinNote] DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
@@ -187,7 +187,7 @@
         }
     }
 
-    public async Task SaveCommentAsync(int index)
+    public async Task SaveCommentAsync(string account)
     {
         try
         {
@@ -197,7 +197,7 @@
                 .Include(x => x.Sandboxes)
                 .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
             var time = DateTime.Now;
-            var user = Lecture.LectureUsers.OrderBy(x => x.User.Account).Where((a, i) => index == i).Select(x => x.User).FirstOrDefault();
+            var user = Lecture.LectureUsers.OrderBy(x => x.User.Account).Where(a => a.User.Account == account).Select(x => x.User).FirstOrDefault();
             if(user != null)
             {
                 var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{user.Account}/TEACHING_NOTE");
@@ -207,12 +207,12 @@
                 }
                 using (var w = new System.IO.StreamWriter(comment_file.FullName))
                 {
-                    w.Write(comments[index]);
+                    w.Write(comments[account]);
                 }
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[TeachinNote] DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
             }
-            Message = "Comment was saved successfully";
+            Message = $"Comment for {user.DisplayName} was saved successfully";
             ErrorMessage = "";
         }
         catch (Exception e)

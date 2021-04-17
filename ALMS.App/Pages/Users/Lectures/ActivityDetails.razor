@@ -136,7 +136,7 @@
                                             </td>
                                             <td><div class="ui fluid input massive"><input type="text" class="tt" @bind="scores[a.User.Account]" /></div></td>
                                             <td><div class="ui form"><div class="field"><textarea class="tt" rows="4" @bind="comments[a.User.Account]" placeholder="comment"></textarea></div></div></td>
-                                            <td></td>
+                                            <td><a class="ui primary button" @onclick="async () => await SaveCommentAsync(a.User.Account)">save</a></td>
                                         }
                                     </tr>
                                 }
@@ -317,6 +317,41 @@
             ErrorMessage = e.Message;
         }
 
+    }
+
+    public async Task SaveCommentAsync(string account)
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var LoginUser = DB.Context.Users.Where(x => x.Account == authState.User.Identity.Name)
+                .Include(x => x.Lectures)
+                .Include(x => x.Sandboxes)
+                .Include(x => x.LectureUsers).ThenInclude(x => x.Lecture).FirstOrDefault();
+            var time = DateTime.Now;
+            var user = Lecture.LectureUsers.OrderBy(x => x.User.Account).Where(a => a.User.Account == account).Select(x => x.User).FirstOrDefault();
+            if (user != null)
+            {
+                var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{user.Account}/TEACHING_NOTE");
+                if (!comment_file.Directory.Exists)
+                {
+                    comment_file.Directory.Create();
+                }
+                using (var w = new System.IO.StreamWriter(comment_file.FullName))
+                {
+                    w.Write(comments[account]);
+                }
+                Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[TeachinNote] DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
+                Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
+            }
+            Message = $"Comment for {account} was saved successfully";
+            ErrorMessage = "";
+        }
+        catch (Exception e)
+        {
+            Message = "";
+            ErrorMessage = e.Message;
+        }
     }
 
     public async Task OnNotify()
