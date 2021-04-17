@@ -43,6 +43,7 @@ namespace ALMS.App.Services
             if (status.ContainsKey(user.Account))
             {
                 status.Remove(user.Account);
+                Console.WriteLine("DEBUG: LEAVE -----------------");
                 if (Notify != null)
                 {
                     await Notify.Invoke();
