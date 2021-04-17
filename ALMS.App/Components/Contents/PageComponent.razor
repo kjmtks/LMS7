@@ -1,7 +1,7 @@
 ﻿@inject NavigationManager NM;
 @using Microsoft.JSInterop
 
-@implements IAsyncDisposable
+@implements IDisposable
 @inject OnlineStatusService OS
 
 @if (string.IsNullOrWhiteSpace(ErrorMessage))
@@ -82,9 +82,9 @@ else
         initialized = false;
         await OS.VisitContentPageAsync(Lecture, Path, User);
     }
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        await OS.LeaveContentPageAsync(User);
+        OS.LeaveContentPageAsync(User).Wait();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
