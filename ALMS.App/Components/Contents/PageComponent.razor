@@ -84,7 +84,7 @@ else
     }
     public void Dispose()
     {
-        OS.LeaveContentPageAsync(User).Wait();
+        OS.LeaveContentPageAsync(Lecture, Path, User).Wait();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

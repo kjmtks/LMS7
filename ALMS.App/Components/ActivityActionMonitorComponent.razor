@@ -21,7 +21,7 @@
         <thead>
             <tr>
                 <th colspan="2">User</th>
-                <th>Browsing at</th>
+                <th colspan="2">Browsing at</th>
                 <th>&nbsp;</th>
                 <th>Activity</th>
                 <th>Action</th>
@@ -37,7 +37,7 @@
                     @{
                         var status = OS.GetStatus(history.User.Account);
                     }
-                    @if (status != null)
+                    @if (status != null && status.IsBrowsing)
                     {
                         if (status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
                         {
@@ -55,10 +55,18 @@
                     <a href="users/@history.User.Account">@history.User.DisplayName</a>
                 </td>
                 <td>
-                    @if (status != null && status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
+                    @if (status != null && status.IsBrowsing && status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
                     {
                         <text>
                             @(string.IsNullOrWhiteSpace(status.PageName) ? "/index" : status.PageName)
+                        </text>
+                    }
+                </td>
+                <td>
+                    @if (status != null && status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
+                    {
+                        <text>
+                            @(ToDiffTime(status.UpdatedAt, DateTime.Now))
                         </text>
                     }
                 </td>
