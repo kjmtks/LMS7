@@ -169,7 +169,7 @@
 
     private async Task UpdateOnlineStatus()
     {
-        StateHasChanged();
+        await InvokeAsync(() => { StateHasChanged(); });
     }
 
     protected double Delay
