@@ -344,7 +344,7 @@
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[TeachinNote] DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
             }
-            Message = $"Comment for {account} was saved successfully";
+            Message = $"Comment for {user.DisplayName} was saved successfully";
             ErrorMessage = "";
         }
         catch (Exception e)
