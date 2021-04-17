@@ -332,7 +332,8 @@
             var user = Lecture.LectureUsers.OrderBy(x => x.User.Account).Where(a => a.User.Account == account).Select(x => x.User).FirstOrDefault();
             if (user != null)
             {
-                var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{user.Account}/TEACHING_NOTE");
+                var comment_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{user.Account}/{ActivityName}/COMMENT");
+                var score_file = new System.IO.FileInfo($"{Lecture.DirectoryPath}/submissions/{user.Account}/{ActivityName}/SCORE");
                 if (!comment_file.Directory.Exists)
                 {
                     comment_file.Directory.Create();
@@ -341,7 +342,11 @@
                 {
                     w.Write(comments[account]);
                 }
-                Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[TeachinNote] DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
+                using (var w = new System.IO.StreamWriter(score_file.FullName))
+                {
+                    w.Write(scores[account]);
+                }
+                Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.CommitChanges($"[Activity] Name=\"{ActivityName}\" Action=\"Comment\" DateTime=\"{time.ToString("yyyy-MM-ddTHH:mm:sszzz")}\"", LoginUser.DisplayName, LoginUser.EmailAddress);
                 Lecture.LectureSubmissionsRepositoryPair.ClonedRepository.Push();
             }
             Message = $"Comment for {user.DisplayName} was saved successfully";
