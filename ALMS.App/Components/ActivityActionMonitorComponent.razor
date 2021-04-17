@@ -22,9 +22,9 @@
             <tr>
                 <th colspan="2">User</th>
                 <th colspan="2">Browsing at</th>
-                <th>&nbsp;</th>
                 <th>Activity</th>
                 <th>Action</th>
+                <th>Date time</th>
             </tr>
         </thead>
         <tbody>
@@ -45,7 +45,7 @@
                         }
                         else
                         {
-                            <text><span style="color: sandybrown">●</span></text>
+                            <text><span style="color: gold">●</span></text>
                         }
                     }
                     else
@@ -63,14 +63,13 @@
                     }
                 </td>
                 <td>
-                    @if (status != null && status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
+                    @if (status != null)
                     {
                         <text>
                             @(ToDiffTime(status.UpdatedAt, DateTime.Now))
                         </text>
                     }
                 </td>
-                <td>@(history.ActionType == ActivityActionType.Nothing ? "" : ToDiffTime(history.DateTime, DateTime.Now) )</td>
                 <td>@history.ActivityName</td>
                 <td>
                     @switch (history.ActionType)
@@ -112,6 +111,7 @@
                     }
                     @action
                 </td>
+                <td>@(history.ActionType == ActivityActionType.Nothing ? "" : ToDiffTime(history.DateTime, DateTime.Now) )</td>
             </tr>
             }
         </tbody>
