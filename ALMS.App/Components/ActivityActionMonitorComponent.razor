@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore;
 @inject DatabaseService DB;
 @inject OnlineStatusService OS;
+@implements IDisposable
 
 
 <div class="@CssClass">
@@ -20,7 +21,7 @@
         <thead>
             <tr>
                 <th colspan="2">User</th>
-                <th>status</th>
+                <th>visiting</th>
                 <th>&nbsp;</th>
                 <th>Activity</th>
                 <th>Action</th>
@@ -32,7 +33,6 @@
                 var action = "";
             <tr style="background-color: @ToColorCode(history.DateTime)">
                 <td><a href="users/@history.User.Account">@history.User.Account</a></td>
-                <td><a href="users/@history.User.Account">@history.User.DisplayName</a></td>
                 <td>
                     @{
                         var status = OS.GetStatus(history.User.Account);
@@ -41,12 +41,25 @@
                     {
                         if (status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
                         {
-                            <text>ONLINE at @status.PageName</text>
+                            <text><span style="color: lightgreen">●</span></text>
                         }
                         else
                         {
-                            <text>ONLINE (another lecture)</text>
+                            <text><span style="color: sandybrown">●</span></text>
                         }
+                    }
+                    else
+                    {
+                        <text><span style="color: lightcoral">●</span></text>
+                    }
+                    <a href="users/@history.User.Account">@history.User.DisplayName</a>
+                </td>
+                <td>
+                    @if (status != null && status.Lecture.OwnerId == Lecture.OwnerId && status.Lecture.Name == Lecture.Name)
+                    {
+                        <text>
+                            @(string.IsNullOrWhiteSpace(status.PageName) ? "/index" : status.PageName)
+                        </text>
                     }
                 </td>
                 <td>@(history.ActionType == ActivityActionType.Nothing ? "" : ToDiffTime(history.DateTime, DateTime.Now) )</td>
@@ -136,6 +149,8 @@
     {
         base.OnInitialized();
 
+        OS.Notify += UpdateOnlineStatus;
+
         Update();
         Task.Run(() =>
         {
@@ -146,6 +161,15 @@
             };
             timer.Start();
         });
+    }
+    public void Dispose()
+    {
+        OS.Notify -= UpdateOnlineStatus;
+    }
+
+    private async Task UpdateOnlineStatus()
+    {
+        StateHasChanged();
     }
 
     protected double Delay

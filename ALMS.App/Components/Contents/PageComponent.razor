@@ -1,7 +1,7 @@
 ﻿@inject NavigationManager NM;
 @using Microsoft.JSInterop
 
-@implements IDisposable
+@implements IAsyncDisposable
 @inject OnlineStatusService OS
 
 @if (string.IsNullOrWhiteSpace(ErrorMessage))
@@ -76,15 +76,15 @@ else
     protected bool Building;
     protected string progress;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
         initialized = false;
-        OS.VisitContentPage(Lecture, Path, User);
+        await OS.VisitContentPageAsync(Lecture, Path, User);
     }
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        OS.LeaveContentPage(User);
+        await OS.LeaveContentPageAsync(User);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

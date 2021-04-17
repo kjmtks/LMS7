@@ -10,6 +10,8 @@ namespace ALMS.App.Services
     {
         private Dictionary<string, OnlineStatus> status = new Dictionary<string, OnlineStatus>();
 
+        public event Func<Task> Notify;
+
         public OnlineStatus GetStatus(string account)
         {
             if (status.ContainsKey(account))
@@ -19,7 +21,7 @@ namespace ALMS.App.Services
             return null;
         }
 
-        public void VisitContentPage(Lecture lecture, string page_name, User user)
+        public async Task VisitContentPageAsync(Lecture lecture, string page_name, User user)
         {
             var st = new OnlineStatus { Lecture = lecture, PageName = page_name };
             if (status.ContainsKey(user.Account))
@@ -30,13 +32,21 @@ namespace ALMS.App.Services
             {
                 status.Add(user.Account, st);
             }
+            if (Notify != null)
+            {
+                await Notify.Invoke();
+            }
         }
 
-        public void LeaveContentPage(User user)
+        public async Task LeaveContentPageAsync(User user)
         {
             if (status.ContainsKey(user.Account))
             {
                 status.Remove(user.Account);
+                if (Notify != null)
+                {
+                    await Notify.Invoke();
+                }
             }
         }
     }
