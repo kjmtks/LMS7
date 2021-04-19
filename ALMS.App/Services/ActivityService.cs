@@ -516,10 +516,10 @@ namespace ALMS.App.Services
         {
             foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
             {
-                var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
 
                 try
                 {
+                    var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
                     if (fileInfo.Exists && activity.GetFileComponents().ContainsKey(f.Name))
                     {
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent u)
@@ -551,7 +551,7 @@ namespace ALMS.App.Services
                     {
                         if (activity.GetFileComponents()[f.Name] is UploadActivityComponent u)
                         {
-                            u.SetSubmittedFileInfo(fileInfo);
+                            u.SetSubmittedFileInfo(submittedFileInfo);
                         }
                     }
                 }
