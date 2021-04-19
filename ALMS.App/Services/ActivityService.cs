@@ -517,32 +517,47 @@ namespace ALMS.App.Services
             foreach (var f in activity.GetChildRenderFragments().Select(x => x.Item1))
             {
                 var fileInfo = new FileInfo($"{user.DirectoryPath}/lecture_data/{lecture.Owner.Account}/{lecture.Name}/home/{activity.Directory}/{f.Name}");
-                if (fileInfo.Exists && activity.GetFileComponents().ContainsKey(f.Name))
+
+                try
                 {
-                    if (activity.GetFileComponents()[f.Name] is UploadActivityComponent u)
+                    if (fileInfo.Exists && activity.GetFileComponents().ContainsKey(f.Name))
                     {
-                        u.SetSavedFileInfo(fileInfo);
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent u)
+                        {
+                            u.SetSavedFileInfo(fileInfo);
+                        }
+                        else
+                        {
+                            using (var t = new StreamReader(fileInfo.FullName))
+                            {
+                                await activity.GetFileComponents()[f.Name].SetValueAsync(t.ReadToEnd());
+                            }
+                        }
                     }
                     else
                     {
-                        using (var t = new StreamReader(fileInfo.FullName))
-                        {
-                            await activity.GetFileComponents()[f.Name].SetValueAsync(t.ReadToEnd());
-                        }
+                        await activity.GetFileComponents()[f.Name].SetDefaultValueAsync();
                     }
                 }
-                else
+                catch
                 {
                     await activity.GetFileComponents()[f.Name].SetDefaultValueAsync();
                 }
 
-                var submittedFileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
-                if (submittedFileInfo.Exists)
+                try
                 {
-                    if (activity.GetFileComponents()[f.Name] is UploadActivityComponent u)
+                    var submittedFileInfo = new FileInfo($"{lecture.DirectoryPath}/submissions/{user.Account}/{activity.Name}/{f.Name}");
+                    if (submittedFileInfo.Exists)
                     {
-                        u.SetSubmittedFileInfo(fileInfo);
+                        if (activity.GetFileComponents()[f.Name] is UploadActivityComponent u)
+                        {
+                            u.SetSubmittedFileInfo(fileInfo);
+                        }
                     }
+                }
+                catch
+                {
+
                 }
             }
         }
