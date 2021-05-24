@@ -1,5 +1,9 @@
 # LMS7
 
+New version: [https://github.com/kjmtks/hugin-lms](https://github.com/kjmtks/hugin-lms)
+
+
+
 ## Quick start
 
 Install docker and docker-compose.
